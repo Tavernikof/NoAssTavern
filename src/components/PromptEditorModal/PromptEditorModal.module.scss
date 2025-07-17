@@ -1,0 +1,42 @@
+.container {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.aside {
+  position: sticky;
+  top: 0;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer {
+  margin: -8px;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+.footerInner {
+  margin-top: 24px;
+  padding: 8px;
+  border-top: 1px solid var(--white20a);
+  background: var(--SmartThemeChatTintColor);
+  border-radius: 0 0 6px 6px;
+}
+
+.save {
+  display: block;
+  width: 300px;
+  margin: 0 auto;
+}

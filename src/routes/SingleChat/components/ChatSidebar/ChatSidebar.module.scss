@@ -1,0 +1,52 @@
+.container {
+  height: 100%;
+  border-right: 1px solid var(--white20a);
+  width: 300px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  @include overflow-scroll();
+}
+
+.back {
+  position: static;
+  top: 0;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border-bottom: 1px solid var(--white20a);
+  padding: 0 12px;
+
+  &:hover {
+    background: var(--white10a);
+  }
+
+  &:active {
+    background: var(--white20a);
+  }
+}
+
+.actions {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button {
+  flex: 1;
+}
+
+.footer {
+  padding: 8px;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  background: var(--chat-message-background);
+}

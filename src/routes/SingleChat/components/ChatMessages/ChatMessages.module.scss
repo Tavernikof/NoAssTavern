@@ -1,0 +1,14 @@
+.container {
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  //@include overflow-scroll();
+}
+
+.content {
+  margin: 0 auto;
+  max-width: 848px;
+  display: flex;
+  flex-direction: column-reverse;
+  min-height: 100%;
+}

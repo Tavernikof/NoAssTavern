@@ -1,0 +1,27 @@
+body, html, #root {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+html {
+  font-family: 'Manrope VF', sans-serif;
+  -webkit-font-smoothing: subpixel-antialiased;
+
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+body {
+  overflow-x: hidden;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  background: var(--SmartThemeChatTintColor);
+  color: var(--SmartThemeBodyColor);
+}
+
+[contenteditable]:focus {
+  outline: none;
+}

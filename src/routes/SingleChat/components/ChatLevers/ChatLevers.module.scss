@@ -1,0 +1,25 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.head {
+  padding: 0 24px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--white50a);
+  flex: 1;
+}

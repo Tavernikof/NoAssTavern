@@ -1,0 +1,44 @@
+.container {
+  position: fixed;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(1vh * 100);
+  height: calc(var(--vh, 1vh) * 100);
+  z-index: $modal-z-index;
+  display: flex;
+  flex-direction: column;
+  &:focus {
+    outline: 0;
+  }
+}
+
+.backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: all .1s ease-out;
+
+  &:focus {
+    outline: 0;
+  }
+}
+
+.wrapper {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.backdropActive {
+  background: rgba(0, 0, 0, 0.5);
+}

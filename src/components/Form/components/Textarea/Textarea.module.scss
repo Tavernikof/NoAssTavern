@@ -1,0 +1,28 @@
+.textarea {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  padding: 8px 12px;
+  height: 36px;
+  border: 1px solid var(--white30a);
+  border-radius: 6px;
+  flex: 1;
+  line-height: 1.45;
+
+  &[readonly], &[disabled] {
+    background-color: var(--grey5020a);
+    border-color: var(--grey5050a);
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: 0;
+    border-color: var(--white50a);
+  }
+}
+
+.autoHeight {
+  resize: none;
+}

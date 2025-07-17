@@ -1,0 +1,22 @@
+.content {
+  background: var(--grey30);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  margin-left: -3px;
+  z-index: -1;
+
+  &:after {
+    content: '';
+    display: block;
+    background: var(--grey30);
+    width: 100%;
+    height: 100%;
+    transform: rotate(45deg);
+  }
+}

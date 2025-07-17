@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.label {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 12px;
+  margin-right: auto;
+  color: var(--white70a);
+}

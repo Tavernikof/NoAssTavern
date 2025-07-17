@@ -1,0 +1,27 @@
+.container {
+  --code-editor-block-color: var(--SmartThemeQuoteColor);
+  --code-editor-depth-inside-block: 1;
+  position: relative;
+  padding-left: 8px;
+  margin: 8px 0;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 17px;
+    bottom: -3px;
+    left: calc(var(--code-editor-line-counter-width) + 5px);
+    width: 8px;
+    border: 2px solid var(--code-editor-block-color);
+    border-right: 0;
+  }
+}
+
+.head {
+  padding-left: calc(var(--code-editor-line-counter-width) + 8px);
+  padding-right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}

@@ -1,0 +1,22 @@
+$modal-z-index: 3;
+$context-menu-z-index: 4;
+
+@mixin overflow-scroll() {
+  overflow: auto;
+  overscroll-behavior: contain;
+  //scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  //touch-action: pan-y;
+}
+
+@mixin anim($duration: .2s) {
+  transition: all $duration ease-out;
+}
+
+@mixin monoFont() {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@mixin active-focus() {
+  box-shadow: 0 0 0 4px var(--SmartThemeUnderlineColor);
+}

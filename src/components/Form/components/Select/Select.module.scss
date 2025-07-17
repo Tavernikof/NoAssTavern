@@ -1,0 +1,101 @@
+.clearIndicator {
+}
+
+.container {
+}
+
+.control {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 12px;
+  min-height: 36px;
+  border: 1px solid var(--white30a);
+  border-radius: 6px;
+}
+
+.dropdownIndicator {
+}
+
+.group {
+}
+
+.groupHeading {
+}
+
+.indicatorsContainer {
+}
+
+.indicatorSeparator {
+}
+
+.input {
+}
+
+.loadingIndicator {
+}
+
+.loadingMessage {
+}
+
+.menu {
+  margin-top: 8px;
+  border: 1px solid var(--white20a);
+  border-radius: 6px;
+  background: var(--SmartThemeChatTintColor);
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 4px 11px;
+}
+
+.menuList {
+}
+
+.menuPortal {
+  min-width: 300px;
+  z-index: $context-menu-z-index !important;
+
+  :global(.development) & {
+    transform: translateY(var(--app-body-top));
+  }
+}
+
+.multiValue {
+  border: 1px solid var(--white20a);
+  border-radius: 4px;
+  padding: 2px 3px;
+}
+
+.multiValueLabel {
+}
+
+.multiValueRemove {
+  flex-shrink: 0;
+}
+
+.noOptionsMessage {
+}
+
+.option {
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+.optionFocused {
+  background: var(--white10a);
+}
+
+.optionSelected {
+  background: var(--white20a);
+
+}
+
+.placeholder {
+  display: block;
+}
+
+.singleValue {
+}
+
+.valueContainer {
+  gap: 4px;
+  padding: 6px 0;
+}

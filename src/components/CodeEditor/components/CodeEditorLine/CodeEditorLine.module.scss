@@ -1,0 +1,18 @@
+.line {
+  margin-left: var(--code-editor-line-counter-width);
+  padding: 2px 8px;
+  position: relative;
+  counter-increment: linenumber;
+
+  &:before {
+    content: counter(linenumber);
+    white-space: nowrap;
+    text-align: right;
+    position: absolute;
+    top: 2px;
+    right: calc(100% + var(--code-editor-depth-inside-block, 0) * 8px);
+    width: var(--code-editor-line-counter-width);
+    padding: 0 8px 0 0;
+    color: var(--white20a);
+  }
+}

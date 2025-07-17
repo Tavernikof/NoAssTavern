@@ -1,0 +1,57 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  appearance: none;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+
+  gap: 8px;
+  border: 1px solid var(--white20a);
+  border-radius: 6px;
+  line-height: 1.25;
+  padding: 6px 16px;
+  min-height: 36px;
+  @include anim(.15s);
+
+  &:not(:disabled) {
+    &:hover {
+      border-color: var(--white30a);
+    }
+
+    &:active {
+      border-color: var(--white50a);
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.block {
+  width: 100%;
+}
+
+.small {
+  min-height: 28px;
+  padding: 0px 8px;
+}
+
+.noChildren {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+}

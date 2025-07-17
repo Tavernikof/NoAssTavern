@@ -1,0 +1,33 @@
+.container {
+  height: 100%;
+  border-right: 1px solid var(--white20a);
+  width: 200px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.title {
+  display: block;
+  font-size: 1.5em;
+  text-align: center;
+  font-weight: 500;
+  padding: 12px 0;
+}
+
+.item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+
+  &:hover, &.itemActive {
+    background: var(--white10a);
+  }
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 12px;
+}

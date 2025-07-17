@@ -1,0 +1,26 @@
+.row {
+  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.content {
+  white-space: pre-line;
+  max-width: 500px;
+}
+
+.no {
+  font-style: italic;
+}
+
+.info {
+  flex-shrink: 0;
+  color: var(--white50a);
+  margin-right: 8px;
+}

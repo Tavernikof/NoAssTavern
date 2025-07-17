@@ -1,0 +1,12 @@
+.avatar {
+  display: block;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+}
+
+.placeholder {
+  background: var(--avatar-color);
+}

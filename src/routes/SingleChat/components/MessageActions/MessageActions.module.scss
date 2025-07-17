@@ -1,0 +1,65 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 8px;
+  position: sticky;
+  bottom: 0;
+  background: var(--chat-message-background);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+}
+
+.right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionSubmit {
+  display: none;
+}
+
+.role {
+  margin-right: 16px;
+}
+
+.roleIcon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  opacity: .5;
+}
+
+.meta {
+  font-size: 10px;
+  color: var(--white50a);
+}
+
+.swipe {
+  font-size: 10px;
+  opacity: .5;
+  text-align: center;
+  color: var(--SmartThemeBodyColor);
+
+  div:first-child {
+    &:after {
+      content: '';
+      display: block;
+      width: 8px;
+      margin: 0 auto;
+      height: 1px;
+      background: var(--SmartThemeBodyColor);
+    }
+  }
+}
+
+.delete {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

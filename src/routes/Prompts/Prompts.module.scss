@@ -1,0 +1,12 @@
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.actions {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

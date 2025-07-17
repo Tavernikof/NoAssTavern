@@ -1,0 +1,13 @@
+.footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--SmartThemeChatTintColor);
+  padding-top: 12px;
+}
+
+.note {
+  margin-top: 4px;
+  color: var(--white70a);
+  font-size: 12px;
+  font-style: italic;
+}

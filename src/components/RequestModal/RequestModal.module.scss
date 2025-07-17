@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.block {
+  margin-bottom: 10px;
+  border: 1px solid var(--white20a);
+  border-radius: 6px;
+  width: 100%;
+}
+
+.head {
+  padding: 6px;
+  border-bottom: 1px solid var(--white20a);
+}
+
+.content {
+  padding: 6px;
+  white-space: break-spaces;
+  line-height: 1.45;
+}
+
+.info {
+  white-space: break-spaces;
+}

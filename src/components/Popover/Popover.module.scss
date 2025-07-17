@@ -1,0 +1,86 @@
+.backdrop {
+  position: fixed;
+  overflow: auto;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.dropdown {
+  z-index: 1;
+}
+
+.dropdownInner {
+  transition-property: opacity, transform;
+
+
+  &[data-status='open'],
+  &[data-status='close'] {
+    transition-duration: 150ms;
+  }
+
+  &[data-status='initial'],
+  &[data-status='close'] {
+    opacity: 0;
+  }
+
+  &[data-placement^='top'] {
+    transform-origin: var(--popover-arrow-x, 50%) 100%;
+
+    .arrow {
+      top: 100%;
+    }
+  }
+
+  &[data-placement^='bottom'] {
+    transform-origin: var(--popover-arrow-x, 50%) 0;
+
+    .arrow {
+      bottom: 100%;
+    }
+  }
+
+  &[data-placement^='right'] {
+    transform-origin: 0 var(--popover-arrow-y, 50%);
+
+    .arrow {
+      right: 100%;
+    }
+  }
+
+  &[data-placement^='left'] {
+    transform-origin: 100% var(--popover-arrow-y, 50%);
+
+    .arrow {
+      left: 100%;
+    }
+  }
+
+  &[data-status='initial'][data-placement^='top'],
+  &[data-status='close'][data-placement^='top'] {
+    transform: scale(.9) translateY(5px);
+  }
+
+  &[data-status='initial'][data-placement^='bottom'],
+  &[data-status='close'][data-placement^='bottom'] {
+    transform: scale(.9) translateY(-5px);
+  }
+
+  &[data-status='initial'][data-placement^='left'],
+  &[data-status='close'][data-placement^='left'] {
+    transform: scale(.9) translateX(5px);
+  }
+
+  &[data-status='initial'][data-placement^='right'],
+  &[data-status='close'][data-placement^='right'] {
+    transform: scale(.9) translateX(-5px);
+  }
+}
+
+.arrow {
+  position: absolute;
+  top: var(--popover-arrow-y, 0);
+  left: var(--popover-arrow-x, 0);
+}

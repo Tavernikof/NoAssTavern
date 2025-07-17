@@ -1,0 +1,38 @@
+.action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  padding: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--SmartThemeBodyColor);
+  cursor: pointer;
+  opacity: .5;
+
+  &:hover {
+    opacity: .9;
+  }
+
+  &:active {
+    opacity: 1;
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+.actionActive {
+  &:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    width: 16px;
+    height: 1px;
+    background: var(--SmartThemeBodyColor);;
+  }
+}

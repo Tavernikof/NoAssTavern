@@ -1,0 +1,15 @@
+:global(.modal-active) {
+  & body {
+    padding-right: var(--app-sidebar-width, 0);
+    top: calc(var(--app-body-top, 0) * -1);
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    //height: 100vh;
+  }
+
+  & :global(#popups) {
+    position: absolute;
+    top: var(--app-body-top, 0);
+  }
+}

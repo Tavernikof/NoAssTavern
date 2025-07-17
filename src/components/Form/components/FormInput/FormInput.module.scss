@@ -1,0 +1,20 @@
+.container {
+  display: block;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  padding-left: 4px;
+  margin-bottom: 4px;
+  color: var(--white70a);
+}
+
+.action {
+  margin-left: auto;
+}

@@ -1,0 +1,59 @@
+.test {
+  display: block;
+}
+:root {
+  --SmartThemeBodyColor: rgba(220, 220, 210, 1);
+  --SmartThemeCheckboxBgColorR: 220;
+  --SmartThemeCheckboxBgColorG: 220;
+  --SmartThemeCheckboxBgColorB: 210;
+  --SmartThemeCheckboxBgColorA: 1;
+  --SmartThemeEmColor: rgba(145, 145, 145, 1);
+  --SmartThemeUnderlineColor: rgba(188, 231, 207, 1);
+  --SmartThemeQuoteColor: rgba(225, 138, 36, 1);
+  --SmartThemeBlurTintColor: rgba(23, 23, 23, 1);
+  --SmartThemeChatTintColor: rgba(23, 23, 23, 1);
+  --SmartThemeUserMesBlurTintColor: rgba(30, 30, 30, 0.9);
+  --SmartThemeBotMesBlurTintColor: rgba(30, 30, 30, 0.9);
+  --SmartThemeShadowColor: rgba(0, 0, 0, 1);
+  --SmartThemeBorderColor: rgba(0, 0, 0, 1);
+
+  --transparent: rgba(0, 0, 0, 0);
+
+  --black30a: rgba(0, 0, 0, 0.3);
+  --black50a: rgba(0, 0, 0, 0.5);
+  --black60a: rgba(0, 0, 0, 0.6);
+  --black70a: rgba(0, 0, 0, 0.7);
+  --black90a: rgba(0, 0, 0, 0.9);
+  --black100: rgba(0, 0, 0, 1);
+
+  --white10a: rgba(255, 255, 255, 0.1);
+  --white20a: rgba(255, 255, 255, 0.2);
+  --white30a: rgba(255, 255, 255, 0.3);
+  --white50a: rgba(255, 255, 255, 0.5);
+  --white60a: rgba(255, 255, 255, 0.6);
+  --white70a: rgba(255, 255, 255, 0.7);
+  --white100: rgba(255, 255, 255, 1);
+
+  --grey10: rgb(25, 25, 25);
+  --grey30: rgb(75, 75, 75);
+  --grey50: rgb(125, 125, 125);
+  --grey5020a: rgba(125, 125, 125, 0.2);
+  --grey5050a: rgba(125, 125, 125, 0.5);
+  --grey70: rgb(175, 175, 175);
+  --grey75: rgb(190, 190, 190);
+
+  --grey30a: rgba(50, 50, 50, 0.3);
+  --grey7070a: rgba(175, 175, 175, 0.7);
+
+  --fullred: rgba(255, 0, 0, 1);
+  --crimson70a: rgba(100, 0, 0, 0.7);
+  --crimson-hover: rgba(150, 50, 50, 0.5);
+  --okGreen70a: rgba(0, 100, 0, 0.7);
+  --cobalt30a: rgba(100, 100, 255, 0.3);
+  --greyCAIbg: rgb(36, 36, 37);
+  --ivory: rgb(220, 220, 210);
+  --golden: rgb(248, 211, 0);
+  --warning: rgba(255, 0, 0, 0.9);
+  --active: rgb(88, 182, 0);
+  --preferred: rgb(244, 67, 54);
+}

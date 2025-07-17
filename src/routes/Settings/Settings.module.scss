@@ -1,0 +1,15 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.actions {
+  margin-bottom: 15px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}

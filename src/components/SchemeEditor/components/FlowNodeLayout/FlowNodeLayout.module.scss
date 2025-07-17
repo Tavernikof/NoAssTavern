@@ -1,0 +1,21 @@
+.container {
+  border-radius: var(--xy-node-border-radius, var(--xy-node-border-radius-default));
+  color: var(--xy-node-color, var(--xy-node-color-default));
+  border: var(--xy-node-border, var(--xy-node-border-default));
+  background-color: var(--xy-node-background-color, var(--xy-node-background-color-default));
+  text-align: left;
+  min-width: 200px;
+}
+
+.title {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-bottom: var(--xy-node-border, var(--xy-node-border-default));
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 12px;
+}

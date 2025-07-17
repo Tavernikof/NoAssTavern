@@ -1,0 +1,12 @@
+.container {
+  color: var(--xy-node-color, var(--xy-node-color-default));
+  border: var(--xy-node-border, var(--xy-node-border-default));
+  background-color: var(--xy-node-background-color, var(--xy-node-background-color-default));
+  text-align: left;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

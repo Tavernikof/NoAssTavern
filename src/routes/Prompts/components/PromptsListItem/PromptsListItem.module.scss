@@ -1,0 +1,55 @@
+.container {
+  position: relative;
+  display: flex;
+  border-radius: 6px;
+  padding: 20px 24px;
+  align-items: center;
+}
+
+.buttonOverlay {
+  border: 1px solid var(--white20a);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  z-index: 1;
+  &:hover {
+    border-color: var(--white30a);
+  }
+
+  &:active {
+    border-color: var(--white50a);
+  }
+}
+
+
+.persona {
+  font-size: 14px;
+  color: var(--white70a);
+
+}
+
+.aside {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.note {
+  font-size: 12px;
+  margin-bottom: 4px;
+  opacity: .75;
+}
