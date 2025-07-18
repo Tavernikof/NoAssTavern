@@ -3,8 +3,6 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
-console.log(process.env);
-
 // https://vite.dev/config/
 export default defineConfig({
   base: "",

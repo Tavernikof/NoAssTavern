@@ -3,6 +3,8 @@ import _isObjectLike from "lodash/isObjectLike";
 import { AxiosError } from "axios";
 
 export abstract class BaseBackendProvider {
+  abstract documentationLink: string;
+
   abstract generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse>
 
   abstract getModelsOptions(connectionProxy?: ConnectionProxy): Promise<BackendProviderGetModelsResponse>

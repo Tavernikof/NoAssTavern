@@ -43,6 +43,8 @@ const PromptEditorModal: React.FC<Props> = (props) => {
         connectionProxy: prompt.connectionProxyId
           ? connectionProxiesManager.selectOptions.find(option => option.value === prompt.connectionProxyId)
           : undefined,
+
+
         stream: prompt.generationConfig.stream,
         temperature: modelToForm(prompt.generationConfig.temperature),
         stopSequences: modelToForm(prompt.generationConfig.stopSequences),

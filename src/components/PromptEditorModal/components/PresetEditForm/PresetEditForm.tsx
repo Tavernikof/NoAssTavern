@@ -20,14 +20,18 @@ import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { SelectOption } from "src/helpers/createDictionary.ts";
 
-const fields = [
-  "temperature",
-  "stopSequences",
-  "maxOutputTokens",
-  "topP",
-  "topK",
-  "presencePenalty",
-  "frequencyPenalty",
+type PresetFieldConfig = { name: string, label: string, type: "input" | "checkbox" };
+
+const fields: PresetFieldConfig[] = [
+  { name: "stream", label: "Stream", type: "checkbox" },
+  { name: "temperature", label: "temperature", type: "input" },
+  { name: "stopSequences", label: "stopSequences", type: "input" },
+  { name: "clientOnlyStop", label: "Client-only stop string", type: "checkbox" },
+  { name: "maxOutputTokens", label: "maxOutputTokens", type: "input" },
+  { name: "topP", label: "topP", type: "input" },
+  { name: "topK", label: "topK", type: "input" },
+  { name: "presencePenalty", label: "presencePenalty", type: "input" },
+  { name: "frequencyPenalty", label: "frequencyPenalty", type: "input" },
 ];
 
 type Props = Record<string, never>;
@@ -101,21 +105,29 @@ const PresetEditForm: React.FC<Props> = () => {
 
       <hr className={style.separator} />
 
-      <CheckboxControlled name="stream" label="Stream" />
-
-      {fields.map((field) => (
-        <FormInput key={field} label={`${field}:`} name={field}>
-          <InputControlled name={field} />
-        </FormInput>
+      {fields.map(({ name, label, type }) => (
+        <React.Fragment key={name}>
+          {type === "checkbox" && <CheckboxControlled name={name} label={label} />}
+          {type === "input" && (
+            <FormInput label={`${label}:`} name={name}>
+              <InputControlled name={name} />
+            </FormInput>
+          )}
+        </React.Fragment>
       ))}
       <FormInput label={`systemPrompt:`} name="systemPrompt">
         <TextareaControlled name="systemPrompt" autoHeight />
       </FormInput>
 
-      {/*<a href="https://ai.google.dev/api/generate-content" target="_blank">*/}
-      {/*  Full documentation{" "}*/}
-      {/*  <ExternalLink size={16} />*/}
-      {/*</a>*/}
+      {backendProvider?.documentationLink && (
+        <>
+          <hr className={style.separator} />
+          <a href={backendProvider.documentationLink} target="_blank">
+            Full documentation{" "}
+            <ExternalLink size={16} />
+          </a>
+        </>
+      )}
     </>
   );
 };

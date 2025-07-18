@@ -207,6 +207,12 @@ export const createSeeds = async () => {
               "name": "🟢 Formatting Fix (0325)",
               "content": "`System:` {Strictly adhere to formatting rules! \\<basic_rules\\> must be followed with no exceptions. There must be no paragraphs without prefixes: each one *must be* predicted with some `Name:` prefix. Keep in mind that you mark your turns this way, so the prefixes must be presented.}",
             },
+
+          ],
+        },
+        {
+          "role": "user",
+          "content": [
             {
               "active": false,
               "name": "↓↓ Progression Modes ↓↓",
@@ -227,7 +233,7 @@ export const createSeeds = async () => {
               "name": "3️⃣ Fast Progression",
               "content": "`{{user}}:` [Please continue. Go all out with rapid story progression, use transitions and timeskips frequently. Introduce shorter turns, avoiding long texts, and minimizing the turn's time span. Interactions and dialogue must be more dynamic.]",
             },
-          ],
+          ]
         },
         {
           "role": "assistant",

@@ -82,6 +82,8 @@ type ResponseParser = (onData: (data: ResponseParserMessage) => void) => (text: 
 // ============================================================================
 
 class GeminiProvider extends BaseBackendProvider {
+  documentationLink = "https://ai.google.dev/api/generate-content#method:-models.generatecontent";
+
   async generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse> {
     const {
       baseUrl = BASE_URL,

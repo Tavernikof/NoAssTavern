@@ -118,6 +118,8 @@ type ResponseParser = (onData: (data: ResponseParserMessage) => void, onDone: ()
 // ============================================================================
 
 class OpenaiProvider extends BaseBackendProvider {
+  documentationLink = "https://platform.openai.com/docs/api-reference/chat";
+
   async generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse> {
     const {
       baseUrl = BASE_URL,

@@ -52,6 +52,8 @@ type ClaudeModelsResponse = {
 // ============================================================================
 
 class ClaudeProvider extends BaseBackendProvider {
+  documentationLink = "https://docs.anthropic.com/en/api/messages";
+
   async generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse> {
     const {
       baseUrl = BASE_URL,
