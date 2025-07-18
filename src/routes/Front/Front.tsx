@@ -7,7 +7,7 @@ const Front: React.FC<Props> = (props) => {
   const {} = props;
 
   return (
-    <div>Front</div>
+    <div></div>
   );
 };
 
