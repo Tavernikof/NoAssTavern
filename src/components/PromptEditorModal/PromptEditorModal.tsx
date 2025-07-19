@@ -13,14 +13,8 @@ import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { Prompt } from "src/store/Prompt.ts";
 import PromptEditorAddBlock
   from "src/components/PromptEditorModal/components/PromptEditorAddBlock/PromptEditorAddBlock.tsx";
-
-const modelToForm = (v: unknown) => typeof v === "undefined" ? "" : String(v);
-
-const formToModelNumber = (v: string) => v ? Number(v) : undefined;
-
-const formToModelString = (v: string) => v ? v : undefined;
-
-const formToModelArray = (v: string) => v ? v.split(",") : undefined;
+import PromptEditorBackendWatcher from "./components/PromptEditorBackendWatcher";
+import { modelToPrompt } from "src/components/PromptEditorModal/helpers/promptEditorConverter.ts";
 
 type Props = {
   prompt: Prompt,
@@ -36,41 +30,25 @@ const PromptEditorModal: React.FC<Props> = (props) => {
       initialValue={React.useMemo(() => ({
         name: prompt.name,
         backendProviderId: backendProviderDict.selectOptions.find(o => o.value === prompt.backendProviderId),
-        model: prompt.generationConfig.model ? {
-          value: prompt.generationConfig.model,
-          label: prompt.generationConfig.model,
-        } : undefined,
+        model: prompt.model ? { value: prompt.model, label: prompt.model } : undefined,
         connectionProxy: prompt.connectionProxyId
           ? connectionProxiesManager.selectOptions.find(option => option.value === prompt.connectionProxyId)
           : undefined,
-
-
-        stream: prompt.generationConfig.stream,
-        temperature: modelToForm(prompt.generationConfig.temperature),
-        stopSequences: modelToForm(prompt.generationConfig.stopSequences),
-        maxOutputTokens: modelToForm(prompt.generationConfig.maxOutputTokens),
-        topP: modelToForm(prompt.generationConfig.topP),
-        topK: modelToForm(prompt.generationConfig.topK),
-        presencePenalty: modelToForm(prompt.generationConfig.presencePenalty),
-        frequencyPenalty: modelToForm(prompt.generationConfig.frequencyPenalty),
-        systemPrompt: modelToForm(prompt.generationConfig.systemPrompt),
       }), [prompt])}
       onSubmit={data => {
+        const backendProviderId = data.backendProviderId?.value;
+        if(!backendProviderId) return;
+        const backendProvider = backendProviderDict.getById(backendProviderId);
+        if (!backendProvider) return;
+
         prompt.update({
           name: data.name,
           backendProviderId: data.backendProviderId?.value,
           connectionProxyId: data.connectionProxy?.value ?? null,
+          model: data.model?.value,
           generationConfig: {
-            model: data.model?.value,
-            stream: data.stream,
-            temperature: formToModelNumber(data.temperature),
-            stopSequences: formToModelArray(data.stopSequences),
-            maxOutputTokens: formToModelNumber(data.maxOutputTokens),
-            topP: formToModelNumber(data.topP),
-            topK: formToModelNumber(data.topK),
-            presencePenalty: formToModelNumber(data.presencePenalty),
-            frequencyPenalty: formToModelNumber(data.frequencyPenalty),
-            systemPrompt: formToModelString(data.systemPrompt),
+            ...prompt.generationConfig,
+            ...modelToPrompt(backendProvider, prompt, data),
           },
           blocks: controller.getContent(),
         });
@@ -96,6 +74,7 @@ const PromptEditorModal: React.FC<Props> = (props) => {
             </div>
           </div>
         </div>
+        <PromptEditorBackendWatcher />
       </PresetEditorControllerContext.Provider>
     </Form>
   );

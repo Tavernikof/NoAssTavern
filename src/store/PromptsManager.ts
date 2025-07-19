@@ -16,6 +16,13 @@ class PromptsManager {
       const dict: Record<string, Prompt> = {};
       data.forEach(item => {
         list.push(item.id);
+
+        const generationConfig = item.generationConfig as any;
+        if (generationConfig.model) {
+          item.model = generationConfig.model;
+          delete generationConfig.model;
+        }
+
         dict[item.id] = new Prompt(item);
       });
       this.prompts = list;

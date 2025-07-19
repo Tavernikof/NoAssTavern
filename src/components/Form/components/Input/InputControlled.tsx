@@ -9,7 +9,7 @@ type Props = {
 const InputControlled: React.FC<Props> = (props) => {
   const { name, ...inputProps } = props;
   const { field } = useController({ name });
-  return <Input {...inputProps} {...field} />;
+  return <Input {...inputProps} {...field} value={field.value || ""} />;
 };
 
 export default React.memo(InputControlled);

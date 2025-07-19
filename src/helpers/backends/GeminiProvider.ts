@@ -1,13 +1,12 @@
 import { BaseBackendProvider } from "src/helpers/backends/BaseBackendProvider.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import parseJSON from "src/helpers/parseJSON.ts";
-import { JSONParser } from "@streamparser/json";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
+import { PresetFieldType } from "src/enums/PresetFieldType.ts";
 
-const BASE_URL = "https://generativelanguage.googleapis.com";
 const STREAM = "streamGenerateContent";
 const NON_STREAM = "generateContent";
 const GEMINI_SAFETY_SETTINGS = [
@@ -69,44 +68,67 @@ type GeminiRawResponse = {
   "modelVersion": string
 }
 
-type ResponseParserMessage = {
-  message: string,
-  chunk: string,
-  error: string | undefined,
-  inputTokens: number,
-  outputTokens: number
+type GeminiConfig = {
+  stream: boolean;
+  temperature: number;
+  stopSequences: string[];
+  clientOnlyStop: boolean;
+  maxOutputTokens: number;
+  topP: number;
+  topK: number;
+  presencePenalty: number;
+  frequencyPenalty: number;
+  system: number;
 }
-
-type ResponseParser = (onData: (data: ResponseParserMessage) => void) => (text: string) => void;
 
 // ============================================================================
 
 class GeminiProvider extends BaseBackendProvider {
+  baseUrl = "https://generativelanguage.googleapis.com";
   documentationLink = "https://ai.google.dev/api/generate-content#method:-models.generatecontent";
 
-  async generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse> {
+  config: PresetFieldConfig[] = [
+    { name: "stream", label: "Stream", type: PresetFieldType.checkbox },
+    { name: "temperature", label: "temperature", type: PresetFieldType.number },
+    { name: "stopSequences", label: "stopSequences", type: PresetFieldType.stringArray },
+    { name: "clientOnlyStop", label: "Client-only stop string", type: PresetFieldType.checkbox },
+    { name: "maxOutputTokens", label: "maxOutputTokens", type: PresetFieldType.number },
+    { name: "topP", label: "topP", type: PresetFieldType.number },
+    { name: "topK", label: "topK", type: PresetFieldType.number },
+    { name: "presencePenalty", label: "presencePenalty", type: PresetFieldType.number },
+    { name: "frequencyPenalty", label: "frequencyPenalty", type: PresetFieldType.number },
+    { name: "system", label: "System instruction", type: PresetFieldType.textarea },
+  ];
+
+  async generate(config: BackendProviderGenerateConfig<GeminiConfig>): Promise<BackendProviderGenerateResponse> {
     const {
-      baseUrl = BASE_URL,
-      key = globalSettings.geminiKey,
+      messageController,
       model,
-      stream,
+      baseUrl = this.baseUrl,
+      key = globalSettings.geminiKey,
       messages,
-      stopSequences,
-      system,
-      maxTokens,
-      temperature,
-      topP,
-      topK,
-      candidateCount = 1,
-      presencePenalty,
-      frequencyPenalty,
       onUpdate,
       abortController,
+
+      generationConfig: {
+        stream,
+        temperature,
+        stopSequences,
+        clientOnlyStop,
+        maxOutputTokens,
+        topP,
+        topK,
+        presencePenalty,
+        frequencyPenalty,
+        system,
+      },
     } = config;
 
     const safetySettings = model.includes("gemini-2.0-flash-exp")
       ? GEMINI_SAFETY_SETTINGS.map(setting => ({ ...setting, threshold: "OFF" }))
       : GEMINI_SAFETY_SETTINGS;
+
+    const stop = this.prepareStop(stopSequences, messageController);
 
     const requestBody = {
       contents: messages.map(block => ({
@@ -115,9 +137,9 @@ class GeminiProvider extends BaseBackendProvider {
       })),
       systemInstruction: system ? { parts: { text: system } } : undefined,
       generationConfig: {
-        stopSequences: Array.isArray(stopSequences) && stopSequences.length ? stopSequences : undefined,
-        candidateCount,
-        maxOutputTokens: maxTokens,
+        stopSequences: stream && clientOnlyStop ? undefined : stop,
+        candidateCount: 1,
+        maxOutputTokens: maxOutputTokens,
         temperature,
         topP,
         topK,
@@ -128,7 +150,7 @@ class GeminiProvider extends BaseBackendProvider {
     };
 
     let response: AxiosResponse;
-    const isDefaultEndpoint = baseUrl === BASE_URL;
+    const isDefaultEndpoint = baseUrl === this.baseUrl;
     const url = `${stripLastSlash(baseUrl)}/v1beta/models/${model}:${stream ? STREAM : NON_STREAM}`;
     try {
       response = await axios.post(url, requestBody, {
@@ -152,49 +174,82 @@ class GeminiProvider extends BaseBackendProvider {
       };
     }
 
-    let lastResponse: ResponseParserMessage | null = null;
+    const {
+      message = "",
+      error = undefined,
+      inputTokens = 0,
+      outputTokens = 0,
+    } = await this.createResponseParser({
+      response,
+      stop: clientOnlyStop ? stop : undefined,
+      onUpdate,
 
-    const onData = (data: ResponseParserMessage) => {
-      lastResponse = data;
-      onUpdate?.({ chunk: data.chunk });
-    };
+      parseStreamEvent: (event) => {
+        const dataPrefix = "data: ";
+        if (!event.startsWith(dataPrefix)) return;
 
-    const contentType = response?.headers["content-type"];
-    const isStream = contentType?.includes("text/event-stream");
+        let chunk = "";
+        let error: string | undefined;
+        event = event.slice(dataPrefix.length);
+        const data = parseJSON(event) as GeminiRawResponse;
+        if (!data) return;
+        const candidate = data.candidates[0];
+        if (candidate.finishReason && candidate.finishReason !== "STOP") {
+          error = "finishReason: " + candidate.finishReason;
+        }
+        if (candidate.content?.parts) {
+          chunk = candidate.content.parts.map(part => part.text).join("");
+        }
 
-    const parser = isStream
-      ? this.createStreamParser(onData)
-      : this.createJsonParser(onData);
+        return {
+          chunk,
+          error,
+          inputTokens: data.usageMetadata?.promptTokenCount,
+          outputTokens: data.usageMetadata?.candidatesTokenCount,
+        };
+      },
 
-    const reader = response.data
-      .pipeThrough(new TextDecoderStream())
-      .getReader();
+      parseJson: (data) => {
+        const key = data.key;
+        if (key === "candidates") {
+          const value = data.value as GeminiRawResponse["candidates"];
+          const candidate = value[0] as GeminiRawResponse["candidates"][number];
+          if (candidate.finishReason && candidate.finishReason !== "STOP") {
+            return { error: "finishReason: " + candidate.finishReason };
+          }
+          if (candidate.content) {
+            return { chunk: candidate.content.parts.map(part => part.text).join("") };
+          }
+        }
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      parser(value);
-    }
+        if (key === "usageMetadata") {
+          const value = data.value as GeminiRawResponse["usageMetadata"];
+          return {
+            inputTokens: value.promptTokenCount,
+            outputTokens: value.candidatesTokenCount,
+          };
+        }
+      },
+    });
 
-    const { message = "", error = undefined, inputTokens = 0, outputTokens = 0 } = lastResponse ?? {};
     return {
       message: message.trim(),
       error,
-      inputTokens,
-      outputTokens,
       url,
       request: requestBody,
+      inputTokens,
+      outputTokens,
     };
   };
 
   // ============================================================================
 
   getModelsOptions(connectionProxy?: ConnectionProxy): Promise<BackendProviderGetModelsResponse> {
-    const baseUrl = connectionProxy?.baseUrl || BASE_URL;
+    const baseUrl = connectionProxy?.baseUrl || this.baseUrl;
     const key = connectionProxy?.key || globalSettings.geminiKey;
     const modelsEndpoint = connectionProxy?.modelsEndpoint || `/v1beta/models/`;
 
-    const isDefaultEndpoint = baseUrl === BASE_URL;
+    const isDefaultEndpoint = baseUrl === this.baseUrl;
     return axios.get<GeminiModelsResponse>(
       `${stripLastSlash(baseUrl)}/${stripLastSlash(modelsEndpoint)}`,
       {
@@ -217,83 +272,6 @@ class GeminiProvider extends BaseBackendProvider {
       content: content.parts[0].text,
     }));
   }
-
-  // ============================================================================
-
-  private createStreamParser: ResponseParser = (onData) => {
-    const dataPrefix = "data: ";
-    let chunk = "";
-    let message = "";
-    let error: string | undefined;
-
-    return (text: string) => {
-      const events = text.split("\n\n");
-      events.forEach(event => {
-        if (event.startsWith(dataPrefix)) {
-          event = event.slice(dataPrefix.length);
-          const data = parseJSON(event) as GeminiRawResponse;
-          if (!data) return;
-          const candidate = data.candidates[0];
-          if (candidate.finishReason && candidate.finishReason !== "STOP") {
-            error = "finishReason: " + candidate.finishReason;
-          }
-          if (candidate.content?.parts) {
-            chunk = candidate.content.parts.map(part => part.text).join("");
-            message += chunk;
-          }
-
-          onData({
-            message,
-            chunk,
-            error,
-            inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
-            outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
-          });
-        }
-      });
-    };
-  };
-
-  private createJsonParser: ResponseParser = (onData) => {
-    let error: string | undefined;
-    let chunk = "";
-    let message = "";
-    let inputTokens = 0;
-    let outputTokens = 0;
-
-    const parser = new JSONParser();
-    parser.onValue = (data) => {
-      const key = data.key;
-      if (key === "usageMetadata") {
-        const value = data.value as GeminiRawResponse["usageMetadata"];
-        inputTokens = value.promptTokenCount;
-        outputTokens = value.candidatesTokenCount;
-      }
-      if (key === "candidates") {
-        const value = data.value as GeminiRawResponse["candidates"];
-        const candidate = value[0] as GeminiRawResponse["candidates"][number];
-        if (candidate.finishReason && candidate.finishReason !== "STOP") {
-          error = "finishReason: " + candidate.finishReason;
-        }
-        if (candidate.content) {
-          chunk += candidate.content.parts.map(part => part.text).join("");
-          message += chunk;
-        }
-      }
-    };
-
-    return (text: string) => {
-      chunk = "";
-      parser.write(text);
-      onData({
-        message,
-        chunk,
-        error,
-        inputTokens,
-        outputTokens,
-      });
-    };
-  };
 }
 
 export const geminiProvider = new GeminiProvider();

@@ -4,10 +4,7 @@ import parseJSON from "src/helpers/parseJSON.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
-import { JSONParser } from "@streamparser/json";
-import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
-
-const BASE_URL = "https://api.openai.com/v1";
+import { PresetFieldType } from "src/enums/PresetFieldType.ts";
 
 // ============================================================================
 
@@ -105,60 +102,74 @@ type OpenaiStreamResponse = {
     }[]
 }
 
-type ResponseParserMessage = {
-  message: string,
-  chunk: string,
-  error: string | undefined,
-  inputTokens: number,
-  outputTokens: number
+type OpenaiConfig = {
+  stream: boolean;
+  temperature: number;
+  stopSequences: string[];
+  clientOnlyStop: boolean;
+  maxOutputTokens: number;
+  topP: number;
+  presencePenalty: number;
 }
-
-type ResponseParser = (onData: (data: ResponseParserMessage) => void, onDone: () => void) => (text: string) => void;
 
 // ============================================================================
 
 class OpenaiProvider extends BaseBackendProvider {
+  baseUrl = "https://api.openai.com/v1";
+
   documentationLink = "https://platform.openai.com/docs/api-reference/chat";
 
-  async generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse> {
+  config: PresetFieldConfig[] = [
+    { name: "stream", label: "Stream", type: PresetFieldType.checkbox },
+    { name: "temperature", label: "temperature", type: PresetFieldType.number },
+    { name: "stopSequences", label: "stopSequences", type: PresetFieldType.stringArray },
+    { name: "clientOnlyStop", label: "Client-only stop string", type: PresetFieldType.checkbox },
+    { name: "maxOutputTokens", label: "Мax completion tokens", type: PresetFieldType.number },
+    { name: "topP", label: "topP", type: PresetFieldType.number },
+    { name: "presencePenalty", label: "presencePenalty", type: PresetFieldType.number },
+  ];
+
+  async generate(config: BackendProviderGenerateConfig<OpenaiConfig>): Promise<BackendProviderGenerateResponse> {
     const {
-      baseUrl = BASE_URL,
-      key = globalSettings.openaiKey,
-
-      maxTokens,
-      messages,
+      messageController,
       model,
-      stopSequences,
-      stream,
-      system,
-      temperature,
-      thinking,
-      topK,
-      topP,
-
+      baseUrl = this.baseUrl,
+      key = globalSettings.openaiKey,
+      messages,
       onUpdate,
       abortController,
+
+      generationConfig: {
+        stream,
+        temperature,
+        stopSequences,
+        clientOnlyStop,
+        maxOutputTokens,
+        topP,
+        presencePenalty,
+      },
+
     } = config;
 
+    const stop = this.prepareStop(stopSequences, messageController);
+
     const requestBody: OpenaiRequest = {
-      max_completion_tokens: maxTokens,
+      max_completion_tokens: maxOutputTokens,
       messages: messages,
       model: model,
-      stop: stopSequences,
+      stop: stream && clientOnlyStop ? undefined : stop,
       stream: stream,
       stream_options: stream ? { "include_usage": true } : undefined,
-      // system: system,
       temperature: temperature,
-      // thinking: thinking ? { budget_tokens: thinking, type: "enabled" } : undefined,
-      // top_k: topK,
       top_p: topP,
+      presence_penalty: presencePenalty,
     };
     const url = `${stripLastSlash(baseUrl)}/chat/completions`;
 
     let response: AxiosResponse;
     try {
       response = await axios.post(url, requestBody, {
-        signal: abortController?.signal,
+        signal: abortController.signal,
         headers: {
           "Authorization": `Bearer ${key}`,
           "Content-Type": "application/json",
@@ -167,7 +178,6 @@ class OpenaiProvider extends BaseBackendProvider {
         adapter: "fetch",
       });
     } catch (response) {
-
       return {
         message: "",
         error: await this.getAxiosError(response as AxiosError),
@@ -178,46 +188,64 @@ class OpenaiProvider extends BaseBackendProvider {
       };
     }
 
-    let lastResponse: ResponseParserMessage | null = null;
+    const {
+      message = "",
+      error = undefined,
+      inputTokens = 0,
+      outputTokens = 0,
+    } = await this.createResponseParser({
+      response,
+      stop: clientOnlyStop ? stop : undefined,
+      onUpdate,
 
-    const onData = (data: ResponseParserMessage) => {
-      lastResponse = data;
-      onUpdate?.({ chunk: data.chunk });
-    };
+      parseStreamEvent: (event) => {
+        const dataPrefix = "data: ";
+        if (!event.startsWith(dataPrefix)) return;
 
-    const onDone = () => {
-      reader.cancel("DONE");
-    };
+        let chunk = "";
+        let error: string | undefined;
+        event = event.slice(dataPrefix.length);
+        if (event.trim() === "[DONE]") return "DONE";
 
-    const contentType = response?.headers["content-type"];
-    const isStream = contentType?.includes("text/event-stream");
+        const data = parseJSON(event) as OpenaiStreamResponse;
+        if (!data || !data.choices) return;
+        data.choices.map(choice => {
+          if (choice.finish_reason && choice.finish_reason !== "stop") {
+            error = "finishReason: " + choice.finish_reason;
+          }
+          if (choice.delta?.content) {
+            chunk += choice.delta.content;
+          }
+        });
 
-    const parser = isStream
-      ? this.createStreamParser(onData, onDone)
-      : this.createJsonParser(onData, onDone);
+        return {
+          chunk,
+          error,
+        };
 
-    const reader = (response.data as ReadableStream)
-      .pipeThrough(new TextDecoderStream())
-      .getReader();
+      },
 
-    try {
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        parser(value);
-      }
-    } catch (e) {
-      if (!lastResponse) lastResponse = {
-        message: "",
-        chunk: "",
-        error: undefined,
-        inputTokens: 0,
-        outputTokens: 0,
-      };
-      lastResponse.error = (e as Error).message;
-    }
+      parseJson: (data) => {
+        const key = data.key;
+        if (key === "choices") {
+          const value = data.value as OpenaiResponse["choices"];
+          const choice = value[0];
+          if (choice.finish_reason !== "stop") return { error: "finishReason: " + choice.finish_reason };
+          if (choice.message.refusal) return { error: "refusal: " + choice.message.refusal };
+          if (choice.message.content) return { message: choice.message.content };
+          return;
+        }
 
-    const { message = "", error = undefined, inputTokens = 0, outputTokens = 0 } = lastResponse ?? {};
+        if (key === "usage") {
+          const usage = data.value as OpenaiResponse["usage"];
+          return {
+            inputTokens: usage.prompt_tokens,
+            outputTokens: usage.completion_tokens,
+          };
+        }
+      },
+    });
+
     return {
       message: message.trim(),
       error,
@@ -228,86 +256,10 @@ class OpenaiProvider extends BaseBackendProvider {
     };
   }
 
-  private createStreamParser: ResponseParser = (onData, onDone) => {
-    const dataPrefix = "data: ";
-    let chunk = "";
-    let message = "";
-    let error: string | undefined;
-
-    return (text: string) => {
-      const events = text.split("\n\n");
-      events.forEach(event => {
-        chunk = "";
-        if (event.startsWith(dataPrefix)) {
-          event = event.slice(dataPrefix.length);
-          if (event.trim() === "[DONE]") {
-            onDone();
-            return;
-          }
-          const data = parseJSON(event) as OpenaiStreamResponse;
-          if (!data || !data.choices) return;
-          data.choices.map(choice => {
-            if (choice.finish_reason && choice.finish_reason !== "stop") {
-              error = "finishReason: " + choice.finish_reason;
-            }
-            if (choice.delta?.content) {
-              chunk += choice.delta.content;
-              message += choice.delta.content;
-            }
-          });
-          onData({
-            message,
-            chunk,
-            error,
-            inputTokens: 0,
-            outputTokens: 0,
-          });
-        }
-      });
-    };
-  };
-
-  private createJsonParser: ResponseParser = (onData) => {
-    let error: string | undefined;
-    let chunk = "";
-    let message = "";
-    let inputTokens = 0;
-    let outputTokens = 0;
-
-    const parser = new JSONParser();
-    parser.onValue = (data) => {
-      const key = data.key;
-      if (key === "choices") {
-        const value = data.value as OpenaiResponse["choices"];
-        const choice = value[0];
-        if (choice.finish_reason !== "stop") error = "finishReason: " + choice.finish_reason;
-        if (choice.message.refusal) error = "refusal: " + choice.message.refusal;
-        if (choice.message.content) message = choice.message.content;
-      }
-      if (key === "usage") {
-        const usage = data.value as OpenaiResponse["usage"];
-        inputTokens = usage.prompt_tokens;
-        outputTokens = usage.completion_tokens;
-      }
-    };
-
-    return (text: string) => {
-      chunk = "";
-      parser.write(text);
-      onData({
-        message,
-        chunk,
-        error,
-        inputTokens,
-        outputTokens,
-      });
-    };
-  };
-
   // ============================================================================
 
   getModelsOptions(connectionProxy?: ConnectionProxy): Promise<BackendProviderGetModelsResponse> {
-    const baseUrl = connectionProxy?.baseUrl || BASE_URL;
+    const baseUrl = connectionProxy?.baseUrl || this.baseUrl;
     const key = connectionProxy?.key || globalSettings.claudeKey;
     const modelsEndpoint = connectionProxy?.modelsEndpoint || `models`;
 

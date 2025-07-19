@@ -4,8 +4,7 @@ import parseJSON from "src/helpers/parseJSON.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import axios from "axios";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
-
-const BASE_URL = "https://api.anthropic.com/v1";
+import { PresetFieldType } from "src/enums/PresetFieldType.ts";
 
 // ============================================================================
 
@@ -49,40 +48,67 @@ type ClaudeModelsResponse = {
   "last_id": string
 }
 
+type ClaudeConfig = {
+  stream: boolean;
+  temperature: number;
+  stopSequences: string[];
+  clientOnlyStop: boolean;
+  maxOutputTokens: number;
+  system: string;
+  topP: number;
+  topK: number;
+}
+
 // ============================================================================
 
 class ClaudeProvider extends BaseBackendProvider {
+  baseUrl =  "https://api.anthropic.com/v1";
   documentationLink = "https://docs.anthropic.com/en/api/messages";
 
-  async generate(config: BackendProviderGenerateConfig): Promise<BackendProviderGenerateResponse> {
+  config: PresetFieldConfig[] = [
+    { name: "stream", label: "Stream", type: PresetFieldType.checkbox },
+    { name: "temperature", label: "temperature", type: PresetFieldType.number },
+    { name: "stopSequences", label: "stopSequences", type: PresetFieldType.stringArray },
+    { name: "clientOnlyStop", label: "Client-only stop string", type: PresetFieldType.checkbox },
+    { name: "maxOutputTokens", label: "Мax tokens", type: PresetFieldType.number },
+    { name: "system", label: "System prompt", type: PresetFieldType.textarea },
+    { name: "topP", label: "topP", type: PresetFieldType.number },
+    { name: "topK", label: "topK", type: PresetFieldType.number },
+  ];
+
+  async generate(config: BackendProviderGenerateConfig<ClaudeConfig>): Promise<BackendProviderGenerateResponse> {
     const {
-      baseUrl = BASE_URL,
-      key = globalSettings.claudeKey,
-
-      maxTokens,
-      messages,
+      messageController,
       model,
-      stopSequences,
-      stream,
-      system,
-      temperature,
-      thinking,
-      topK,
-      topP,
-
+      baseUrl = this.baseUrl,
+      key = globalSettings.claudeKey,
+      messages,
       onUpdate,
       abortController,
+
+      generationConfig: {
+        stream,
+        temperature,
+        stopSequences,
+        clientOnlyStop,
+        maxOutputTokens,
+        system,
+        topP,
+        topK,
+      },
     } = config;
 
+    const stop = clientOnlyStop ? undefined : this.prepareStop(stopSequences, messageController);
+
     const requestBody = {
-      max_tokens: maxTokens,
+      max_tokens: maxOutputTokens,
       messages: messages,
       model: model,
-      stop_sequences: stopSequences,
+      stop_sequences: stop,
       stream: stream,
       system: system,
       temperature: temperature,
-      thinking: thinking ? { budget_tokens: thinking, type: "enabled" } : undefined,
+      // thinking: thinking ? { budget_tokens: thinking, type: "enabled" } : undefined,
       top_k: topK,
       top_p: topP,
     };
@@ -196,7 +222,7 @@ class ClaudeProvider extends BaseBackendProvider {
   // ============================================================================
 
   getModelsOptions(connectionProxy?: ConnectionProxy): Promise<BackendProviderGetModelsResponse> {
-    const baseUrl = connectionProxy?.baseUrl || BASE_URL;
+    const baseUrl = connectionProxy?.baseUrl || this.baseUrl;
     const key = connectionProxy?.key || globalSettings.claudeKey;
     const modelsEndpoint = connectionProxy?.modelsEndpoint || `models`;
 

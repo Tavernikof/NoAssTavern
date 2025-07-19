@@ -5,7 +5,6 @@ import { connectionProxiesManager } from "src/store/ConnectionProxiesManager";
 import { requestStorage, RequestStorageItem } from "src/storages/RequestStorage.ts";
 import { v4 as uuid } from "uuid";
 import { action, runInAction } from "mobx";
-import { prepareMessage } from "src/helpers/prepareMessage.ts";
 import * as React from "react";
 import FlowNodeLayout from "src/components/SchemeEditor/components/FlowNodeLayout/FlowNodeLayout.tsx";
 import { FormInput, SelectControlled } from "src/components/Form";
@@ -56,7 +55,6 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
       ? connectionProxiesManager.proxiesDict[prompt.connectionProxyId]
       : undefined;
 
-    const { generationConfig } = prompt;
     const slug = isDefaultScheme(schemeName)
       ? ChatSwipePrompt.message
       : flow.extraBlocks.find(extraBlock => extraBlock.id === schemeName)?.key;
@@ -72,20 +70,13 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
       messageController.pending = true;
     });
 
-    const data: BackendProviderGenerateConfig = {
+    const data: BackendProviderGenerateConfig<any> = {
+      messageController,
       baseUrl: connectionProxy?.baseUrl,
       key: connectionProxy?.key,
-      model: generationConfig.model,
+      model: prompt.model,
       messages: prompt.buildMessages(messageController.getPresetVars()),
-      stream: generationConfig.stream,
-      temperature: generationConfig.temperature,
-      stopSequences: (generationConfig.stopSequences ?? []).map(str => prepareMessage(str, messageController.getPresetVars())),
-      maxTokens: generationConfig.maxOutputTokens,
-      topP: generationConfig.topP,
-      topK: generationConfig.topK,
-      presencePenalty: generationConfig.presencePenalty,
-      frequencyPenalty: generationConfig.frequencyPenalty,
-      system: generationConfig.systemPrompt,
+      generationConfig: prompt.generationConfig,
       onUpdate: action(({ chunk }) => {
         currentPrompt.message += chunk;
       }),

@@ -20,26 +20,11 @@ import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { SelectOption } from "src/helpers/createDictionary.ts";
 
-type PresetFieldConfig = { name: string, label: string, type: "input" | "checkbox" };
-
-const fields: PresetFieldConfig[] = [
-  { name: "stream", label: "Stream", type: "checkbox" },
-  { name: "temperature", label: "temperature", type: "input" },
-  { name: "stopSequences", label: "stopSequences", type: "input" },
-  { name: "clientOnlyStop", label: "Client-only stop string", type: "checkbox" },
-  { name: "maxOutputTokens", label: "maxOutputTokens", type: "input" },
-  { name: "topP", label: "topP", type: "input" },
-  { name: "topK", label: "topK", type: "input" },
-  { name: "presencePenalty", label: "presencePenalty", type: "input" },
-  { name: "frequencyPenalty", label: "frequencyPenalty", type: "input" },
-];
-
 type Props = Record<string, never>;
 
 const PresetEditForm: React.FC<Props> = () => {
   const connectionProxy = useWatch({ name: "connectionProxy" }) as { label: string, value: string } | null;
   const backendProviderId = useWatch({ name: "backendProviderId" }) as SelectOption<BackendProviderItem> | null;
-
   const backendProvider = backendProviderId?.original?.class;
   const models = useModelsLoader(backendProvider, connectionProxy?.value);
 
@@ -105,19 +90,21 @@ const PresetEditForm: React.FC<Props> = () => {
 
       <hr className={style.separator} />
 
-      {fields.map(({ name, label, type }) => (
+      {backendProvider?.config.map(({ name, label, type }) => (
         <React.Fragment key={name}>
           {type === "checkbox" && <CheckboxControlled name={name} label={label} />}
-          {type === "input" && (
+          {(type === "input" || type === "stringArray" || type === "number") && (
             <FormInput label={`${label}:`} name={name}>
               <InputControlled name={name} />
             </FormInput>
           )}
+          {type === "textarea" && (
+            <FormInput label={`${label}:`} name={name}>
+              <TextareaControlled name={name} autoHeight />
+            </FormInput>
+          )}
         </React.Fragment>
       ))}
-      <FormInput label={`systemPrompt:`} name="systemPrompt">
-        <TextareaControlled name="systemPrompt" autoHeight />
-      </FormInput>
 
       {backendProvider?.documentationLink && (
         <>

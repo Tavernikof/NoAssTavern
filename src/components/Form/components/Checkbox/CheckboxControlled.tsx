@@ -9,7 +9,7 @@ type Props = {
 const CheckboxControlled: React.FC<Props> = (props) => {
   const { name, ...inputProps } = props;
   const { field: { value, ...field } } = useController({ name });
-  return <Checkbox {...inputProps} checked={value} {...field} />;
+  return <Checkbox {...inputProps} checked={value || false} {...field} />;
 };
 
 export default React.memo(CheckboxControlled);

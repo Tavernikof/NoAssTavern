@@ -9,7 +9,7 @@ type Props = {
 const TextareaControlled: React.FC<Props> = (props) => {
   const { name, ...inputProps } = props;
   const { field } = useController({ name });
-  return <Textarea {...inputProps} {...field} />;
+  return <Textarea {...inputProps} {...field} value={field.value || ""} />;
 };
 
 export default React.memo(TextareaControlled);

@@ -1,4 +1,3 @@
-type ChatSwipePrompt = import( "src/enums/ChatSwipePrompt.ts").ChatSwipePrompt;
 type React = import("react");
 
 type ChatSwipePromptResult = {
@@ -27,18 +26,7 @@ type CreateTurnConfig = {
 
 // ============================================================================
 
-type PromptGenerationConfig = {
-  model: string;
-  stream?: boolean;
-  temperature?: number,
-  stopSequences?: string[],
-  maxOutputTokens?: number,
-  topP?: number,
-  topK?: number,
-  presencePenalty?: number,
-  frequencyPenalty?: number,
-  systemPrompt?: string,
-}
+type PromptGenerationConfig = Record<string, any>
 
 type PromptBlock = {
   role: ChatMessageRole;
@@ -61,6 +49,12 @@ type PresetPromptBlock = {
 type PresetVar = (rawArgument: string) => string | undefined
 
 type PresetVars = Record<string, PresetVar>
+
+type PresetFieldConfig = {
+  name: string,
+  label: string,
+  type: import("src/enums/PresetFieldType").PresetFieldType
+};
 
 type PresetGenerateMessageConfig = {
   messages: PresetPrompt,
@@ -101,25 +95,16 @@ type BackendProviderOnUpdateEvent = {
   chunk: string,
 };
 
-type BackendProviderGenerateConfig = {
+type BackendProviderGenerateConfig<C extends Record<string, any> = {}> = {
+  messageController: import("src/routes/SingleChat/helpers/MessageController").MessageController
   baseUrl?: string,
   key?: string,
   model: string,
-  stream?: boolean,
   messages: PresetPrompt,
-  system?: string,
-  stopSequences?: string[],
-  maxTokens?: number,
-  temperature?: number
-  topP?: number,
-  topK?: number,
-  candidateCount?: number,
-  presencePenalty?: number,
-  frequencyPenalty?: number,
-  thinking?: number,
-  onUpdate?: (event: BackendProviderOnUpdateEvent) => void,
-  abortController?: AbortController,
-}
+  onUpdate: (event: BackendProviderOnUpdateEvent) => void,
+  generationConfig: C,
+  abortController: AbortController,
+};
 
 type BackendProviderGenerateResponse = {
   message: string,
@@ -157,7 +142,7 @@ type FlowNodeConfig<D = Record<string, any>> = {
   label: string,
   description: string,
   initialState?: D
-  render?: import("React").FC<import("@xyflow/react").NodeProps>,
+  render?: React.FC<import("@xyflow/react").NodeProps>,
   process: (props: FlowProcessContext<D>) => Promise<void> | void,
 }
 

@@ -17,6 +17,8 @@ export class Prompt {
   @observable blocks: PromptBlock[];
   @observable backendProviderId: BackendProvider;
   @observable connectionProxyId: string | null;
+  @observable model: string;
+
   @observable.ref generationConfig: PromptGenerationConfig;
 
   @observable isNew: boolean;
@@ -49,8 +51,8 @@ export class Prompt {
       }],
       backendProviderId: BackendProvider.GEMINI,
       connectionProxyId: null,
+      model: "",
       generationConfig: {
-        model: "",
         stream: true,
       },
     }, { isNew: true });
@@ -95,7 +97,6 @@ export class Prompt {
               content: blockContent,
             }];
             preset.generationConfig = {
-              model: "",
               stream: true,
               temperature: tavernPreset.temperature,
               stopSequences: [],
@@ -178,6 +179,7 @@ export class Prompt {
       blocks: toJS(this.blocks),
       backendProviderId: this.backendProviderId,
       connectionProxyId: this.connectionProxyId,
+      model: this.model,
       generationConfig: this.generationConfig,
     };
   }

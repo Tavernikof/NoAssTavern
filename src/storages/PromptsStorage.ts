@@ -9,6 +9,7 @@ export type PromptStorageItem = {
   blocks: PromptBlock[];
   backendProviderId: BackendProvider;
   connectionProxyId: string | null;
+  model: string;
   generationConfig: PromptGenerationConfig;
 }
 
