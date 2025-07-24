@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  flex: 1;
+}
+
+.nameSmall {
+  font-size: 14px;
+  flex: 1;
+  color: var(--white70a);
+}
+
+.nameChat {
+  font-weight: 500;
+  font-size: 18px;
+  flex: 1;
+}
+
+.separator {
+  border-color: var(--white20a);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  color: var(--white70a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.prompts {
+  display: flex;
+  flex-direction: column;
+}
+
+.persona {
+  width: 20px;
+  text-align: center;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: var(--white70a);
+  }
+}

@@ -33,6 +33,15 @@ type GeminiFinishReason =
   | "MALFORMED_FUNCTION_CALL"
   ;
 
+type GeminiBlockReason =
+  | "BLOCK_REASON_UNSPECIFIED"
+  | "SAFETY"
+  | "OTHER"
+  | "BLOCKLIST"
+  | "PROHIBITED_CONTENT"
+  | "IMAGE_SAFETY"
+  ;
+
 type GeminiModelResponse = {
   "name": `models/${string}`,
   "version": string,
@@ -59,7 +68,8 @@ type GeminiRawResponse = {
     finishReason?: GeminiFinishReason
     index: 0
     "safetyRatings": { "category": string, "probability": string }[]
-  }[]
+  }[],
+  promptFeedback?: { blockReason?: GeminiBlockReason }
   "usageMetadata": {
     "promptTokenCount": number,
     "candidatesTokenCount": number,
@@ -193,12 +203,16 @@ class GeminiProvider extends BaseBackendProvider {
         event = event.slice(dataPrefix.length);
         const data = parseJSON(event) as GeminiRawResponse;
         if (!data) return;
-        const candidate = data.candidates[0];
-        if (candidate.finishReason && candidate.finishReason !== "STOP") {
-          error = "finishReason: " + candidate.finishReason;
-        }
-        if (candidate.content?.parts) {
-          chunk = candidate.content.parts.map(part => part.text).join("");
+        if (data.promptFeedback?.blockReason) {
+          error = "blockReason: " + data.promptFeedback?.blockReason;
+        } else if (data.candidates) {
+          const candidate = data.candidates[0];
+          if (candidate.finishReason && candidate.finishReason !== "STOP") {
+            error = "finishReason: " + candidate.finishReason;
+          }
+          if (candidate.content?.parts) {
+            chunk = candidate.content.parts.map(part => part.text).join("");
+          }
         }
 
         return {
@@ -211,6 +225,10 @@ class GeminiProvider extends BaseBackendProvider {
 
       parseJson: (data) => {
         const key = data.key;
+        if (key === "promptFeedback") {
+          const value = data.value as GeminiRawResponse['promptFeedback'];
+          return { error: "finishReason: " + value?.blockReason || 'unknown reason' };
+        }
         if (key === "candidates") {
           const value = data.value as GeminiRawResponse["candidates"];
           const candidate = value[0] as GeminiRawResponse["candidates"][number];

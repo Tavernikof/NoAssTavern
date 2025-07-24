@@ -20,7 +20,7 @@ const CharactersList: React.FC<Props> = () => {
         return (
           <div key={character.id} className={style.card}>
             <button className={style.item} onClick={() => openCharacterModal({ character })}>
-              <CharacterAvatar name={character.name} image={character.image} />
+              <CharacterAvatar name={character.name} image={character.image} className={style.avatar} />
               <span className={style.name}>{character.name}</span>
             </button>
             <div className={style.actions}>

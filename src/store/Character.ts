@@ -4,12 +4,16 @@ import { v4 as uuid } from "uuid";
 import { CharacterCardV2 } from "src/helpers/validateCharacterCard.ts";
 import _cloneDeep from "lodash/cloneDeep";
 
+type CharacterCreateConfig = {
+  isNew?: boolean
+  local?: boolean
+}
+
 export class Character {
   @observable id: string;
   @observable createdAt: Date;
   @observable name: string;
   @observable description: string;
-  @observable personality: string;
   @observable scenario: string;
   @observable greetings: string[];
   @observable image: Blob | null;
@@ -17,19 +21,23 @@ export class Character {
   card: CharacterCardV2 | null;
 
   @observable isNew: boolean;
+  local: boolean;
 
   constructor(card: CharacterStorageItem, config?: CharacterCreateConfig) {
     this.isNew = config?.isNew ?? false;
+    this.local = config?.local ?? false;
 
     this.update(card);
 
     makeObservable(this);
 
-    autorun(() => {
-      if (this.isNew) return;
-      const object = this.serialize();
-      charactersStorage.updateItem(object);
-    });
+    if (!this.local) {
+      autorun(() => {
+        if (this.isNew) return;
+        const object = this.serialize();
+        charactersStorage.updateItem(object);
+      });
+    }
   }
 
   static createEmpty(): Character {
@@ -39,7 +47,6 @@ export class Character {
       name: "",
       description: "",
       scenario: "",
-      personality: "",
       greetings: [],
       card: null,
       image: null,
@@ -47,13 +54,17 @@ export class Character {
   }
 
   static createFromCard(card: CharacterCardV2, image: Blob): Character {
+    const { data } = card;
+    let description = data.description;
+    if (data.personality) description += "\n\nPersonality:\n" + data.personality;
+    if (data.mes_example) description += "\n\nExample Dialogs:\n" + data.mes_example;
+
     return new this({
       id: uuid(),
       createdAt: new Date(),
       name: card.data.name || "",
-      description: card.data.description || "",
+      description: description,
       scenario: card.data.scenario || "",
-      personality: card.data.personality || "",
       greetings: [card.data.first_mes || "", ...(card.data.alternate_greetings || [])],
       card,
       image,
@@ -75,20 +86,19 @@ export class Character {
   }
 
   @action
-  clone() {
+  clone(local?: boolean) {
     const characterStorageItem = _cloneDeep(this.serialize());
     characterStorageItem.id = uuid();
     characterStorageItem.createdAt = new Date();
-    return new Character(characterStorageItem, { isNew: true });
+    return new Character(characterStorageItem, { isNew: true, local });
   }
 
-  private serialize(): CharacterStorageItem {
+  serialize(): CharacterStorageItem {
     return {
       id: this.id,
       createdAt: this.createdAt,
       name: this.name,
       description: this.description,
-      personality: this.personality,
       scenario: this.scenario,
       greetings: toJS(this.greetings),
       image: this.image,

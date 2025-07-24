@@ -22,7 +22,7 @@ const CharacterAvatar: React.FC<Props> = (props) => {
     } as CSSProperties;
   }, [size, name]);
 
-  if (!src) return <div style={sizeStyle} className={clsx(style.avatar, style.placeholder)} />;
+  if (!src) return <div style={sizeStyle} className={clsx(style.avatar, style.placeholder, className)} />;
   return (
     <img
       style={sizeStyle}

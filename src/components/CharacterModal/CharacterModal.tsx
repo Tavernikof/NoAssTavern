@@ -18,10 +18,11 @@ type CharacterModalForm = {
 
 type Props = {
   character: Character;
+  local?: boolean;
 };
 
 const CharacterModal: React.FC<Props> = (props) => {
-  const { character } = props;
+  const { character, local } = props;
   const { resolve } = useModalContext();
 
   return (
@@ -47,17 +48,18 @@ const CharacterModal: React.FC<Props> = (props) => {
         <FormInput label="Description:">
           <TextareaControlled name="description" autoHeight />
         </FormInput>
-        <FormInput label="Personality:">
-          <TextareaControlled name="personality" autoHeight />
-        </FormInput>
-        <FormInput label="Scenario:">
-          <TextareaControlled name="scenario" autoHeight />
-        </FormInput>
-        <FormInput label="Greetings:">
-          <CharacterModalGreetings />
-        </FormInput>
+        {!local && (
+          <>
+            <FormInput label="Scenario:">
+              <TextareaControlled name="scenario" autoHeight />
+            </FormInput>
+            <FormInput label="Greetings:">
+              <CharacterModalGreetings />
+            </FormInput>
+          </>
+        )}
         <div className={style.footer}>
-          <Button iconBefore={Save}>Save</Button>
+          <Button block iconBefore={Save}>Save</Button>
         </div>
       </FormFields>
     </Form>

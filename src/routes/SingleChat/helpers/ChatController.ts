@@ -1,15 +1,17 @@
 import { action, autorun, computed, makeObservable, observable, runInAction } from "mobx";
 import { v4 as uuid } from "uuid";
-import { charactersManager } from "src/store/CharactersManager.ts";
 import { MessageController } from "./MessageController.ts";
 import { messageStorage } from "src/storages/MessageStorage.ts";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { chatsManager } from "src/store/ChatsManager.ts";
-import { personasManager } from "src/store/PersonasManager.ts";
 import { sliceFromEnd } from "src/routes/SingleChat/helpers/slideFromEnd.ts";
 import randomInt from "src/helpers/randomInt.ts";
-import { flowsManager } from "src/store/FlowsManager.ts";
-import { prepareMessage } from "src/helpers/prepareMessage.ts";
+import {
+  prepareCharFields,
+  prepareImpersonate,
+  prepareMessage,
+  preparePersonaFields,
+} from "src/helpers/prepareMessage.ts";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
 
@@ -36,7 +38,12 @@ export class ChatController {
       });
 
       if (!messages.length) {
-        const greetings = [...this.character.greetings];
+        const greetings: string[] = [];
+        this.characters.forEach(({ character }, index) => {
+          character.greetings.forEach(message => {
+            greetings.push(prepareCharFields(message, index));
+          });
+        });
         if (!greetings.length) greetings.push("");
         this.createMessage({
           messages: greetings,
@@ -71,18 +78,23 @@ export class ChatController {
   }
 
   @computed
-  get character() {
-    return charactersManager.charactersDict[this.chat.characterId];
+  get characters() {
+    return this.chat.characters;
   }
 
   @computed
   get persona() {
-    return personasManager.personasDict[this.chat.personId];
+    return this.characters.find(c => c.character.id === this.chat.persona);
+  }
+
+  @computed
+  get personaId() {
+    return this.persona?.character?.id;
   }
 
   @computed
   get flow() {
-    return flowsManager.flowsDict[this.chat.flowId];
+    return this.chat.flow;
   }
 
   @computed
@@ -104,7 +116,7 @@ export class ChatController {
   }
 
   getUserPrefix() {
-    return prepareMessage(this.flow.userPrefix, this.getPresetVars());
+    return prepareMessage(prepareImpersonate(this.flow.userPrefix), this.getPresetVars());
   }
 
   @action
@@ -142,13 +154,41 @@ export class ChatController {
     const toMessageIndex = this.getMessageIndex(toMessage?.id);
 
     return {
-      user: () => this.persona.name,
-      persona: () => this.persona.description,
+      user: () => preparePersonaFields(this.persona?.character.name || ""),
+      persona: () => preparePersonaFields(this.persona?.character.description || ""),
+      impersonate: () => this.chat.impersonate || "{{user}}",
 
-      char: () => this.character.name,
-      description: () => this.character.description,
-      scenario: () => this.character.scenario,
-      personality: () => this.character.personality,
+      // {{char:1}} - имя первого персонажа
+      char: (rawArgument) => {
+        rawArgument = rawArgument.replace(/\D/g, "");
+        if (rawArgument && !Number.isNaN(+rawArgument)) {
+          const index = +rawArgument - 1;
+          const character = this.characters[index];
+          if (character) return prepareCharFields(character.character.name.trim(), index);
+        }
+        return this.characters
+          .map(({ character, active }, index) => {
+            return active && character.id !== this.personaId ? prepareCharFields(character.name.trim(), index) : "";
+          })
+          .filter(Boolean)
+          .join(", ");
+      },
+      description: (rawArgument) => {
+        rawArgument = rawArgument.replace(/\D/g, "");
+        if (rawArgument && !Number.isNaN(+rawArgument)) {
+          const index = +rawArgument - 1;
+          const character = this.characters[index];
+          if (character) return prepareCharFields(character.character.description.trim(), index);
+        }
+        return this.characters
+          .map(({ character, active }, index) => {
+            return active && character.id !== this.personaId ? prepareCharFields(character.description.trim(), index) : "";
+          })
+          .filter(Boolean)
+          .join("\n\n");
+      },
+
+      scenario: () => this.chat.scenario || "",
 
       // Сообщения в порядке возрастания даты. Старые - первые
       // {{history}} - все сообщения

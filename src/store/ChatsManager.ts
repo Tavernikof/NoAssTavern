@@ -1,41 +1,51 @@
-import { action, makeObservable, observable } from "mobx";
+import { action, makeObservable, observable, when } from "mobx";
 import { Chat } from "src/store/Chat.ts";
 import { chatsStorage } from "src/storages/ChatsStorage.ts";
-import { v4 as uuid } from "uuid";
 import { ChatMessageStorageItem, messageStorage } from "src/storages/MessageStorage.ts";
 import { requestStorage } from "src/storages/RequestStorage.ts";
+import { charactersManager } from "src/store/CharactersManager.ts";
+import { flowsManager } from "src/store/FlowsManager.ts";
 
 export class ChatsManager {
   @observable chats: string[] = [];
   @observable chatsDict: Record<string, Chat> = {};
+  @observable ready = false;
 
   constructor() {
     makeObservable(this);
 
-    chatsStorage.getItems().then(action((data) => {
-      const list: string[] = [];
-      const dict: Record<string, Chat> = {};
-      data.forEach(item => {
-        list.push(item.id);
-        dict[item.id] = new Chat(item);
-      });
-      this.chats = list;
-      this.chatsDict = dict;
-    }));
+    Promise.all([
+      when(() => charactersManager.ready),
+    ]).then(() => chatsStorage.getItems())
+      .then(action((data) => {
+        const list: string[] = [];
+        const dict: Record<string, Chat> = {};
+        data.forEach(item => {
+          list.push(item.id);
+
+          if ("characterId" in item) {
+            const character = charactersManager.charactersDict[item.characterId as string].serialize();
+            item.characters = [{ character, active: true }];
+            delete item.characterId;
+          }
+          if ("flowId" in item) {
+            item.flow = flowsManager.flowsDict[item.flowId as string]?.serialize() || null;
+            delete item.flowId;
+          }
+
+          dict[item.id] = new Chat(item);
+        });
+        this.chats = list;
+        this.chatsDict = dict;
+        this.ready = true;
+      }));
   }
 
   @action
-  create(data: { characterId: string, personaId: string, flowId: string }) {
-    const chat = new Chat({
-      id: uuid(),
-      createdAt: new Date(),
-      characterId: data.characterId,
-      personaId: data.personaId,
-      flowId: data.flowId,
-    });
+  add(chat: Chat) {
     this.chats.unshift(chat.id);
     this.chatsDict[chat.id] = chat;
-    return chat;
+    chat.save();
   }
 
   @action

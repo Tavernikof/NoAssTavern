@@ -1,14 +1,15 @@
 import { action, makeObservable, observable } from "mobx";
-import Exifreader, { Tags } from "exifreader";
 import { validateCharacterCard } from "../helpers/validateCharacterCard.ts";
 import { convertFileToBlob } from "../helpers/convertFileToBlob.ts";
-import { decodeBase64 } from "../helpers/decodeBase64.ts";
 import { charactersStorage } from "src/storages/CharactersStorage.ts";
 import { Character } from "src/store/Character.ts";
+import { parseCharacterCard } from "src/helpers/parseCharacterCard.ts";
+
 
 export class CharactersManager {
   @observable characters: string[] = [];
   @observable charactersDict: Record<string, Character> = {};
+  @observable ready = false;
 
   constructor() {
     makeObservable(this);
@@ -22,6 +23,7 @@ export class CharactersManager {
       });
       this.characters = list;
       this.charactersDict = dict;
+      this.ready = true;
     }));
   }
 
@@ -40,10 +42,7 @@ export class CharactersManager {
   }
 
   import = (file: File) => {
-    return (Exifreader.load(file) as unknown as Promise<Tags>).then(tags => {
-      const description = tags?.chara?.value;
-      if (!description) return alert("Wrong card!");
-      const info = decodeBase64(description);
+    parseCharacterCard(file).then((info) => {
       if (!info) return alert("Wrong card!");
       try {
         if (validateCharacterCard(info)) {

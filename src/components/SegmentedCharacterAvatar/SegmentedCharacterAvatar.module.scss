@@ -1,0 +1,18 @@
+.container {
+  position: relative;
+  width: calc(var(--avatar-size) * 1px);
+  height: calc(var(--avatar-size) * 1px);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: 50% 50%;
+  background-color: var(--avatar-color);
+}

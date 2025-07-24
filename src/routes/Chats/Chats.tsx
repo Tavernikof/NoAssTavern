@@ -5,16 +5,26 @@ import Button from "src/components/Button";
 import { MessageCirclePlus } from "lucide-react";
 import { openChatFormModal } from "src/components/ChatFormModal";
 import ChatsList from "src/routes/Chats/components/ChatsList";
+import { chatsManager } from "src/store/ChatsManager.ts";
+import { useNavigate } from "react-router";
 
 type Props = Record<string, never>;
 
 const Chats: React.FC<Props> = () => {
+  const navigate = useNavigate();
 
   return (
     <>
       <Title>Chats</Title>
       <div className={style.actions}>
-        <Button iconBefore={MessageCirclePlus} onClick={() => openChatFormModal({})}>
+        <Button
+          iconBefore={MessageCirclePlus}
+          onClick={() => {
+            openChatFormModal({}).result.then(chat => {
+              chatsManager.add(chat);
+              navigate(`/chats/${chat.id}`);
+            });
+          }}>
           Create
         </Button>
       </div>

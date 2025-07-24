@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-bottom: 16px;
 }
 
 .block {
@@ -11,10 +12,9 @@
 }
 
 .head {
-  padding: 0 24px;
-  margin-bottom: 8px;
+  padding: 0 8px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .title {

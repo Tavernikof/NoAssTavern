@@ -1,5 +1,4 @@
 import { FlowNode } from "src/enums/FlowNode.ts";
-import { promptsManager } from "src/store/PromptsManager.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager";
 import { requestStorage, RequestStorageItem } from "src/storages/RequestStorage.ts";
@@ -12,6 +11,8 @@ import { DefaultFlowNodes } from "src/components/SchemeEditor";
 import { throwNodeError } from "src/helpers/throwNodeError.ts";
 import { isDefaultScheme } from "src/enums/SchemeName.ts";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
+import { useFlowEditorContext } from "src/components/FlowEditorModal/helpers/FlowEditorContext.ts";
+import { Prompt } from "src/store/Prompt.ts";
 
 type FlowNodeGenerateState = {
   prompt: { value: string, label: string } | null,
@@ -23,18 +24,13 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
   description: "Generate content with given prompt",
 
   render: React.memo((props) => {
+    const { promptsOptions } = useFlowEditorContext();
     return (
       <FlowNodeLayout initialValue={props.data}>
         <FormInput label="Prompt">
           <SelectControlled
             name="prompt"
-            options={promptsManager.prompts.map(promptId => {
-              const prompt = promptsManager.promptsDict[promptId];
-              return {
-                value: promptId,
-                label: prompt.name,
-              };
-            })}
+            options={promptsOptions}
           />
         </FormInput>
         <DefaultFlowNodes />
@@ -45,7 +41,7 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
   process({ flow, messageController, node, abortController, schemeName }) {
     const promptId = node.data.prompt?.value;
     if (!promptId) throwNodeError(messageController.message, "Prompt not selected");
-    const prompt = promptsManager.promptsDict[promptId as string];
+    const prompt = flow.prompts.find(prompt => prompt.id === promptId) as Prompt;
     if (!prompt) throwNodeError(messageController.message, "Prompt not found");
 
     const backendProvider = backendProviderDict.getById(prompt.backendProviderId).class;

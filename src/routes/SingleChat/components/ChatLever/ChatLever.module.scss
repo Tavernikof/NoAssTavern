@@ -23,4 +23,8 @@
   flex-shrink: 0;
   color: var(--white50a);
   margin-right: 8px;
+
+  svg {
+    display: block;
+  }
 }

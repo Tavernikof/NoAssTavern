@@ -8,10 +8,11 @@ type Props = {
   content: () => React.ReactNode,
   children: (props: DropdownChildrenRenderProps) => React.ReactNode,
   placement?: Placement,
+  hover?: boolean,
 };
 
 const Tooltip: React.FC<Props> = (props) => {
-  const { content, children, placement = "top" } = props;
+  const { content, children, placement = "top", hover } = props;
 
   return (
     <Popover
@@ -21,7 +22,7 @@ const Tooltip: React.FC<Props> = (props) => {
         </div>
       )}
       arrowClassName={style.arrow}
-      useBackend={React.useMemo(() => createPopoverBackend({ placement }), [placement])}
+      useBackend={React.useMemo(() => createPopoverBackend({ placement, hover }), [placement, hover])}
     >
       {children}
     </Popover>

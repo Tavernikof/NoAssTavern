@@ -1,12 +1,20 @@
 import { IndexedDBStorage } from "src/helpers/IndexedDBStorage.ts";
 import { IDBPDatabase } from "idb";
+import { CharacterStorageItem } from "src/storages/CharactersStorage.ts";
+import { FlowStorageItem } from "src/storages/FlowsStorage.ts";
 
 export type ChatStorageItem = {
-  id: string,
-  createdAt: Date,
-  characterId: string;
-  personaId: string;
-  flowId: string;
+  id: string;
+  createdAt: Date;
+  name: string;
+  scenario: string;
+  characters: {
+    character: CharacterStorageItem;
+    active: boolean;
+  }[];
+  persona: string | null;
+  impersonate: string | null;
+  flow: FlowStorageItem;
 }
 
 class ChatsStorage extends IndexedDBStorage<ChatStorageItem> {

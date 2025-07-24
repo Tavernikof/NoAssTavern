@@ -7,7 +7,6 @@ export type CharacterStorageItem = {
   createdAt: Date;
   name: string;
   description: string;
-  personality: string;
   scenario: string;
   greetings: string[]
   image: Blob | null;

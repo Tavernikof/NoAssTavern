@@ -1,7 +1,7 @@
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import _isObjectLike from "lodash/isObjectLike";
 import { AxiosError, AxiosResponse } from "axios";
-import { prepareMessage } from "src/helpers/prepareMessage.ts";
+import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.ts";
 import { MessageController } from "src/routes/SingleChat/helpers/MessageController.ts";
 import { JSONParser, ParsedElementInfo } from "@streamparser/json";
 
@@ -76,7 +76,7 @@ export abstract class BaseBackendProvider {
   };
 
   protected prepareStop(stopSequences: string[], messageController: MessageController) {
-    const stop = (stopSequences ?? []).map(str => prepareMessage(str, messageController.getPresetVars()));
+    const stop = (stopSequences ?? []).map(str => prepareMessage(prepareImpersonate(str), messageController.getPresetVars()));
     return stop.length ? stop : undefined;
   }
 

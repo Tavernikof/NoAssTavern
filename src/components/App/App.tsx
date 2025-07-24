@@ -3,7 +3,6 @@ import { RouterProvider } from "react-router";
 import { router } from "src/components/App/helpers/router.tsx";
 import { autorun } from "mobx";
 import { chatsManager } from "src/store/ChatsManager.ts";
-import { personasManager } from "src/store/PersonasManager.ts";
 import { charactersManager } from "src/store/CharactersManager.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { promptsManager } from "src/store/PromptsManager.ts";
@@ -17,9 +16,8 @@ const App: React.FC<Props> = () => {
       const { characters } = charactersManager;
       const { chats } = chatsManager;
       const { proxies } = connectionProxiesManager;
-      const { personas } = personasManager;
       const { prompts } = promptsManager;
-      if (chats && personas && characters && proxies && prompts) setReady(true);
+      if (chats && characters && proxies && prompts) setReady(true);
     });
   }, []);
 

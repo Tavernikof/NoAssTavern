@@ -1,4 +1,10 @@
+
 type React = import("react");
+
+type ChatCharacter = {
+  character: import("src/store/Character").Character,
+  active: boolean,
+}
 
 type ChatSwipePromptResult = {
   requestId?: string | null;
@@ -60,18 +66,6 @@ type PresetGenerateMessageConfig = {
   messages: PresetPrompt,
   stopSequences?: string[],
   onUpdate?: (response: BackendProviderOnUpdateEvent) => void,
-}
-
-type PromptCreateConfig = {
-  isNew?: boolean
-}
-
-type CharacterCreateConfig = {
-  isNew?: boolean
-}
-
-type PersonaCreateConfig = {
-  isNew?: boolean
 }
 
 // ============================================================================

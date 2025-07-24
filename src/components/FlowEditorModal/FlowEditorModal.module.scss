@@ -17,7 +17,19 @@
 }
 
 .prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.promptName {
+  flex: 1;
 }
 
 .header {

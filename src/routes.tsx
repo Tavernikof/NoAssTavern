@@ -23,12 +23,6 @@ export const routes = [
     layout: AppLayout,
   },
   {
-    path: "/personas",
-    name: "personasList",
-    component: () => import("src/routes/Personas"),
-    layout: AppLayout,
-  },
-  {
     path: "/prompts",
     name: "promptsList",
     component: () => import("src/routes/Prompts"),

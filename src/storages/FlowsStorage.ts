@@ -1,6 +1,7 @@
 import { IndexedDBStorage } from "src/helpers/IndexedDBStorage.ts";
 import { IDBPDatabase } from "idb";
 import { Edge } from "@xyflow/react";
+import { PromptStorageItem } from "src/storages/PromptsStorage.ts";
 
 export type FlowSchemeNode<D = Record<string, any>> = {
   id: string,
@@ -23,6 +24,7 @@ export type FlowStorageItem = {
   userPrefix: string,
   schemes: Record<string, FlowSchemeState>,
   extraBlocks: FlowExtraBlock[],
+  prompts: PromptStorageItem[],
 }
 
 class FlowsStorage extends IndexedDBStorage<FlowStorageItem> {

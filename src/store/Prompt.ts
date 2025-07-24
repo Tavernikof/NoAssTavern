@@ -10,6 +10,11 @@ import { promptsManager } from "src/store/PromptsManager.ts";
 import { prepareMessage } from "src/helpers/prepareMessage.ts";
 import _cloneDeep from "lodash/cloneDeep";
 
+type PromptCreateConfig = {
+  isNew?: boolean,
+  local?: boolean
+}
+
 export class Prompt {
   @observable id: string;
   @observable name: string;
@@ -22,18 +27,23 @@ export class Prompt {
   @observable.ref generationConfig: PromptGenerationConfig;
 
   @observable isNew: boolean;
+  local: boolean;
 
   constructor(data: PromptStorageItem, config?: PromptCreateConfig) {
     this.isNew = config?.isNew ?? false;
+    this.local = config?.local ?? false;
+
     this.update(data);
 
     makeObservable(this);
 
-    autorun(() => {
-      if (this.isNew) return;
-      const object = this.serialize();
-      promptStorage.updateItem(object);
-    });
+    if (!this.local) {
+      autorun(() => {
+        if (this.isNew) return;
+        const object = this.serialize();
+        promptStorage.updateItem(object);
+      });
+    }
   }
 
   static createEmpty(): Prompt {
@@ -76,7 +86,6 @@ export class Prompt {
               personaDescription: "{{persona}}",
               chatHistory: "{{history}}",
               charDescription: "{{description}}",
-              charPersonality: "{{personality}}",
             };
 
             // console.log(order, promptsDict);
@@ -106,8 +115,6 @@ export class Prompt {
               presencePenalty: tavernPreset.presence_penalty,
               frequencyPenalty: tavernPreset.frequency_penalty,
             };
-            console.log(blockContent);
-            console.log(preset);
             promptsManager.add(preset);
           }
         } catch (e) {
@@ -150,11 +157,11 @@ export class Prompt {
   }
 
   @action
-  clone() {
+  clone(local?: boolean) {
     const promptStorageItem = _cloneDeep(this.serialize());
     promptStorageItem.id = uuid();
     promptStorageItem.createdAt = new Date();
-    return new Prompt(promptStorageItem, { isNew: true });
+    return new Prompt(promptStorageItem, { isNew: true, local });
   }
 
   buildMessages(vars: PresetVars) {
@@ -171,7 +178,7 @@ export class Prompt {
     }, []);
   }
 
-  private serialize(): PromptStorageItem {
+  serialize(): PromptStorageItem {
     return {
       id: this.id,
       name: this.name,

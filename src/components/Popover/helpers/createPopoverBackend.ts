@@ -7,7 +7,7 @@ import {
   shift,
   useClick,
   useDismiss,
-  useFloating,
+  useFloating, useHover,
   useInteractions,
   useRole,
 } from "@floating-ui/react";
@@ -16,6 +16,7 @@ import { OffsetOptions } from "@floating-ui/dom";
 
 export type UsePopoverBackendProps = {
   placement?: Placement,
+  hover?: boolean,
   toggle?: boolean,
   offset?: OffsetOptions,
 }
@@ -25,6 +26,7 @@ export const createPopoverBackend = (props?: UsePopoverBackendProps): PopoverBac
   const placement = props?.placement || "bottom-start";
   const toggle = props?.toggle ?? true;
   const offsetOptions = props?.offset ?? 6;
+  const hover = props?.hover ?? false;
 
   return (isOpenState, arrowRef) => {
     const [isOpen, setIsOpen] = isOpenState;
@@ -44,7 +46,9 @@ export const createPopoverBackend = (props?: UsePopoverBackendProps): PopoverBac
     const { context } = floating;
 
     const interactions = useInteractions([
-      useClick(context, { toggle }),
+      hover
+        ? useHover(context)
+        : useClick(context, { toggle }),
       useDismiss(context),
       useRole(context, { role: "tooltip" }),
     ]);

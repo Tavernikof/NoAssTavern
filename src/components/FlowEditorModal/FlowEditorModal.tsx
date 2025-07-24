@@ -4,15 +4,14 @@ import style from "./FlowEditorModal.module.scss";
 import Form, { FormFields, FormInput, Input, InputControlled } from "src/components/Form";
 import Button from "src/components/Button";
 import { Flow } from "src/store/Flow.ts";
-import ExtraInfoRow from "src/components/PromptEditorModal/components/ExtraInfoRow/ExtraInfoRow.tsx";
 import { openPromptEditorModal } from "src/components/PromptEditorModal";
 import { defaultSchemesDict } from "src/enums/SchemeName.ts";
 import Scheme from "./components/Scheme";
 import { FlowEditorState } from "src/components/FlowEditorModal/helpers/FlowEditorState.ts";
 import { FlowEditorContext } from "src/components/FlowEditorModal/helpers/FlowEditorContext.ts";
 import { observer } from "mobx-react-lite";
-import { Plus, Trash } from "lucide-react";
-import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
+import { Pen, Plus, Trash } from "lucide-react";
+import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton";
 
 type FlowEditorDto = {
   name: string;
@@ -26,19 +25,30 @@ type Props = {
 const FlowEditorModal: React.FC<Props> = (props) => {
   const { flow } = props;
   const { resolve } = useModalContext();
-  const state = React.useMemo(() => new FlowEditorState(flow), [flow]);
+
+  const [state, setStore] = React.useState<FlowEditorState | null>(null);
+  React.useEffect(() => {
+    const state = new FlowEditorState(flow);
+    setStore(state);
+
+    return () => {
+      state.dispose();
+      setStore(null);
+    };
+  }, [flow]);
 
   const onSave = (data: FlowEditorDto) => {
-    console.log(data.userPrefix);
+    if (!state) return;
+
     flow.update({
       name: data.name,
       userPrefix: data.userPrefix,
-      schemes: state.serializeState(),
-      extraBlocks: state.extraBlocks,
+      ...state.serializeState(),
     });
     resolve(flow);
   };
 
+  if (!state) return null;
   return (
     <FlowEditorContext.Provider value={state}>
       <div className={style.container}>
@@ -60,14 +70,25 @@ const FlowEditorModal: React.FC<Props> = (props) => {
                 <Button block>Save</Button>
               </FormFields>
             </Form>
-            {Boolean(state.usedPrompts.length) && (
+            {Boolean(state.prompts.length) && (
               <div className={style.prompts}>
-                <div className={style.header}>Used prompts:</div>
-                {state.usedPrompts.map(prompt => (
-                  <div key={prompt.id}>
-                    <ExtraInfoRow
-                      label={prompt.name}
-                      onClick={() => openPromptEditorModal({ prompt })}
+                <div className={style.header}>Local prompts:</div>
+                {state.prompts.map(prompt => (
+                  <div key={prompt.prompt.id} className={style.prompt}>
+                    <div className={style.promptName}>
+                      {prompt.new ? "(new) " : ""}
+                      {!prompt.used ? "(not used) " : ""}
+                      {prompt.prompt.name}
+                    </div>
+                    {!prompt.used && (
+                      <MessageActionButton
+                        icon={Trash}
+                        onClick={() => state.removePrompt(prompt.prompt.id)}
+                      />
+                    )}
+                    <MessageActionButton
+                      icon={Pen}
+                      onClick={() => openPromptEditorModal({ prompt: prompt.prompt })}
                     />
                   </div>
                 ))}
