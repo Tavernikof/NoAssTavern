@@ -93,7 +93,7 @@ const ChatMembers: React.FC<Props> = () => {
 
       <hr className={style.separator} />
 
-      <FormInput label="Impresionate:">
+      <FormInput label="Impersonate:">
         <Select
           value={impersonateValue}
           onChange={(value) => chat.updateImpersonate((value as { value: string })?.value || null)}
