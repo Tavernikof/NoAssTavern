@@ -11,7 +11,6 @@ class FlowsManager {
     makeObservable(this);
 
     flowsStorage.getItems().then(action((data) => {
-      console.log(data);
       const list: string[] = [];
       const dict: Record<string, Flow> = {};
       data.forEach(item => {
