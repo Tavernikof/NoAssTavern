@@ -5,6 +5,7 @@ import { ChatControllerContext } from "src/routes/SingleChat/helpers/ChatControl
 import ChatMessages from "src/routes/SingleChat/components/ChatMessages";
 import ChatSidebar from "src/routes/SingleChat/components/ChatSidebar";
 import style from "./SingleChat.module.scss";
+import { observer } from "mobx-react-lite";
 
 type Props = Record<string, never>;
 
@@ -25,4 +26,4 @@ const SingleChat: React.FC<Props> = () => {
   );
 };
 
-export default React.memo(SingleChat) as typeof SingleChat;
+export default observer(SingleChat) as typeof SingleChat;
