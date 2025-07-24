@@ -7,6 +7,7 @@ import FlowsList from "./components/FlowsList";
 import { openFlowEditorModal } from "src/components/FlowEditorModal";
 import { Flow } from "src/store/Flow.ts";
 import { flowsManager } from "src/store/FlowsManager.ts";
+import { createFlowSeeds } from "src/helpers/seeds.ts";
 
 type Props = Record<string, never>;
 
@@ -26,6 +27,10 @@ const Flows: React.FC<Props> = () => {
         >
           Create
         </Button>
+
+        <div className={style.aside}>
+          <Button onClick={() => createFlowSeeds()}>Import default flow</Button>
+        </div>
       </div>
       <FlowsList />
     </>

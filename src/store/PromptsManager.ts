@@ -11,6 +11,7 @@ class PromptsManager {
     makeObservable(this);
 
     promptStorage.getItems().then(action(data => {
+      console.log(data);
       const list: string[] = [];
       const dict: Record<string, Prompt> = {};
       data.forEach(item => {
