@@ -39,3 +39,4 @@ class FlowsManager {
 }
 
 export const flowsManager = new FlowsManager();
+window.flowManager = flowsManager;

@@ -71,3 +71,4 @@ export class ChatsManager {
 }
 
 export const chatsManager = new ChatsManager();
+window.chatsManager = chatsManager;

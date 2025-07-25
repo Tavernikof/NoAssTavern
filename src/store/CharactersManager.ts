@@ -60,3 +60,4 @@ export class CharactersManager {
 }
 
 export const charactersManager = new CharactersManager();
+window.charactersManager = charactersManager;

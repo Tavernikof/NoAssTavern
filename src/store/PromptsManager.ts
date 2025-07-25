@@ -46,3 +46,4 @@ class PromptsManager {
 }
 
 export const promptsManager = new PromptsManager();
+window.promptsManager = promptsManager;

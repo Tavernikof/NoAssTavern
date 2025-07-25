@@ -1,4 +1,3 @@
-
 type React = import("react");
 
 type ChatCharacter = {
@@ -138,6 +137,15 @@ type FlowNodeConfig<D = Record<string, any>> = {
   initialState?: D
   render?: React.FC<import("@xyflow/react").NodeProps>,
   process: (props: FlowProcessContext<D>) => Promise<void> | void,
+}
+
+// ============================================================================
+
+interface Window {
+  flowManager: import("src/store/FlowsManager.ts"),
+  charactersManager: import("src/store/CharactersManager.ts"),
+  chatsManager: import("src/store/ChatsManager.ts"),
+  promptsManager: import("src/store/PromptsManager.ts"),
 }
 
 // ============================================================================
