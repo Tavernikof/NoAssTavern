@@ -144,7 +144,7 @@ export class ChatController {
 
   createEmptyUserMessage(date?: Date) {
     return this.createMessage({
-      messages: [this.flow.userPrefix],
+      messages: [prepareImpersonate(this.flow.userPrefix)],
       role: ChatMessageRole.USER,
       date: date ?? new Date(),
     });
