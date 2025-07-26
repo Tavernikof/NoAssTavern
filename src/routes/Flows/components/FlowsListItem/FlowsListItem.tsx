@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { flowsManager } from "src/store/FlowsManager.ts";
 import Tooltip from "src/components/Tooltip/Tooltip.tsx";
 import Button from "src/components/Button/Button.tsx";
-import { Trash } from "lucide-react";
+import { Copy, Trash } from "lucide-react";
 import { Flow } from "src/store/Flow.ts";
 import { openFlowEditorModal } from "src/components/FlowEditorModal";
 
@@ -22,6 +22,14 @@ const FlowsListItem: React.FC<Props> = (props) => {
         <div className={style.character}>{flow.name}</div>
       </div>
       <span className={style.aside}>
+        <Button
+          size="small"
+          onClickCapture={() => openFlowEditorModal({ flow: flow.clone() }).result.then(flow => {
+            flowsManager.add(flow);
+          })}
+          iconBefore={Copy}
+        />
+
          <Tooltip
            content={() => (
              <div className={style.tooltip}>

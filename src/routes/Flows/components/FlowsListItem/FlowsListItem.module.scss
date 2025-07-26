@@ -24,9 +24,11 @@
 }
 
 .aside {
+  position: relative;
+  z-index: 1;
   margin-left: auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-end;
   gap: 8px;
 }
