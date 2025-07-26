@@ -247,6 +247,8 @@ export class ChatController {
         return list[randomIndex];
       },
 
+      newline: () => "\n",
+
       // // Replace {{setvar::name::value}} with empty string and set the variable name to value
       // { regex: /{{setvar::([^:]+)::([^}]+)}}/gi, replace: (_, name, value) => { setLocalVariable(name.trim(), value); return ''; } },
       // // Replace {{addvar::name::value}} with empty string and add value to the variable value
