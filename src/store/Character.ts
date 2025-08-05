@@ -3,6 +3,8 @@ import { charactersStorage, CharacterStorageItem } from "src/storages/Characters
 import { v4 as uuid } from "uuid";
 import { CharacterCardV2 } from "src/helpers/validateCharacterCard.ts";
 import _cloneDeep from "lodash/cloneDeep";
+import { LoreBook } from "src/store/LoreBook.ts";
+import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 
 type CharacterCreateConfig = {
   isNew?: boolean
@@ -16,6 +18,7 @@ export class Character {
   @observable description: string;
   @observable scenario: string;
   @observable greetings: string[];
+  @observable.ref loreBook: LoreBook | null;
   @observable image: Blob | null;
 
   card: CharacterCardV2 | null;
@@ -27,7 +30,9 @@ export class Character {
     this.isNew = config?.isNew ?? false;
     this.local = config?.local ?? false;
 
-    this.update(card);
+    const { loreBook, ...restCard } = card;
+    this.update(restCard);
+    this.parseLoreBook(loreBook);
 
     makeObservable(this);
 
@@ -48,6 +53,7 @@ export class Character {
       description: "",
       scenario: "",
       greetings: [],
+      loreBook: null,
       card: null,
       image: null,
     }, { isNew: true });
@@ -66,6 +72,7 @@ export class Character {
       description: description,
       scenario: card.data.scenario || "",
       greetings: [card.data.first_mes || "", ...(card.data.alternate_greetings || [])],
+      loreBook: null,
       card,
       image,
     });
@@ -93,6 +100,11 @@ export class Character {
     return new Character(characterStorageItem, { isNew: true, local });
   }
 
+  @action.bound
+  initLoreBook() {
+    this.loreBook = LoreBook.createEmpty()
+  }
+
   serialize(): CharacterStorageItem {
     return {
       id: this.id,
@@ -102,7 +114,18 @@ export class Character {
       scenario: this.scenario,
       greetings: toJS(this.greetings),
       image: this.image,
+      loreBook: this.loreBook?.serialize() || null,
       card: this.card ? toJS(this.card) : null,
     };
+  }
+
+  private parseLoreBook(loreBook: LoreBookStorageItem | null) {
+    if (loreBook) {
+      this.loreBook = new LoreBook(loreBook, { local: true });
+      return;
+    }
+    const characterBook = this.card?.data?.character_book;
+    if (!characterBook) return;
+    this.loreBook = LoreBook.createFromCharacterBook({ characterBook, character: this, config: { local: true } });
   }
 }

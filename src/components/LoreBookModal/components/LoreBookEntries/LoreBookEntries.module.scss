@@ -1,0 +1,21 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  //border-bottom: 1px solid var(--white30a);
+
+}
+
+.empty {
+  margin-top: 20px;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--white70a);
+}

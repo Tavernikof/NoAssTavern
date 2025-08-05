@@ -1,4 +1,5 @@
 import Joi from "joi";
+import loreBooks from "src/routes/LoreBooks";
 
 // https://github.com/malfoyslastname/character-card-spec-v2?tab=readme-ov-file
 export type CharacterCardV2 = {
@@ -56,7 +57,42 @@ export type CharacterBook = {
   }>
 }
 
-const schema = Joi.object({
+export type SillytavernLoreBookEntry = {
+  key: string[];
+  keysecondary: string[];
+  comment: string;
+  content: string;
+  constant: boolean;
+  "selective": boolean;
+  "selectiveLogic"?: 0 | 1 | 2 | 3;
+  "addMemo": boolean;
+  "order": number;
+  "position": 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  "disable": boolean;
+  "excludeRecursion": boolean;
+  "probability": number | null;
+  "useProbability": boolean;
+  "depth": number;
+  "group": string;
+  "scanDepth": number;
+  "caseSensitive": boolean;
+  "matchWholeWords": boolean;
+  "automationId": string;
+  "role": 0 | 1 | 2;
+  "uid": number;
+  "preventRecursion": boolean;
+  "displayIndex": number;
+  "groupOverride": boolean;
+  "groupWeight": number;
+  "vectorized": boolean;
+  "delayUntilRecursion": boolean;
+  "useGroupScoring": boolean;
+  "sticky": number;
+  "cooldown": number;
+  "delay": number;
+}
+
+const characterSchema = Joi.object({
   spec: Joi.string(),
   spec_version: Joi.string(),
   data: Joi.object({
@@ -80,8 +116,19 @@ const schema = Joi.object({
   }),
 });
 
+const characterBookSchema = Joi.object({
+  name: Joi.string().optional().allow(""),
+  scan_depth: Joi.number().optional().allow(""),
+});
+
 export const validateCharacterCard = (card: Record<string, unknown>): card is CharacterCardV2 => {
-  const result = schema.validate(card, { abortEarly: false, allowUnknown: true });
+  const result = characterSchema.validate(card, { abortEarly: false, allowUnknown: true });
+  if (result.error) throw result.error;
+  return true;
+};
+
+export const validateCharacterBook = (characterBook: Record<string, unknown>): characterBook is CharacterBook => {
+  const result = characterBookSchema.validate(characterBook, { abortEarly: false, allowUnknown: true });
   if (result.error) throw result.error;
   return true;
 };

@@ -1,6 +1,7 @@
 import { IndexedDBStorage } from "src/helpers/IndexedDBStorage.ts";
 import { IDBPDatabase } from "idb";
 import { CharacterCardV2 } from "src/helpers/validateCharacterCard.ts";
+import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 
 export type CharacterStorageItem = {
   id: string;
@@ -8,7 +9,8 @@ export type CharacterStorageItem = {
   name: string;
   description: string;
   scenario: string;
-  greetings: string[]
+  greetings: string[];
+  loreBook: LoreBookStorageItem | null;
   image: Blob | null;
   card: CharacterCardV2 | null;
 }

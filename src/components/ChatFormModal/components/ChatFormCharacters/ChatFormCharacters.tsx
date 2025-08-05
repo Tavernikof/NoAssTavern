@@ -9,7 +9,7 @@ import style from "./ChatFormCharacters.module.scss";
 import { ActionMeta } from "react-select";
 import { RadioControlled } from "src/components/Form/components/Radio";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton";
-import { Trash } from "lucide-react";
+import { Trash, Users } from "lucide-react";
 import { useChatFormContext } from "src/components/ChatFormModal/components/helpers/ChatFormContext.ts";
 
 type Props = {
@@ -49,7 +49,7 @@ const ChatFormCharacters: React.FC<Props> = (props) => {
 
   return (
     <>
-      <FormInput label="Characters:" name="characters">
+      <FormInput icon={Users} label="Characters:" name="characters">
         <Select
           value={charactersOptions}
           onChange={(_, _meta) => {

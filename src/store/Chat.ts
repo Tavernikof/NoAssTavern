@@ -3,6 +3,7 @@ import { chatsStorage, ChatStorageItem } from "src/storages/ChatsStorage.ts";
 import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
 import { v4 as uuid } from "uuid";
+import { LoreBook } from "src/store/LoreBook.ts";
 
 type ChatCreateConfig = {
   isNew?: boolean
@@ -14,6 +15,7 @@ export class Chat {
   @observable name: string;
   @observable scenario: string;
   @observable characters: ChatCharacter[];
+  @observable loreBooks: ChatLoreBook[];
   @observable persona: string | null;
   @observable impersonate: string | null;
   @observable flow: Flow;
@@ -31,6 +33,10 @@ export class Chat {
       ...item,
       character: new Character(item.character, { local: true }),
     }));
+    this.loreBooks = data.loreBooks?.map(item => ({
+      ...item,
+      loreBook: new LoreBook(item.loreBook, { local: true }),
+    })) || [];
     this.persona = data.persona;
     this.impersonate = data.impersonate;
     this.flow = new Flow(data.flow, { local: true });
@@ -84,6 +90,7 @@ export class Chat {
       name: this.name,
       scenario: this.scenario,
       characters: this.characters.map(item => ({ ...item, character: item.character.serialize() })),
+      loreBooks: this.loreBooks.map(item => ({ ...item, loreBook: item.loreBook.serialize() })),
       persona: this.persona,
       impersonate: this.impersonate,
       flow: this.flow.serialize(),

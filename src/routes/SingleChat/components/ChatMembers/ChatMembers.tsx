@@ -3,7 +3,7 @@ import style from "./ChatMembers.module.scss";
 import { useChatControllerContext } from "src/routes/SingleChat/helpers/ChatControllerContext.ts";
 import CharacterAvatar from "src/components/CharacterAvatar/CharacterAvatar.tsx";
 import { Checkbox, FormInput, Select } from "src/components/Form";
-import { Pen } from "lucide-react";
+import { Book, Pen } from "lucide-react";
 import { openPromptEditorModal } from "src/components/PromptEditorModal";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { openCharacterModal } from "src/components/CharacterModal";
@@ -12,11 +12,12 @@ import { openFlowEditorModal } from "src/components/FlowEditorModal";
 import { openChatFormModal } from "src/components/ChatFormModal";
 import { observer } from "mobx-react-lite";
 import Tooltip from "src/components/Tooltip";
+import { openLoreBookModal } from "src/components/LoreBookModal";
 
 type Props = Record<string, never>;
 
 const ChatMembers: React.FC<Props> = () => {
-  const { chat, characters, persona, personaId, flow } = useChatControllerContext();
+  const { chat, characters, persona, personaId, flow, loreBooks } = useChatControllerContext();
 
   const impersonateOptions = React.useMemo(() => {
     const options = characters.map(c => ({
@@ -65,7 +66,7 @@ const ChatMembers: React.FC<Props> = () => {
                 />
               )}
 
-            <MessageActionButton icon={Pen} onClick={() => openCharacterModal({ character, local: true })} />
+            <MessageActionButton icon={Pen} onClick={() => openCharacterModal({ character })} />
           </div>
         );
       })}
@@ -92,6 +93,22 @@ const ChatMembers: React.FC<Props> = () => {
       </div>
 
       <hr className={style.separator} />
+
+      {Boolean(loreBooks.length) && (
+        <>
+          {loreBooks.map((item, index) => (
+            <div key={item.loreBook.id} className={style.row}>
+              <div className={style.icon}>
+                {index === 0 && <Book />}
+              </div>
+              <div className={style.nameSmall}>{item.loreBook.name}</div>
+              <MessageActionButton icon={Pen} onClick={() => openLoreBookModal({ loreBook: item.loreBook })} />
+            </div>
+          ))}
+
+          <hr className={style.separator} />
+        </>
+      )}
 
       <FormInput label="Impersonate:">
         <Select

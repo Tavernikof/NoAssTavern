@@ -2,6 +2,7 @@ import { IndexedDBStorage } from "src/helpers/IndexedDBStorage.ts";
 import { IDBPDatabase } from "idb";
 import { CharacterStorageItem } from "src/storages/CharactersStorage.ts";
 import { FlowStorageItem } from "src/storages/FlowsStorage.ts";
+import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 
 export type ChatStorageItem = {
   id: string;
@@ -13,6 +14,10 @@ export type ChatStorageItem = {
     active: boolean;
   }[];
   persona: string | null;
+  loreBooks: {
+    loreBook: LoreBookStorageItem,
+    active: boolean;
+  }[];
   impersonate: string | null;
   flow: FlowStorageItem;
 }

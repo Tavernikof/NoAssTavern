@@ -5,6 +5,11 @@ type ChatCharacter = {
   active: boolean,
 }
 
+type ChatLoreBook = {
+  loreBook: import("src/store/LoreBook").LoreBook,
+  active: boolean,
+}
+
 type ChatSwipePromptResult = {
   requestId?: string | null;
   message: string;
@@ -146,6 +151,7 @@ interface Window {
   charactersManager: import("src/store/CharactersManager.ts"),
   chatsManager: import("src/store/ChatsManager.ts"),
   promptsManager: import("src/store/PromptsManager.ts"),
+  loreBookManager: import("src/store/LoreBookManager.ts"),
 }
 
 // ============================================================================

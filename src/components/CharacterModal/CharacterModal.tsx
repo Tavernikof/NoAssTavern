@@ -2,19 +2,11 @@ import * as React from "react";
 import { useModalContext } from "src/components/Modals";
 import { observer } from "mobx-react-lite";
 import { Character } from "src/store/Character.ts";
-import Form from "src/components/Form/Form.tsx";
-import { FormFields, FormInput, InputControlled, TextareaControlled } from "src/components/Form";
-import Button from "src/components/Button/Button.tsx";
-import style from "./CharacterModal.module.scss";
-import CharacterModalGreetings from "./components/CharacterModalGreetings";
-import { Save } from "lucide-react";
-
-type CharacterModalForm = {
-  name: string,
-  description: string,
-  scenario: string,
-  greetings: { text: string }[],
-}
+import Tabs, { TabItem } from "src/components/Tabs";
+import LoreBookForm from "src/components/LoreBookModal/components/LoreBookForm";
+import CharacterForm from "src/components/CharacterModal/components/CharacterForm";
+import Button from "src/components/Button";
+import { Plus } from "lucide-react";
 
 type Props = {
   character: Character;
@@ -22,48 +14,30 @@ type Props = {
 };
 
 const CharacterModal: React.FC<Props> = (props) => {
-  const { character, local } = props;
+  const { character } = props;
   const { resolve } = useModalContext();
 
-  return (
-    <Form<CharacterModalForm>
-      initialValue={React.useMemo(() => ({
-        name: character.name,
-        description: character.description,
-        scenario: character.scenario,
-        greetings: (character.greetings).map(text => ({ text })),
-      }), [])}
-      onSubmit={React.useCallback((data: CharacterModalForm) => {
-        character.update({
-          ...data,
-          greetings: data.greetings.map(g => g.text),
-        });
-        resolve(character);
-      }, [])}
-    >
-      <FormFields>
-        <FormInput label="Name:">
-          <InputControlled name="name" />
-        </FormInput>
-        <FormInput label="Description:">
-          <TextareaControlled name="description" autoHeight />
-        </FormInput>
-        {!local && (
-          <>
-            <FormInput label="Scenario:">
-              <TextareaControlled name="scenario" autoHeight />
-            </FormInput>
-            <FormInput label="Greetings:">
-              <CharacterModalGreetings />
-            </FormInput>
-          </>
-        )}
-        <div className={style.footer}>
-          <Button block iconBefore={Save}>Save</Button>
-        </div>
-      </FormFields>
-    </Form>
-  );
+  const items = React.useMemo<TabItem[]>(() => ([
+    {
+      key: "character",
+      title: "Info",
+      content: () => <CharacterForm character={character} onSubmit={resolve} />,
+    },
+    {
+      key: "loreBook",
+      title: "Lorebook",
+      content: () => (
+        <>
+          {character.loreBook
+            ? <LoreBookForm loreBook={character.loreBook} onSubmit={resolve} />
+            : <Button iconBefore={Plus} onClick={character.initLoreBook}>Create lorebook</Button>
+          }
+        </>
+      ),
+    },
+  ]), [character.loreBook]);
+
+  return <Tabs items={items} />;
 };
 
 export default observer(CharacterModal) as typeof CharacterModal;
