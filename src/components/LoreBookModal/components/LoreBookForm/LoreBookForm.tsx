@@ -11,7 +11,7 @@ import { LoreBook } from "src/store/LoreBook.ts";
 
 type Props = {
   loreBook: LoreBook;
-  onSubmit: () => void;
+  onSubmit: (loreBook: LoreBook) => void;
 };
 
 const LoreBookForm: React.FC<Props> = (props) => {
@@ -48,7 +48,7 @@ const LoreBookForm: React.FC<Props> = (props) => {
             content: entry.content,
           })),
         });
-        onSubmit();
+        onSubmit(loreBook);
       }, [])}
     >
       <FormFields>
