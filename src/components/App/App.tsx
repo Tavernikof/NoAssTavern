@@ -6,6 +6,8 @@ import { chatsManager } from "src/store/ChatsManager.ts";
 import { charactersManager } from "src/store/CharactersManager.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { promptsManager } from "src/store/PromptsManager.ts";
+import { flowsManager } from "src/store/FlowsManager.ts";
+import { loreBookManager } from "src/store/LoreBookManager.ts";
 
 type Props = Record<string, never>;
 
@@ -13,11 +15,14 @@ const App: React.FC<Props> = () => {
   const [ready, setReady] = React.useState(false);
   React.useEffect(() => {
     return autorun(() => {
-      const { characters } = charactersManager;
-      const { chats } = chatsManager;
-      const { proxies } = connectionProxiesManager;
-      const { prompts } = promptsManager;
-      if (chats && characters && proxies && prompts) setReady(true);
+      if (
+        charactersManager.ready &&
+        chatsManager.ready &&
+        connectionProxiesManager.ready &&
+        flowsManager.ready &&
+        loreBookManager.ready &&
+        promptsManager.ready
+      ) setReady(true);
     });
   }, []);
 

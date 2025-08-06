@@ -3,6 +3,7 @@ import { action, autorun, computed, makeObservable, observable } from "mobx";
 import { flowsManager } from "src/store/FlowsManager.ts";
 import { charactersManager } from "src/store/CharactersManager.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
+import { loreBookManager } from "src/store/LoreBookManager.ts";
 
 export class ChatFormContextStore {
   dc = new DisposableContainer();
@@ -39,6 +40,25 @@ export class ChatFormContextStore {
       label: `${this.chat.flow.name} (current)`,
     });
     return flows;
+  }
+
+  @computed
+  get loreBookOptions() {
+    const loreBooksOptions: { value: string, label: string }[] = [];
+
+    if (this.chat?.loreBooks) {
+      this.chat.loreBooks.forEach(item => loreBooksOptions.push({
+        value: item.loreBook.id,
+        label: `${item.loreBook.name} (current)`,
+      }));
+    }
+
+    loreBookManager.loreBooks.forEach(loreBookId => loreBooksOptions.push({
+      value: loreBookId,
+      label: loreBookManager.loreBooksDict[loreBookId].name,
+    }));
+
+    return loreBooksOptions;
   }
 
   @computed

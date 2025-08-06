@@ -115,6 +115,21 @@ export class ChatController {
     return this.lastMessage?.id;
   }
 
+  @computed
+  get loreBooks() {
+    const loreBooks: ChatLoreBook[] = [];
+
+    this.characters.forEach((item) => {
+      if (!item.active || !item.character.loreBook) return;
+      loreBooks.push({ loreBook: item.character.loreBook, active: true });
+    });
+
+    loreBooks.push(...this.chat.loreBooks);
+
+    return loreBooks;
+  }
+
+
   getUserPrefix() {
     return prepareMessage(prepareImpersonate(this.flow.userPrefix), this.getPresetVars());
   }
@@ -248,6 +263,27 @@ export class ChatController {
       },
 
       newline: () => "\n",
+
+      // {{lorebook}}
+      // {{lorebook:in_chat}}
+      lorebook: (rawArgument) => {
+        console.log(rawArgument);
+        const position = rawArgument.split(":").filter(Boolean)[0] || "";
+        const result: string[] = [];
+
+        const vars = this.getPresetVars(toMessage);
+        const getMessages = (depth: number) => vars.history(`1:${depth}`) as string;
+
+        this.loreBooks.forEach(({ loreBook, active }) => {
+          if (!active) return;
+          const entries = loreBook.getActiveEntries(position, getMessages);
+          entries.forEach(entry => {
+            result.push(entry.content);
+          });
+        });
+
+        return result.join("\n");
+      },
 
       // // Replace {{setvar::name::value}} with empty string and set the variable name to value
       // { regex: /{{setvar::([^:]+)::([^}]+)}}/gi, replace: (_, name, value) => { setLocalVariable(name.trim(), value); return ''; } },

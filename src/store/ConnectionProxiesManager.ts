@@ -3,17 +3,12 @@ import { connectionProxiesStorage } from "src/storages/ConnectionProxiesStorage.
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 
 class ConnectionProxiesManager {
-  proxies: string[];
-  proxiesDict: Record<string, ConnectionProxy>;
+  @observable proxies: string[];
+  @observable proxiesDict: Record<string, ConnectionProxy>;
+  @observable ready = false;
 
   constructor() {
-    makeObservable(this, {
-      proxies: observable,
-      proxiesDict: observable,
-      selectOptions: computed,
-      add: action.bound,
-      remove: action.bound,
-    });
+    makeObservable(this);
 
     connectionProxiesStorage.getItems().then(action((data) => {
       const list: string[] = [];
@@ -24,9 +19,11 @@ class ConnectionProxiesManager {
       });
       this.proxies = list;
       this.proxiesDict = dict;
+      this.ready = true;
     }));
   }
 
+  @computed
   get selectOptions() {
     return this.proxies.map((connectionProxyId) => ({
       value: connectionProxyId,
@@ -34,12 +31,14 @@ class ConnectionProxiesManager {
     }));
   }
 
+  @action
   add(connectionProxy: ConnectionProxy) {
     this.proxiesDict[connectionProxy.id] = connectionProxy;
     this.proxies.push(connectionProxy.id);
     connectionProxy.save();
   }
 
+  @action
   remove(connectionProxy: ConnectionProxy) {
     this.proxies = this.proxies.filter(connectionProxyId => connectionProxyId !== connectionProxy.id);
     delete this.proxiesDict[connectionProxy.id];

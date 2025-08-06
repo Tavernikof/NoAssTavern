@@ -16,6 +16,8 @@ import FormError from "src/components/Form/components/FormError";
 import { ChatFormContext } from "src/components/ChatFormModal/components/helpers/ChatFormContext.ts";
 import { ChatFormContextStore } from "src/components/ChatFormModal/components/helpers/ChatFormContextStore.ts";
 import { useLatest } from "react-use";
+import { Book, GitBranch } from "lucide-react";
+import { loreBookManager } from "src/store/LoreBookManager.ts";
 
 export type SelectOption = {
   value: string;
@@ -35,6 +37,9 @@ const validation = Joi.object({
   flow: Joi.object({
     value: Joi.string(),
   }).unknown(true),
+  loreBooks: Joi.array().items(Joi.object({
+    value: Joi.string(),
+  }).unknown(true)),
 });
 
 export type ChatFormFields = {
@@ -48,6 +53,7 @@ export type ChatFormFields = {
   persona: string | null;
   impersonate: string | null;
   flow: SelectOption | null;
+  loreBooks: SelectOption[];
 }
 
 type Props = {
@@ -80,6 +86,10 @@ const ChatFormModal: React.FC<Props> = (props) => {
           persona: chat?.persona || null,
           impersonate: chat?.impersonate || null,
           flow: chat?.flow ? { value: chat.flow.id, label: `${chat.flow.name} (current)` } : null,
+          loreBooks: chat?.loreBooks ? chat.loreBooks.map(loreBook => ({
+            value: loreBook.loreBook.id,
+            label: `${loreBook.loreBook.name} (current)`,
+          })) : [],
         }), [chat])}
         validationSchema={validation}
         onSubmit={React.useCallback((data: ChatFormFields) => {
@@ -109,6 +119,23 @@ const ChatFormModal: React.FC<Props> = (props) => {
             if (flow) dto.flow = flow.clone(true);
           }
 
+          const loreBooks: ChatStorageItem["loreBooks"] = [];
+          if (chat) {
+            chat.loreBooks.forEach(({ loreBook, active }) => {
+              if (data.loreBooks.find(item => item.value === loreBook.id)) {
+                loreBooks.push({ loreBook, active });
+              }
+            });
+          }
+          data.loreBooks.forEach(({ value: loreBookId }) => {
+            if (!loreBooks.find(({ loreBook }) => loreBook.id === loreBookId)) {
+              const loreBook = loreBookManager.loreBooksDict[loreBookId];
+              const localLoreBook = loreBook.clone(true);
+              loreBooks.push({ loreBook: localLoreBook, active: true });
+            }
+          });
+          dto.loreBooks = loreBooks;
+
           dto.persona = data.persona || null;
           dto.name = data.name || characters.map(({ character }) => character.name).join(", ");
           dto.scenario = data.scenario || "";
@@ -126,10 +153,18 @@ const ChatFormModal: React.FC<Props> = (props) => {
         <FormFields>
           <ChatFormCharacters chat={chat} />
 
-          <FormInput label="Flow:" name="flow">
+          <FormInput icon={GitBranch} label="Flow:" name="flow">
             <SelectControlled
               name="flow"
               options={store.flowsOptions}
+            />
+          </FormInput>
+
+          <FormInput icon={Book} label="Lorebooks:" name="loreBooks">
+            <SelectControlled
+              name="loreBooks"
+              options={store.loreBookOptions}
+              isMulti
             />
           </FormInput>
 

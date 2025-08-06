@@ -1,0 +1,22 @@
+.heads {
+  border-bottom: 1px solid var(--white30a);
+  display: flex;
+  gap: 4px;
+}
+
+.head {
+  border: 1px solid var(--white30a);
+  border-bottom-color: transparent;
+  border-radius: 6px 6px 0 0;
+  height: 36px;
+  padding: 0 12px;
+  margin-bottom: -1px;
+}
+
+.headActive {
+  border-bottom-color: var(--SmartThemeChatTintColor);
+}
+
+.content {
+  padding-top: 15px;
+}

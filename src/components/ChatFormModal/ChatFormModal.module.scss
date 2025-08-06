@@ -1,6 +1,14 @@
+.icon {
+  width: 16px;
+  height: 16px;
+  color: var(--white70a);
+  margin-right: 4px;
+}
+
 .footer {
   position: sticky;
   bottom: 0;
   background: var(--SmartThemeChatTintColor);
   padding-top: 12px;
 }
+
