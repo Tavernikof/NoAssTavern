@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Tavernikof/NoAssTavern/compare/v1.0.0...v1.1.0) (2025-08-06)
+
+
+### Features
+
+* **lorebooks:** add lorebooks support ([762c460](https://github.com/Tavernikof/NoAssTavern/commit/762c460df430a3daddc59a889e3106a4644b8276))
+
 # 1.0.0 (2025-08-06)
 
 
