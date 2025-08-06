@@ -2,7 +2,7 @@ import * as React from "react";
 import style from "./ChatMembers.module.scss";
 import { useChatControllerContext } from "src/routes/SingleChat/helpers/ChatControllerContext.ts";
 import CharacterAvatar from "src/components/CharacterAvatar/CharacterAvatar.tsx";
-import { Checkbox, FormInput, Select } from "src/components/Form";
+import { Checkbox, CreatableSelect, FormInput } from "src/components/Form";
 import { Book, Pen } from "lucide-react";
 import { openPromptEditorModal } from "src/components/PromptEditorModal";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
@@ -111,7 +111,7 @@ const ChatMembers: React.FC<Props> = () => {
       )}
 
       <FormInput label="Impersonate:">
-        <Select
+        <CreatableSelect
           value={impersonateValue}
           onChange={(value) => chat.updateImpersonate((value as { value: string })?.value || null)}
           options={impersonateOptions}
