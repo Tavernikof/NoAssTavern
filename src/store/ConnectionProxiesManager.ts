@@ -38,7 +38,7 @@ class ConnectionProxiesManager {
     connectionProxy.save();
   }
 
-  @action
+  @action.bound
   remove(connectionProxy: ConnectionProxy) {
     this.proxies = this.proxies.filter(connectionProxyId => connectionProxyId !== connectionProxy.id);
     delete this.proxiesDict[connectionProxy.id];
