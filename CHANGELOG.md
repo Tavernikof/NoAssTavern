@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/Tavernikof/NoAssTavern/compare/v1.1.2...v1.1.3) (2025-08-07)
+
+
+### Bug Fixes
+
+* **proxy:** fir removing proxy ([30e5859](https://github.com/Tavernikof/NoAssTavern/commit/30e5859b1996830d4524a033b5c6f1540cd2b383))
+
 ## [1.1.2](https://github.com/Tavernikof/NoAssTavern/compare/v1.1.1...v1.1.2) (2025-08-06)
 
 
