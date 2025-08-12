@@ -19,6 +19,7 @@ import { useModelsLoader } from "src/components/PromptEditorModal/helpers/useMod
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { SelectOption } from "src/helpers/createDictionary.ts";
+import { PresetFieldType } from "src/enums/PresetFieldType.ts";
 
 type Props = Record<string, never>;
 
@@ -90,17 +91,29 @@ const PresetEditForm: React.FC<Props> = () => {
 
       <hr className={style.separator} />
 
-      {backendProvider?.config.map(({ name, label, type }) => (
+      {backendProvider?.config.map(({ name, label, type, options }) => (
         <React.Fragment key={name}>
           {type === "checkbox" && <CheckboxControlled name={name} label={label} />}
-          {(type === "input" || type === "stringArray" || type === "number") && (
+
+          {(type === PresetFieldType.input || type === PresetFieldType.stringArray || type === PresetFieldType.number) && (
             <FormInput label={`${label}:`} name={name}>
               <InputControlled name={name} />
             </FormInput>
           )}
-          {type === "textarea" && (
+
+          {type === PresetFieldType.textarea && (
             <FormInput label={`${label}:`} name={name}>
               <TextareaControlled name={name} autoHeight />
+            </FormInput>
+          )}
+
+          {type === PresetFieldType.select && (
+            <FormInput label={`${label}:`} name={name}>
+              <SelectControlled
+                name={name}
+                options={options?.map(option => ({ value: option, label: option }))}
+                isClearable
+              />
             </FormInput>
           )}
         </React.Fragment>

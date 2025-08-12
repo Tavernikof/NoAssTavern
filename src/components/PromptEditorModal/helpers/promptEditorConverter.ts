@@ -8,6 +8,7 @@ const promptToModelParsers: Record<PresetFieldType, (v: unknown) => any> = {
   "textarea": (v) => typeof v === "string" ? v : "",
   "stringArray": (v) => Array.isArray(v) ? v.join(",") : "",
   "number": (v) => typeof v === "number" ? String(v) : "",
+  "select": (v) => typeof v === "string" ? { value: v, label: v } : null,
 };
 
 const modelToPromptParsers: Record<PresetFieldType, (v: unknown) => any> = {
@@ -16,6 +17,7 @@ const modelToPromptParsers: Record<PresetFieldType, (v: unknown) => any> = {
   "textarea": (v) => v,
   "stringArray": (v) => v.split(",").map(v => v.trim()).filter(Boolean),
   "number": (v) => +v || 0,
+  "select": (v) => v ? v.value : null,
 };
 
 export const promptToModel = (backendProvider: BackendProviderItem, prompt: Prompt) => {
@@ -29,7 +31,7 @@ export const promptToModel = (backendProvider: BackendProviderItem, prompt: Prom
   return model;
 };
 
-export const modelToPrompt = (backendProvider: BackendProviderItem, prompt: Prompt, model: Record<string, any>) => {
+export const modelToPrompt = (backendProvider: BackendProviderItem, model: Record<string, any>) => {
   const data: Record<string, any> = {};
 
   backendProvider.class.config.forEach(field => {

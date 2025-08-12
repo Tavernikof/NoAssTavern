@@ -24,7 +24,6 @@ const PromptEditorModal: React.FC<Props> = (props) => {
   const { prompt } = props;
   const { resolve } = useModalContext();
   const controller = React.useMemo(() => new PresetEditorController(prompt), [prompt]);
-
   return (
     <Form
       initialValue={React.useMemo(() => ({
@@ -40,7 +39,6 @@ const PromptEditorModal: React.FC<Props> = (props) => {
         if(!backendProviderId) return;
         const backendProvider = backendProviderDict.getById(backendProviderId);
         if (!backendProvider) return;
-
         prompt.update({
           name: data.name,
           backendProviderId: data.backendProviderId?.value,
@@ -48,7 +46,7 @@ const PromptEditorModal: React.FC<Props> = (props) => {
           model: data.model?.value,
           generationConfig: {
             ...prompt.generationConfig,
-            ...modelToPrompt(backendProvider, prompt, data),
+            ...modelToPrompt(backendProvider, data),
           },
           blocks: controller.getContent(),
         });
