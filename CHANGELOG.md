@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/Tavernikof/NoAssTavern/compare/v1.1.3...v1.2.0) (2025-08-12)
+
+
+### Features
+
+* **openai:** add reasoning_effort parameter ([3207d2c](https://github.com/Tavernikof/NoAssTavern/commit/3207d2cc2155d03a2ddb27925ab3ef04a2f8f449))
+
 ## [1.1.3](https://github.com/Tavernikof/NoAssTavern/compare/v1.1.2...v1.1.3) (2025-08-07)
 
 
