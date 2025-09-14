@@ -1,0 +1,8 @@
+{
+  "watch": ["src/"],
+  "ext": "ts,json",
+  "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts"],
+  "exec": "tsx src/index.ts",
+  "delay": "500",
+  "signal": "SIGTERM"
+}
