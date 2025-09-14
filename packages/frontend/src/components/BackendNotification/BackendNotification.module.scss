@@ -1,0 +1,26 @@
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  text-align: center;
+  z-index: $modal-z-index;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.containerError {
+  background: var(--warning);
+}
+
+.containerSuccess {
+  background: var(--okGreen70a);
+}
+
+.action {
+  pointer-events: all;
+}
