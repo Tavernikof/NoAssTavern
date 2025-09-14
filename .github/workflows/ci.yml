@@ -59,7 +59,7 @@ jobs:
         run: yarn semantic-release
 
       - name: Build
-        run: yarn build
+        run: yarn build:frontend
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload dist folder
-          path: './dist'
+          path: './packages/frontend/dist'
       
       - name: Deploy to GitHub Pages
         id: deployment
