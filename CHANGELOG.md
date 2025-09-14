@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.0...v2.0.1) (2025-09-14)
+
+
+### Bug Fixes
+
+* **ci:** Update ci.yml ([873f35e](https://github.com/Tavernikof/NoAssTavern/commit/873f35e2da28ff1730a5d43e2716fa24144758dc))
+
 # [2.0.0](https://github.com/Tavernikof/NoAssTavern/compare/v1.2.0...v2.0.0) (2025-09-14)
 
 
