@@ -61,7 +61,6 @@ export class ExternalBlockEditor extends EventEmitter<ChatMessageEditorEvents> {
 
     if (event.key === "Escape") {
       this.emit("cancel");
-      console.log("!!!");
       return true;
     }
   }
