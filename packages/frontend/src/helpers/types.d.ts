@@ -63,7 +63,7 @@ type PresetVars = Record<string, PresetVar>
 type PresetFieldConfig = {
   name: string,
   label: string,
-  type: import("src/enums/PresetFieldType.ts").PresetFieldType
+  type: import("src/enums/PresetFieldType.ts").PresetFieldType,
 };
 
 type PresetGenerateMessageConfig = {

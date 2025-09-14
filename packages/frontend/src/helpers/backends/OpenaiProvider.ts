@@ -25,7 +25,7 @@ type OpenaiRequest = {
   parallel_tool_calls?: boolean;
   prediction?: unknown;
   presence_penalty?: number; // -2.0 ... 2.0
-  reasoning_effort?: "low" | "medium" | "high";
+  reasoning_effort?: "minimal" | "low" | "medium" | "high";
   response_format?:
     | { type: "text" }
     | {
@@ -112,6 +112,7 @@ type OpenaiConfig = {
   maxOutputTokens: number;
   topP: number;
   presencePenalty: number;
+  reasoningEffort: "minimal" | "low" | "medium" | "high";
 }
 
 // ============================================================================
@@ -129,6 +130,12 @@ class OpenaiProvider extends BaseBackendProvider {
     { name: "maxOutputTokens", label: "Мax completion tokens", type: PresetFieldType.number },
     { name: "topP", label: "topP", type: PresetFieldType.number },
     { name: "presencePenalty", label: "presencePenalty", type: PresetFieldType.number },
+    {
+      name: "reasoningEffort",
+      label: "reasoningEffort",
+      type: PresetFieldType.select,
+      options: ["minimal", "low", "medium", "high"],
+    },
   ];
 
   async generate(config: BackendProviderGenerateConfig<OpenaiConfig>): Promise<BackendProviderGenerateResponse> {
@@ -149,6 +156,7 @@ class OpenaiProvider extends BaseBackendProvider {
         maxOutputTokens,
         topP,
         presencePenalty,
+        reasoningEffort,
       },
 
     } = config;
@@ -165,6 +173,7 @@ class OpenaiProvider extends BaseBackendProvider {
       temperature: temperature,
       top_p: topP,
       presence_penalty: presencePenalty,
+      reasoning_effort: reasoningEffort ?? undefined,
     };
     const url = `${stripLastSlash(baseUrl)}/chat/completions`;
 
