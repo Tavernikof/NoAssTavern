@@ -1,3 +1,24 @@
+# [2.0.0](https://github.com/Tavernikof/NoAssTavern/compare/v1.2.0...v2.0.0) (2025-09-14)
+
+
+### Bug Fixes
+
+* **ci:** Update ci.yml ([5a0c33f](https://github.com/Tavernikof/NoAssTavern/commit/5a0c33fba3276b1d49bd90a0ebb802e17e7b3216))
+
+
+### Features
+
+* **backend:** add backend ([ad67413](https://github.com/Tavernikof/NoAssTavern/commit/ad67413b042c98a2de092f6d874f8e969d09d451))
+* **backend:** add backend ([0504df7](https://github.com/Tavernikof/NoAssTavern/commit/0504df79c89b72aac2b4110690ee3c197b0bc3f5))
+* **backend:** add backend ([0e513e7](https://github.com/Tavernikof/NoAssTavern/commit/0e513e79c1ad977ddc6e201dcb0a4cdec8526814))
+
+
+### BREAKING CHANGES
+
+* **backend:** added a backend, which led to the fact that some data may be incompatible
+* **backend:** added a backend, which led to the fact that some data may be incompatible
+* **backend:** added a backend, which led to the fact that some data may be incompatible
+
 # [1.2.0](https://github.com/Tavernikof/NoAssTavern/compare/v1.1.3...v1.2.0) (2025-08-12)
 
 
