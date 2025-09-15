@@ -30,7 +30,7 @@ export async function buildServer() {
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
-  app.register(multipart);
+  app.register(multipart, { limits: { fileSize: Number.MAX_SAFE_INTEGER } });
   app.register(cors, { origin: true, methods: ["GET", "HEAD", "POST", "DELETE"] });
   app.register(websocket);
 
