@@ -95,7 +95,7 @@ const schema = Joi.object({
   min_p: Joi.number(),
   repetition_penalty: Joi.number(),
   prompts: Joi.array().items(Joi.object({
-    name: Joi.string(),
+    name: Joi.string().allow(""),
     system_prompt: Joi.boolean(),
     role: Joi.string().optional(),
     content: Joi.string().allow("").optional(),

@@ -39,7 +39,7 @@ type CreateTurnConfig = {
 type PromptGenerationConfig = Record<string, any>
 
 type PromptBlock = {
-  role: ChatMessageRole;
+  role: import("src/enums/ChatManagerRole.ts").ChatMessageRole;
   content: PresetBlockContent[];
 }
 
