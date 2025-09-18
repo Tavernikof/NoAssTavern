@@ -30,7 +30,6 @@ export class Character {
   constructor(card: CharacterStorageItem, config?: CharacterCreateConfig) {
     this.isNew = config?.isNew ?? false;
     this.local = config?.local ?? false;
-
     const { loreBook, ...restCard } = card;
     this.update(restCard);
     this.parseLoreBook(loreBook);
@@ -82,7 +81,6 @@ export class Character {
       greetings: [card.data.first_mes || "", ...(card.data.alternate_greetings || [])],
       loreBook: null,
       card,
-      // image: blob,
       imageId: await imagesManager.saveBlob(blob),
     }, { isNew: true });
   }
@@ -114,7 +112,7 @@ export class Character {
 
   @action.bound
   initLoreBook() {
-    this.loreBook = LoreBook.createEmpty();
+    this.loreBook = LoreBook.createEmpty(this);
   }
 
   serialize(): CharacterStorageItem {
@@ -133,11 +131,11 @@ export class Character {
 
   private parseLoreBook(loreBook: LoreBookStorageItem | null) {
     if (loreBook) {
-      this.loreBook = new LoreBook(loreBook, { local: true });
+      this.loreBook = new LoreBook(loreBook, { local: true, parentCharacter: this });
       return;
     }
     const characterBook = this.card?.data?.character_book;
     if (!characterBook) return;
-    this.loreBook = LoreBook.createFromCharacterBook({ characterBook, character: this, config: { local: true } });
+    this.loreBook = LoreBook.createFromCharacterBook({ characterBook, config: { local: true, parentCharacter: this } });
   }
 }

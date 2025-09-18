@@ -1,5 +1,4 @@
 import Joi from "joi";
-import loreBooks from "src/routes/LoreBooks";
 
 // https://github.com/malfoyslastname/character-card-spec-v2?tab=readme-ov-file
 export type CharacterCardV2 = {
@@ -53,7 +52,9 @@ export type CharacterBook = {
     selective?: boolean // if `true`, require a key from both `keys` and `secondary_keys` to trigger the entry
     secondary_keys?: Array<string> // see field `selective`. ignored if selective == false
     constant?: boolean // if true, always inserted in the prompt (within budget limit)
+    vectorized?: boolean
     position?: "before_char" | "after_char" // whether the entry is placed before or after the character defs
+    selectiveLogic?: number
   }>
 }
 
@@ -67,6 +68,7 @@ export type SillytavernLoreBookEntry = {
   "selectiveLogic"?: 0 | 1 | 2 | 3;
   "addMemo": boolean;
   "order": number;
+
   "position": 0 | 1 | 2 | 3 | 4 | 5 | 6;
   "disable": boolean;
   "excludeRecursion": boolean;
