@@ -118,7 +118,6 @@ type ClaudeEventMessageDelta = {
   }
 }
 
-
 type ClaudeEventMessageStop = {
   "type": "message_stop",
   "amazon-bedrock-invocationMetrics"?: { // only at AWS
@@ -129,6 +128,16 @@ type ClaudeEventMessageStop = {
   }
 }
 
+type ClaudeEventMessageError = {
+  "type": "error",
+  "error": {
+    "details": null,
+    "type": string,
+    "message": string
+  },
+  "request_id": string
+}
+
 type ClaudeStreamEvent =
   | ClaudeEventMessageStart
   | ClaudeEventContentBlockStart
@@ -136,6 +145,7 @@ type ClaudeStreamEvent =
   | ClaudeEventContentBlockStop
   | ClaudeEventMessageDelta
   | ClaudeEventMessageStop
+  | ClaudeEventMessageError
 
 // ============================================================================
 
@@ -242,7 +252,9 @@ class ClaudeProvider extends BaseBackendProvider {
         const data = parseJSON(event) as ClaudeStreamEvent;
         if (!data) return;
 
-        if (data.type === "message_start") {
+        if (data.type === "error") {
+          error = `[${data.error.type}] ${data.error.message}`;
+        } else if (data.type === "message_start") {
           inputTokens = data.message.usage?.input_tokens;
         } else if (data.type === "content_block_start") {
           chunk = data.content_block?.text || "";
