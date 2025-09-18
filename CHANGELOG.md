@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.2...v2.1.0) (2025-09-18)
+
+
+### Features
+
+* **lorebooks:** add multiple conditions for keywords ([ddac33c](https://github.com/Tavernikof/NoAssTavern/commit/ddac33c75399a17ce8dbaac3735c769562f53222))
+
 ## [2.0.2](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.1...v2.0.2) (2025-09-15)
 
 
