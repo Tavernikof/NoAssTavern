@@ -1,15 +1,21 @@
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { IDBPDatabase } from "idb";
 import { LoreBookStrategy } from "src/enums/LoreBookStrategy.ts";
+import { LoreBookConditionType } from "src/enums/LoreBookConditionType.ts";
+
+export type LoreBookCondition = {
+  type: LoreBookConditionType;
+  keywords: string[];
+}
 
 export type LoreBookEntry = {
   id: string;
   name: string;
   active: boolean;
-  keywords: string[];
+  conditions: LoreBookCondition[];
   strategy: LoreBookStrategy;
-  position: string;
-  depth: number | null;
+  position: string; // keyword for insertion template
+  depth: number | null; // how many messages to scan
   content: string;
 }
 

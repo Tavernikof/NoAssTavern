@@ -8,6 +8,7 @@ import LoreBookEntry from "src/components/LoreBookModal/components/LoreBookEntry
 import _cloneDeep from "lodash/cloneDeep";
 import { v4 as uuid } from "uuid";
 import { loreBookStrategyOptions } from "src/enums/LoreBookStrategy.ts";
+import { loreBookConditionOptions } from "src/enums/LoreBookConditionType.ts";
 
 type Props = Record<string, never>;
 
@@ -27,6 +28,7 @@ const LoreBookEntries: React.FC<Props> = () => {
             entryId: uuid(),
             name: "",
             active: true,
+            conditions: [{ type: loreBookConditionOptions[0], keywords: [] }],
             strategy: loreBookStrategyOptions[0],
             position: null,
             depth: "",

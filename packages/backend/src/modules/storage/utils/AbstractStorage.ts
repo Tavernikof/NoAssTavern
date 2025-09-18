@@ -42,7 +42,7 @@ export class AbstractStorage<T extends { id: string, createdAt: string }> {
     if (!fs.existsSync(file)) return null;
     const raw = await fs.promises.readFile(file, "utf-8");
     const parsedJson = JSON.parse(raw);
-    return this.schema.parse(parsedJson);
+    return parsedJson;
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {
@@ -71,7 +71,7 @@ export class AbstractStorage<T extends { id: string, createdAt: string }> {
         try {
           const raw = await fs.promises.readFile(path.join(this.dirPath, dirent.name), "utf-8");
           const parsedJson = JSON.parse(raw);
-          items.push(this.schema.parse(parsedJson));
+          items.push(parsedJson);
         } catch (error) {
           console.error(`Skipping invalid file ${dirent.name}:`, error);
         }

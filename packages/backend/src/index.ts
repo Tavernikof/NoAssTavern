@@ -6,7 +6,7 @@ import { killExistProcess } from "./utils/killExistProcess.js";
   try {
     const app = await buildServer();
 
-    await killExistProcess(Number(process.env.BACKEND_PORT));
+    // await killExistProcess(Number(process.env.BACKEND_PORT));
 
     await app.listen({
       port: Number(process.env.BACKEND_PORT),

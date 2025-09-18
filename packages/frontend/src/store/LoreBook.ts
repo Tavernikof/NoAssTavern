@@ -6,12 +6,14 @@ import { CharacterBook, SillytavernLoreBookEntry } from "src/helpers/validateCha
 import { LoreBookStrategy } from "src/enums/LoreBookStrategy.ts";
 import { Character } from "src/store/Character.ts";
 import { escapeRegex, parseRegexFromString } from "src/helpers/parseRegexFromString.ts";
+import { LoreBookConditionType } from "src/enums/LoreBookConditionType.ts";
 
 const DEFAULT_SCAN_DEPTH = 4;
 
 type LoreBookCreateConfig = {
   isNew?: boolean;
   local?: boolean;
+  parentCharacter?: Character | null;
 }
 
 export class LoreBook {
@@ -23,10 +25,12 @@ export class LoreBook {
 
   @observable isNew: boolean;
   local: boolean;
+  parentCharacter: Character | null = null;
 
   constructor(data: LoreBookStorageItem, config?: LoreBookCreateConfig) {
     this.isNew = config?.isNew ?? false;
     this.local = config?.local ?? false;
+    this.parentCharacter = config?.parentCharacter ?? null;
 
     this.update(data);
 
@@ -38,25 +42,27 @@ export class LoreBook {
         loreBookStorage.updateItem(object);
       });
     }
+
+    requestAnimationFrame(() => this.migrate());
   }
 
-  static createEmpty(): LoreBook {
+  static createEmpty(parentCharacter?: Character): LoreBook {
     return new this({
       id: uuid(),
       createdAt: new Date(),
       name: "",
       depth: DEFAULT_SCAN_DEPTH,
       entries: [],
-    }, { isNew: true });
+    }, { isNew: true, parentCharacter });
   }
 
   static createFromCharacterBook(props: {
     characterBook: CharacterBook,
     file?: File,
-    character?: Character,
     config?: LoreBookCreateConfig
   }): LoreBook {
-    const { characterBook, file, character, config } = props;
+    const { characterBook, file, config } = props;
+    const character = config?.parentCharacter;
     const { name, scan_depth, entries } = characterBook;
 
     return new this({
@@ -64,16 +70,21 @@ export class LoreBook {
       createdAt: new Date(),
       name: name || file?.name || character?.name || "",
       depth: scan_depth || DEFAULT_SCAN_DEPTH,
-      entries: entries.map(entry => ({
-        id: uuid(),
-        name: entry.name || "",
-        active: entry.enabled,
-        keywords: entry.keys,
-        strategy: entry.constant ? LoreBookStrategy.constant : LoreBookStrategy.normal,
-        position: "",
-        depth: null,
-        content: entry.content,
-      })).filter(entry => entry.name || entry.content),
+      entries: entries
+        .sort(this.sortEntries)
+        .map(entry => {
+          return {
+            id: uuid(),
+            name: entry.name || entry.comment || "",
+            active: entry.enabled,
+            conditions: this.parseConditions(entry),
+            strategy: entry.constant ? LoreBookStrategy.constant : entry.vectorized ? LoreBookStrategy.vectorized : LoreBookStrategy.normal,
+            position: "",
+            depth: null,
+            content: entry.content,
+          };
+        })
+        .filter(entry => entry.name || entry.content),
     }, config);
   }
 
@@ -83,16 +94,19 @@ export class LoreBook {
       createdAt: new Date(),
       name: file.name,
       depth: DEFAULT_SCAN_DEPTH,
-      entries: Object.values(entries).map(entry => ({
-        id: uuid(),
-        name: entry.comment,
-        active: !entry.disable,
-        keywords: entry.key,
-        strategy: entry.constant ? LoreBookStrategy.constant : entry.vectorized ? LoreBookStrategy.vectorized : LoreBookStrategy.normal,
-        position: entry.position === 4 ? "in_chat" : "", // world_info_position.atDepth
-        depth: entry.scanDepth,
-        content: entry.content,
-      })).filter(entry => entry.name || entry.content),
+      entries: Object.values(entries)
+        .sort(this.sortEntries)
+        .map(entry => ({
+          id: uuid(),
+          name: entry.comment,
+          active: !entry.disable,
+          conditions: this.parseConditions(entry),
+          strategy: entry.constant ? LoreBookStrategy.constant : entry.vectorized ? LoreBookStrategy.vectorized : LoreBookStrategy.normal,
+          position: entry.position === 4 ? "in_chat" : "", // world_info_position.atDepth
+          depth: entry.scanDepth,
+          content: entry.content,
+        }))
+        .filter(entry => entry.name || entry.content),
     });
   }
 
@@ -100,13 +114,14 @@ export class LoreBook {
   get parsedKeywords() {
     const parsedKeywords = new Map<string, { check: (messages: string) => boolean }>();
     this.entries.forEach(entry => {
-      const { keywords } = entry;
-      keywords.forEach(keyword => {
-        if (!parsedKeywords.has(keyword)) {
-          parsedKeywords.set(keyword, { check: this.parseKeyword(keyword) });
-        }
+      entry.conditions.forEach(condition => {
+        const { keywords } = condition;
+        keywords.forEach(keyword => {
+          if (!parsedKeywords.has(keyword)) {
+            parsedKeywords.set(keyword, { check: this.parseKeyword(keyword) });
+          }
+        });
       });
-
     });
     return parsedKeywords;
   }
@@ -130,26 +145,57 @@ export class LoreBook {
     const loreBookStorageItem = _cloneDeep(this.serialize());
     loreBookStorageItem.id = uuid();
     loreBookStorageItem.createdAt = new Date();
-    return new LoreBook(loreBookStorageItem, { isNew: true, local });
+    return new LoreBook(loreBookStorageItem, { isNew: true, local, parentCharacter: this.parentCharacter });
   }
 
   getActiveEntries(position: string, getMessages: ((depth: number) => string)): LoreBookEntry[] {
     const activeIndices = new Set<number>();
 
-    const isPositionActive = (entry: LoreBookEntry) => {
+    const isPositionActive = (entry: LoreBookEntry, getText: () => string, vectorized?: boolean) => {
       if (!entry.active) return false;
       if (entry.position !== position) return false;
       if (entry.strategy === LoreBookStrategy.constant) return true;
-      if (entry.strategy === LoreBookStrategy.vectorized) return false;
-      const messages = getMessages(entry.depth || this.depth).toLowerCase();
-      return entry.keywords.some(keyword => {
-        const parsedKeyword = this.parsedKeywords.get(keyword);
-        return parsedKeyword ? parsedKeyword.check(messages) : false;
+      if (vectorized) {
+        if (entry.strategy !== LoreBookStrategy.vectorized) return false;
+      } else {
+        if (entry.strategy === LoreBookStrategy.vectorized) return false;
+      }
+      const text = getText();
+
+      return entry.conditions.every(condition => {
+        const { type, keywords } = condition;
+        switch (type) {
+          case LoreBookConditionType.any:
+            return keywords.some(keyword => {
+              const parsedKeyword = this.parsedKeywords.get(keyword);
+              return parsedKeyword ? parsedKeyword.check(text) : false;
+            });
+
+          case LoreBookConditionType.all:
+            return keywords.every(keyword => {
+              const parsedKeyword = this.parsedKeywords.get(keyword);
+              return parsedKeyword ? parsedKeyword.check(text) : false;
+            });
+
+          case LoreBookConditionType.notAny:
+            return !keywords.some(keyword => {
+              const parsedKeyword = this.parsedKeywords.get(keyword);
+              return parsedKeyword ? parsedKeyword.check(text) : false;
+            });
+
+          case LoreBookConditionType.notAll:
+            return !keywords.every(keyword => {
+              const parsedKeyword = this.parsedKeywords.get(keyword);
+              return parsedKeyword ? parsedKeyword.check(text) : false;
+            });
+        }
       });
     };
 
     this.entries.forEach((entry, index) => {
-      if (isPositionActive(entry)) activeIndices.add(index);
+      if (isPositionActive(entry, () => getMessages(entry.depth || this.depth).toLowerCase())) {
+        activeIndices.add(index);
+      }
     });
 
     let somethingAdded = false;
@@ -162,15 +208,10 @@ export class LoreBook {
 
       this.entries.forEach((entry, index) => {
         if (activeIndices.has(index)) return;
-        if (!entry.active) return;
-        if (entry.position !== position) return;
-        if (entry.strategy !== LoreBookStrategy.vectorized) return false;
-        if (!entry.keywords.some(keyword => {
-          const parsedKeyword = this.parsedKeywords.get(keyword);
-          return parsedKeyword ? parsedKeyword.check(texts) : false;
-        })) return;
-        somethingAdded = true;
-        activeIndices.add(index);
+        if (isPositionActive(entry, () => texts, true)) {
+          somethingAdded = true;
+          activeIndices.add(index);
+        }
       });
     } while (somethingAdded);
 
@@ -188,9 +229,7 @@ export class LoreBook {
 
     const regex = new RegExp(`(?:^|\\W)(${escapeRegex(keyword)})(?:$|\\W)`);
     return (messages) => regex.test(messages);
-
   }
-
 
   serialize(): LoreBookStorageItem {
     return {
@@ -200,5 +239,65 @@ export class LoreBook {
       depth: this.depth,
       entries: toJS(this.entries),
     };
+  }
+
+  private migrate() {
+    let needUpdate = false;
+    this.entries.forEach(entry => {
+      const keywords = (entry as unknown as { keywords?: string[] }).keywords as string[];
+      if (keywords) {
+        entry.conditions = [{ type: LoreBookConditionType.any, keywords }];
+        needUpdate = true;
+        delete (entry as unknown as { keywords?: string[] }).keywords;
+      }
+    });
+
+    if (needUpdate) {
+      this.entries = [...this.entries];
+    }
+  }
+
+  private static parseConditions(entry: {
+    extensions?: { selectiveLogic?: number },
+    selectiveLogic?: number,
+    key?: string[],
+    keys?: string[],
+    keysecondary?: string[],
+    secondary_keys?: string[],
+  }) {
+    const conditions = [];
+    if (entry.key) conditions.push({ type: LoreBookConditionType.any, keywords: entry.key });
+    else if (entry.keys) conditions.push({ type: LoreBookConditionType.any, keywords: entry.keys });
+
+    const sillyTavernLogic = {
+      0: LoreBookConditionType.any,
+      1: LoreBookConditionType.all,
+      2: LoreBookConditionType.notAny,
+      3: LoreBookConditionType.notAll,
+    };
+    const secondaryKeys = entry.secondary_keys ?? entry.keysecondary;
+    if (secondaryKeys?.length) {
+      const logic = entry.extensions?.selectiveLogic ?? entry.selectiveLogic;
+      if (typeof logic === "number")
+        conditions.push({
+          type: sillyTavernLogic[logic as keyof typeof sillyTavernLogic],
+          keywords: secondaryKeys,
+        });
+    }
+    return conditions;
+  }
+
+  private static sortEntries<E extends { insertion_order?: number, order?: number }>(e1: E, e2: E) {
+    let field1: number = 0;
+    let field2: number = 0;
+    if (typeof e1.insertion_order === "number" && typeof e2.insertion_order === "number") {
+      field1 = e1.insertion_order;
+      field2 = e2.insertion_order;
+    } else if (typeof e1.order === "number" && typeof e2.order === "number") {
+      field1 = e1.order;
+      field2 = e2.order;
+    }
+    return field1 === field2 ? 0 : field1 > field2 ? 1 : -1;
+
   }
 }
