@@ -8,7 +8,6 @@ import { openPromptEditorModal } from "src/components/PromptEditorModal";
 import { promptsManager } from "src/store/PromptsManager.ts";
 import ImportButton from "src/components/ImportButton";
 import { Prompt } from "src/store/Prompt.ts";
-import { createPromptSeeds } from "src/helpers/seeds.ts";
 
 type Props = Record<string, never>;
 
@@ -33,7 +32,7 @@ const Prompts: React.FC<Props> = () => {
           <ImportButton onUpload={promptsManager.import} text="Import from tavern" />
 
           <div className={style.aside}>
-            <Button onClick={() => createPromptSeeds()}>Import default prompts</Button>
+            <Button onClick={() => promptsManager.importDefault()}>Import default prompts</Button>
           </div>
         </div>
         <PromptsList />

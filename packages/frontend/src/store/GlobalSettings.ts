@@ -20,6 +20,10 @@ class GlobalSettings {
   @observable claudeKey: string;
   @observable proxyRequestsThroughBackend: boolean;
   @observable socks5: string;
+  @observable notificationFile: string | null = null;
+
+  notificationAudio: HTMLAudioElement | null = null;
+  pageActive = document.hidden;
 
   constructor() {
     makeObservable(this);
@@ -34,12 +38,25 @@ class GlobalSettings {
       }),
       (state) => localStorage[LOCALSTORAGE_CONNECTION_KEY] = JSON.stringify(state),
     );
+    autorun(() => {
+      if (this.notificationFile) {
+        this.notificationAudio = new Audio(this.notificationFile);
+      } else {
+        import("src/seeds/notification.mp3?no-inline").then(({ default: audioUrl }) => {
+          this.notificationAudio = new Audio(audioUrl);
+        });
+      }
+    });
 
     this.initializeApp().then(async () => {
       reaction(
         () => this.serializeGlobalSettings(),
         (state) => globalSettingsStorage.save(state),
       );
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      this.pageActive = !document.hidden;
     });
   }
 
@@ -51,16 +68,18 @@ class GlobalSettings {
     }
     await this.loadGlobalSettings();
 
-    if (!this.seedsImported) {
-      import("src/helpers/seeds").then(async ({ createPromptSeeds, createFlowSeeds }) => {
-        await createPromptSeeds();
-        await createFlowSeeds();
-      });
+    const seedsImported = this.seedsImported;
+    if (!seedsImported) {
       runInAction(() => this.seedsImported = true);
       globalSettingsStorage.save(this.serializeGlobalSettings());
     }
 
     runInAction(() => this.ready = true);
+
+    if (!seedsImported) {
+      await import("src/store/FlowsManager.ts").then(({ flowsManager }) => flowsManager.importDefault());
+      await import("src/store/PromptsManager.ts").then(({ promptsManager }) => promptsManager.importDefault());
+    }
   }
 
   @computed
@@ -94,6 +113,34 @@ class GlobalSettings {
     this.socks5 = socks5;
   }
 
+  @action.bound
+  updateNotificationSound(file: File | null) {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+
+        if (!dataUrl) return;
+        const testAudio = new Audio(dataUrl);
+        testAudio.play().then(() => {
+          localStorage.setItem("customSound", dataUrl);
+          this.notificationFile = dataUrl;
+          this.notificationAudio = new Audio(dataUrl);
+        }).catch(err => {
+          console.error(err);
+          alert("Wrong file");
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      this.notificationFile = null;
+    }
+  }
+
+  playNotificationAudio() {
+    this.notificationAudio?.play();
+  }
+
   @action
   loadConnectionSettings() {
     const state = parseJSON(localStorage[LOCALSTORAGE_CONNECTION_KEY]);
@@ -112,9 +159,9 @@ class GlobalSettings {
       this.claudeKey = typeof state.claudeKey === "string" ? state.claudeKey : "";
       this.proxyRequestsThroughBackend = Boolean(state.proxyRequestsThroughBackend);
       this.socks5 = typeof state.socks5 === "string" ? state.socks5 : "";
+      this.notificationFile = typeof state.notificationFile === "string" ? state.notificationFile : null;
     });
   }
-
 
   private serializeGlobalSettings(): GlobalSettingsStorageItem {
     return {
@@ -124,6 +171,7 @@ class GlobalSettings {
       claudeKey: this.claudeKey,
       proxyRequestsThroughBackend: this.proxyRequestsThroughBackend,
       socks5: this.socks5,
+      notificationFile: this.notificationFile,
     };
   }
 }
