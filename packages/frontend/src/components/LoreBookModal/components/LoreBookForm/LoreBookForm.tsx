@@ -8,6 +8,7 @@ import { Save } from "lucide-react";
 import Form from "src/components/Form/Form.tsx";
 import { LoreBookFormDto } from "src/components/LoreBookModal/LoreBookModal.tsx";
 import { LoreBook } from "src/store/LoreBook.ts";
+import { loreBookConditionOptions } from "src/enums/LoreBookConditionType.ts";
 
 type Props = {
   loreBook: LoreBook;
@@ -26,7 +27,10 @@ const LoreBookForm: React.FC<Props> = (props) => {
           entryId: entry.id,
           name: entry.name,
           active: entry.active,
-          keywords: entry.keywords.map(keyword => ({ value: keyword, label: keyword })),
+          conditions: entry.conditions.map(condition => ({
+            type: loreBookConditionOptions.find(o => o.value === condition.type) || loreBookConditionOptions[0],
+            keywords: condition.keywords.map(keyword => ({ value: keyword, label: keyword })),
+          })),
           strategy: loreBookStrategyOptions.find(o => o.value === entry.strategy) || loreBookStrategyOptions[0],
           position: entry.position ? { value: entry.position, label: entry.position } : null,
           depth: String(entry.depth || ""),
@@ -41,7 +45,10 @@ const LoreBookForm: React.FC<Props> = (props) => {
             id: entry.entryId,
             name: entry.name,
             active: entry.active,
-            keywords: entry.keywords?.map(option => option.value) ?? [],
+            conditions: entry.conditions.map(c => ({
+              type: c.type.value,
+              keywords: c.keywords.map(keyword => keyword.value),
+            })),
             strategy: entry.strategy.value,
             position: entry.position?.value || "",
             depth: Number(entry.depth) || null,

@@ -65,6 +65,7 @@ export abstract class BaseBackendProvider {
     const { response, stop, onUpdate, parseStreamEvent, parseJson } = config;
     const hasStop = Array.isArray(stop) && stop.length;
 
+    let stoped = false;
     let message = "";
     let error: string | undefined;
     let inputTokens = 0;
@@ -78,6 +79,7 @@ export abstract class BaseBackendProvider {
       .getReader();
 
     const processParserResponse = (response: ResponseParserMessage | "DONE" | undefined) => {
+      if (stoped) return;
       if (!response) return;
       if (response === "DONE") {
         reader.cancel("DONE");
@@ -104,6 +106,7 @@ export abstract class BaseBackendProvider {
           const prefixIndex = Math.min(...stopIndices);
           message = message.slice(0, prefixIndex);
           reader.cancel("stop string");
+          stoped = true;
           return;
         }
       }

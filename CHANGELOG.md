@@ -1,3 +1,18 @@
+# [2.1.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.2...v2.1.0) (2025-09-18)
+
+
+### Features
+
+* **lorebooks:** add multiple conditions for keywords ([ddac33c](https://github.com/Tavernikof/NoAssTavern/commit/ddac33c75399a17ce8dbaac3735c769562f53222))
+
+## [2.0.2](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.1...v2.0.2) (2025-09-15)
+
+
+### Bug Fixes
+
+* **backend:** remove file size limit for import backup ([3ae7836](https://github.com/Tavernikof/NoAssTavern/commit/3ae7836cd8115de9c7dadf63ff20ae8e81ad0cb9))
+* **prompt:** fix different roles on importing prompt from tavern ([9b99d09](https://github.com/Tavernikof/NoAssTavern/commit/9b99d09d8c35bc651197f2461bbcceac6081c32f))
+
 ## [2.0.1](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.0...v2.0.1) (2025-09-14)
 
 

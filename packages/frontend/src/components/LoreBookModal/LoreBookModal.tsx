@@ -3,12 +3,16 @@ import { useModalContext } from "src/components/Modals";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { LoreBookStrategy } from "src/enums/LoreBookStrategy.ts";
 import LoreBookForm from "src/components/LoreBookModal/components/LoreBookForm";
+import { LoreBookConditionType } from "src/enums/LoreBookConditionType.ts";
 
 export type LoreBookFormEntry = {
   entryId: string;
   name: string;
   active: boolean;
-  keywords: { value: string, label: string }[];
+  conditions: {
+    type: { value: LoreBookConditionType, label: string };
+    keywords: { value: string, label: string }[];
+  }[];
   strategy: { value: LoreBookStrategy, label: string };
   position: { value: string, label: string } | null;
   depth: string;

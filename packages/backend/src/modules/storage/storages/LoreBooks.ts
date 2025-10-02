@@ -6,7 +6,10 @@ export const LoreBookEntrySchema = z.object({
   id: z.string(),
   name: z.string(),
   active: z.boolean(),
-  keywords: z.array(z.string()),
+  conditions: z.array(z.object({
+    type: z.string(),
+    keywords: z.array(z.string()),
+  })),
   strategy: z.string(), // TODO: ADD ENUM
   position: z.string(),
   depth: z.number().nullish(),
