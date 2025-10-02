@@ -172,8 +172,9 @@ class OpenaiProvider extends BaseBackendProvider {
       stream_options: stream ? { "include_usage": true } : undefined,
       temperature: temperature,
       top_p: topP,
-      presence_penalty: presencePenalty,
+      // presence_penalty: presencePenalty,
       reasoning_effort: reasoningEffort ?? undefined,
+      thinking: { type: "disabled" },
     };
     const url = `${stripLastSlash(baseUrl)}/chat/completions`;
 

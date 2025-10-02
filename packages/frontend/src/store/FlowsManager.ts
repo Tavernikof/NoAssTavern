@@ -10,6 +10,12 @@ class FlowsManager extends AbstractManager<Flow, FlowStorageItem> {
   getLabel(entity: Flow): string {
     return entity.name;
   }
+
+  async importDefault() {
+    await import("src/seeds/flows").then(({ default: flows }) => {
+      flows.forEach((flow) => this.add(new Flow(flow, { isNew: true })));
+    });
+  }
 }
 
 export const flowsManager = new FlowsManager();
