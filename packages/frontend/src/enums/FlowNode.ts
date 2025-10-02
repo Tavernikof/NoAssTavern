@@ -4,4 +4,5 @@ export enum FlowNode {
   generate = "generate",
   createEmptyMessage = "createEmptyMessage",
   scheme = "scheme",
+  notify = "notify",
 }

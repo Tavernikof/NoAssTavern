@@ -12,6 +12,7 @@ export const GlobalSettingsSchema = z.object({
   claudeKey: z.string().default(""),
   proxyRequestsThroughBackend: z.boolean().default(false),
   socks5: z.string().default(""),
+  notificationFile: z.string().nullish().default(null),
 });
 
 export type GlobalSettings = z.infer<typeof GlobalSettingsSchema>;
@@ -38,6 +39,7 @@ export class GlobalSettingsStorage {
         claudeKey: "",
         proxyRequestsThroughBackend: false,
         socks5: "",
+        notificationFile: null,
       });
     }
   }

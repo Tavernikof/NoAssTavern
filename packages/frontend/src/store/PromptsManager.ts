@@ -82,6 +82,12 @@ class PromptsManager extends AbstractManager<Prompt, PromptStorageItem> {
       },
     );
   };
+
+  async importDefault() {
+    await import("src/seeds/prompts").then(({ default: prompts }) => {
+      prompts.forEach((prompt) => this.add(new Prompt(prompt, { isNew: true })));
+    });
+  }
 }
 
 export const promptsManager = new PromptsManager();

@@ -1,8 +1,6 @@
 import * as React from "react";
 import Title from "src/components/Title";
 import Subtitle from "src/components/App/components/Subtitle";
-import InputForm from "./components/InputForm";
-import { globalSettings } from "src/store/GlobalSettings.ts";
 import { observer } from "mobx-react-lite";
 import style from "./Settings.module.scss";
 import Button from "src/components/Button";
@@ -12,24 +10,12 @@ import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts"
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import ConnectionProxiesList from "src/routes/Settings/components/ConnectionProxiesList";
 import BackendSettings from "src/routes/Settings/components/BackendSettings";
-import { Checkbox } from "src/components/Form";
+import NotificationSettings from "src/routes/Settings/components/NotificationSettings";
+import ConnectionSettings from "src/routes/Settings/components/ConnectionSettings";
 
 type Props = Record<string, never>;
 
 const Settings: React.FC<Props> = () => {
-  const {
-    openaiKey,
-    geminiKey,
-    claudeKey,
-    proxyRequestsThroughBackend,
-    socks5,
-    updateOpenaiKey,
-    updateGeminiKey,
-    updateClaudeKey,
-    updateProxyRequests,
-    updateSocks5,
-    isBackendEnabled,
-  } = globalSettings;
   return (
     <>
       <Title>Settings</Title>
@@ -40,22 +26,13 @@ const Settings: React.FC<Props> = () => {
         </div>
 
         <div className={style.block}>
+          <Subtitle>Notification settings</Subtitle>
+          <NotificationSettings />
+        </div>
+
+        <div className={style.block}>
           <Subtitle>Connection settings</Subtitle>
-          <InputForm secured label="OpenAI key" value={openaiKey} onChange={updateOpenaiKey} />
-          <InputForm secured label="Gemini key" value={geminiKey} onChange={updateGeminiKey} />
-          <InputForm secured label="Claude key" value={claudeKey} onChange={updateClaudeKey} />
-          <Checkbox
-            disabled={!isBackendEnabled}
-            checked={proxyRequestsThroughBackend}
-            onChange={(e) => updateProxyRequests(e.currentTarget.checked)}
-            label={(
-              <>
-                Proxy all request through backend
-                {!isBackendEnabled && <span className={style.note}>Only available when the backend is active</span>}
-              </>
-            )}
-          />
-          <InputForm secured label="HTTP proxy url (leave empty to skip)" value={socks5} onChange={updateSocks5} />
+          <ConnectionSettings />
         </div>
 
         <div>

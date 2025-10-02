@@ -10,6 +10,7 @@ export type GlobalSettingsStorageItem = {
   claudeKey: string;
   proxyRequestsThroughBackend: boolean;
   socks5: string;
+  notificationFile: string | null;
 }
 
 export class GlobalSettingsStorage {
