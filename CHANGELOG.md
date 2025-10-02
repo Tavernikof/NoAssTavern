@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/Tavernikof/NoAssTavern/compare/v2.1.0...v2.1.1) (2025-10-02)
+
+
+### Bug Fixes
+
+* **generate:** fix client-only stop string when chunks receive too fast ([b406e4a](https://github.com/Tavernikof/NoAssTavern/commit/b406e4a0a195e03109a99c2f5ee0f6764de6bbd2))
+
 # [2.1.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.0.2...v2.1.0) (2025-09-18)
 
 
