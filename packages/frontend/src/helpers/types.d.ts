@@ -60,10 +60,16 @@ type PresetVar = (rawArgument: string) => string | undefined
 
 type PresetVars = Record<string, PresetVar>
 
+type GetPresetVarsConfig = {
+  fromMessage?: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
+  toMessage?: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
+}
+
 type PresetFieldConfig = {
   name: string,
   label: string,
   type: import("src/enums/PresetFieldType.ts").PresetFieldType,
+  options?: string[]
 };
 
 type PresetGenerateMessageConfig = {
@@ -85,11 +91,11 @@ type BackendProviderOnUpdateEvent = {
 };
 
 type BackendProviderGenerateConfig<C extends Record<string, any> = {}> = {
-  messageController: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
   baseUrl?: string,
   key?: string,
   model: string,
   messages: PresetPrompt,
+  stop?: string[],
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
   generationConfig: C,
   abortController: AbortController,

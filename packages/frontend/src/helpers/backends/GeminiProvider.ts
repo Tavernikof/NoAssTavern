@@ -114,18 +114,17 @@ class GeminiProvider extends BaseBackendProvider {
 
   async generate(config: BackendProviderGenerateConfig<GeminiConfig>): Promise<BackendProviderGenerateResponse> {
     const {
-      messageController,
       model,
       baseUrl = this.baseUrl,
       key = globalSettings.geminiKey,
       messages,
+      stop,
       onUpdate,
       abortController,
 
       generationConfig: {
         stream,
         temperature,
-        stopSequences,
         clientOnlyStop,
         maxOutputTokens,
         topP,
@@ -139,8 +138,6 @@ class GeminiProvider extends BaseBackendProvider {
     const safetySettings = model.includes("gemini-2.0-flash-exp")
       ? GEMINI_SAFETY_SETTINGS.map(setting => ({ ...setting, threshold: "OFF" }))
       : GEMINI_SAFETY_SETTINGS;
-
-    const stop = this.prepareStop(stopSequences, messageController);
 
     const requestBody = {
       contents: messages.map(block => ({
@@ -157,6 +154,9 @@ class GeminiProvider extends BaseBackendProvider {
         topK,
         presencePenalty,
         frequencyPenalty,
+        thinkingConfig: {
+          includeThoughts: true,
+        }
       },
       safetySettings,
     };

@@ -1,10 +1,11 @@
-import { action, computed, makeObservable, observable, reaction, toJS } from "mobx";
+import { action, computed, makeObservable, observable, reaction, runInAction, toJS } from "mobx";
 import { ChatMessageStorageItem, messageStorage } from "src/storages/MessageStorage.ts";
 import { ChatMessageEditor } from "./ChatMessageEditor.ts";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { ChatController } from "src/routes/SingleChat/helpers/ChatController.ts";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { SchemeName } from "src/enums/SchemeName.ts";
+import _debounce from "lodash/debounce";
 
 export class MessageController {
   chatController: ChatController;
@@ -34,9 +35,9 @@ export class MessageController {
 
     makeObservable(this);
 
-    reaction(() => this.serialize(), (object) => {
+    reaction(() => this.serialize(), _debounce((object) => {
       messageStorage.updateItem(object);
-    });
+    }, 300));
 
     reaction(() => this.editable, (editable) => {
       if (editable) {
@@ -164,8 +165,16 @@ export class MessageController {
     return { requestId: null, message: "", error: null };
   }
 
+  getPrompt<S extends ChatSwipePrompt | string>(slug: S) {
+    const currentSwipe = this.currentSwipe;
+    if (!currentSwipe.prompts[slug]) runInAction(() => {
+      currentSwipe.prompts[slug] = this.createEmptyPromptResult();
+    });
+    return currentSwipe.prompts[slug] as Exclude<ChatSwipe["prompts"][S], undefined>;
+  }
+
   getPresetVars() {
-    return this.chatController.getPresetVars(this);
+    return this.chatController.getPresetVars({ toMessage: this });
   }
 
   forceSave() {

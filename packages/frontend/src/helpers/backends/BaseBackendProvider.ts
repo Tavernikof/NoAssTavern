@@ -1,8 +1,6 @@
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import _isObjectLike from "lodash/isObjectLike";
 import { AxiosResponse } from "axios";
-import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.ts";
-import { MessageController } from "src/routes/SingleChat/helpers/MessageController.ts";
 import { JSONParser, ParsedElementInfo } from "@streamparser/json";
 
 export type ResponseParserMessage = {
@@ -54,11 +52,6 @@ export abstract class BaseBackendProvider {
     }));
 
     throw "Unknown response";
-  }
-
-  protected prepareStop(stopSequences: string[], messageController: MessageController) {
-    const stop = (stopSequences ?? []).map(str => prepareMessage(prepareImpersonate(str), messageController.getPresetVars()));
-    return stop.length ? stop : undefined;
   }
 
   protected async createResponseParser(config: ResponseParserConfig) {

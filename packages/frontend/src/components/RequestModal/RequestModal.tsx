@@ -11,12 +11,15 @@ type Props = {
 const RequestModal: React.FC<Props> = (props) => {
   const { requestId } = props;
   const [request, setRequest] = React.useState<RequestStorageItem>();
+  const [error, setError] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    requestStorage.getItem(requestId).then(setRequest);
+    requestStorage.getItem(requestId).then(setRequest, () => setError(true));
   }, []);
 
+  if (error) return <div>Can not find request info</div>;
   if (!request) return null;
+
   const { id, createdAt, provider, response: { inputTokens, outputTokens, url, request: requestParams } } = request;
 
   const backendProvider = backendProviderDict.getById(provider);

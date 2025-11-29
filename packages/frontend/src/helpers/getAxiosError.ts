@@ -17,5 +17,6 @@ export const getAxiosError = async (response: AxiosError): Promise<string> => {
 };
 
 export const extractAxiosError = (response: AxiosError) => {
+  console.trace(response);
   return getAxiosError(response).then(error => Promise.reject(error));
 };
