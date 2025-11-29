@@ -1,4 +1,4 @@
-import * as React from "react";
+import "react";
 import { FlowNode } from "src/enums/FlowNode.ts";
 import FlowNodeLayout from "src/components/SchemeEditor/components/FlowNodeLayout/FlowNodeLayout.tsx";
 import { FormInput, SelectControlled } from "src/components/Form";

@@ -3,7 +3,7 @@ import { promptStorage, PromptStorageItem } from "src/storages/PromptsStorage.ts
 import { BackendProvider } from "src/enums/BackendProvider.ts";
 import { v4 as uuid } from "uuid";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
-import { prepareMessage } from "src/helpers/prepareMessage.ts";
+import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.ts";
 import _cloneDeep from "lodash/cloneDeep";
 
 type PromptCreateConfig = {
@@ -107,11 +107,17 @@ export class Prompt {
           content.push(prepareMessage(blockContent.content, vars));
         }
         return content;
-      }, []).join("\n").trim();
+      }, []).join("\n");
       if (content.length) messages.push({ role: block.role, content });
 
       return messages;
     }, []);
+  }
+
+  buildStopSequence(vars: PresetVars) {
+    const { stopSequences } = this.generationConfig;
+    const stop = (stopSequences as string[] ?? []).map(str => prepareMessage(prepareImpersonate(str), vars));
+    return stop.length ? stop : undefined;
   }
 
   serialize(): PromptStorageItem {
