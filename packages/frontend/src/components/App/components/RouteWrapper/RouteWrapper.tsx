@@ -12,9 +12,7 @@ const RouteWrapper: React.FC<Props> = (props) => {
   const Component = getCachedComponent(route);
   const Layout = getCachedLayout(route);
 
-  if (!Layout) {
-    return null;
-  }
+  if (!Layout || !Component) return null;
 
   return (
     <React.Suspense fallback={<div />}>

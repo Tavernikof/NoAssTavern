@@ -1,0 +1,15 @@
+.container {
+  padding-top: 50px;
+  min-height: 0;
+  flex: 1;
+  @include overflow-scroll();
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  max-width: var(--assistant-chats-layout-width);
+  margin: 0 auto;
+}

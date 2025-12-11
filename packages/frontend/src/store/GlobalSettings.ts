@@ -3,11 +3,13 @@ import parseJSON from "src/helpers/parseJSON.ts";
 import { BackendStorageType } from "src/enums/BackendStorageType.ts";
 import { backendManager } from "src/store/BackendManager.ts";
 import { globalSettingsStorage, GlobalSettingsStorageItem } from "src/storages/GlobalSettingsStorage.ts";
+import _isObject from "lodash/isObject";
+import { BackendProvider, backendProviderDict } from "src/enums/BackendProvider.ts";
 
 const DEFAULT_BACKEND_URL = env.BACKEND_URL;
 const LOCALSTORAGE_CONNECTION_KEY = "noass-tavern-connection-settings";
 
-class GlobalSettings {
+export class GlobalSettings {
   @observable ready = false;
 
   @observable storageType: BackendStorageType;
@@ -21,6 +23,8 @@ class GlobalSettings {
   @observable proxyRequestsThroughBackend: boolean;
   @observable socks5: string;
   @observable notificationFile: string | null = null;
+
+  @observable.ref defaultAssistantSettings: AssistantSettings | null = null;
 
   notificationAudio: HTMLAudioElement | null = null;
   pageActive = document.hidden;
@@ -137,6 +141,12 @@ class GlobalSettings {
     }
   }
 
+  @action
+  updateDefaultAssistantSettings(defaultAssistantSettings: AssistantSettings) {
+    defaultAssistantSettings = this.normalizeDefaultAssistantSettings(defaultAssistantSettings);
+    this.defaultAssistantSettings = defaultAssistantSettings;
+  }
+
   playNotificationAudio() {
     this.notificationAudio?.play();
   }
@@ -160,7 +170,35 @@ class GlobalSettings {
       this.proxyRequestsThroughBackend = Boolean(state.proxyRequestsThroughBackend);
       this.socks5 = typeof state.socks5 === "string" ? state.socks5 : "";
       this.notificationFile = typeof state.notificationFile === "string" ? state.notificationFile : null;
+      this.defaultAssistantSettings = this.normalizeDefaultAssistantSettings(state.defaultAssistantSettings);
     });
+  }
+
+  normalizeDefaultAssistantSettings(defaultAssistantSettings: AssistantSettings | null): AssistantSettings {
+    let backendProviderId: AssistantSettings["backendProviderId"] = BackendProvider.OPENAI;
+    let connectionProxyId: AssistantSettings["connectionProxyId"] = null;
+    let model: AssistantSettings["model"] = null;
+    let generationConfig: AssistantSettings["generationConfig"] = {};
+    if (defaultAssistantSettings && _isObject(defaultAssistantSettings)) {
+      if (typeof defaultAssistantSettings.backendProviderId === "string" && backendProviderDict.dict[defaultAssistantSettings.backendProviderId as BackendProvider]) {
+        backendProviderId = defaultAssistantSettings.backendProviderId;
+      }
+      connectionProxyId = typeof defaultAssistantSettings.connectionProxyId === "string"
+        ? defaultAssistantSettings.connectionProxyId
+        : null;
+      model = typeof defaultAssistantSettings.model === "string"
+        ? defaultAssistantSettings.model
+        : null;
+      generationConfig = defaultAssistantSettings.generationConfig && _isObject(defaultAssistantSettings.generationConfig)
+        ? defaultAssistantSettings.generationConfig
+        : {};
+    }
+    return {
+      backendProviderId,
+      connectionProxyId,
+      model,
+      generationConfig,
+    };
   }
 
   private serializeGlobalSettings(): GlobalSettingsStorageItem {
@@ -172,6 +210,7 @@ class GlobalSettings {
       proxyRequestsThroughBackend: this.proxyRequestsThroughBackend,
       socks5: this.socks5,
       notificationFile: this.notificationFile,
+      defaultAssistantSettings: this.defaultAssistantSettings,
     };
   }
 }

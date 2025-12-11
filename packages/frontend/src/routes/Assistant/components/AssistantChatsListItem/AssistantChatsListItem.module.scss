@@ -1,0 +1,19 @@
+.container {
+}
+
+.link {
+  padding: 8px 8px;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 14px;
+
+  &:hover {
+    background: var(--white10a);
+  }
+}
+
+.linkActive {
+  background: var(--white10a);
+}

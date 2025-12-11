@@ -1,0 +1,15 @@
+.container {
+  align-self: flex-end;
+  max-width: 95%;
+  padding: 0 8px;
+}
+
+.containerEditable {
+  width: 100%;
+}
+
+.message {
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--white10a);
+}

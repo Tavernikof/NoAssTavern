@@ -6,6 +6,7 @@ import { ChatController } from "src/routes/SingleChat/helpers/ChatController.ts"
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { SchemeName } from "src/enums/SchemeName.ts";
 import _debounce from "lodash/debounce";
+import { createEmptyPromptResult } from "src/helpers/createEmptyPromptResult.ts";
 
 export class MessageController {
   chatController: ChatController;
@@ -111,8 +112,8 @@ export class MessageController {
       const newSwipe: ChatSwipe = {
         createdAt: new Date(),
         prompts: {
-          message: this.createEmptyPromptResult(),
-          translate: this.createEmptyPromptResult(),
+          message: createEmptyPromptResult(),
+          translate: createEmptyPromptResult(),
         },
       };
       this.swipes.push(newSwipe);
@@ -161,14 +162,10 @@ export class MessageController {
     });
   }
 
-  createEmptyPromptResult(): ChatSwipePromptResult {
-    return { requestId: null, message: "", error: null };
-  }
-
   getPrompt<S extends ChatSwipePrompt | string>(slug: S) {
     const currentSwipe = this.currentSwipe;
     if (!currentSwipe.prompts[slug]) runInAction(() => {
-      currentSwipe.prompts[slug] = this.createEmptyPromptResult();
+      currentSwipe.prompts[slug] = createEmptyPromptResult();
     });
     return currentSwipe.prompts[slug] as Exclude<ChatSwipe["prompts"][S], undefined>;
   }

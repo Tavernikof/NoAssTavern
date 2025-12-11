@@ -6,12 +6,14 @@ import { BackendStorageType } from "src/enums/BackendStorageType.ts";
 import { runInAction } from "mobx";
 import { BlobWriter, ZipWriter, BlobReader, ZipReader } from "@zip.js/zip.js";
 
-class BackupManager {
+export class BackupManager {
   constructor() {
   }
 
   private getModules() {
     return Promise.all([
+      import("src/storages/AssistantChatsStorage"),
+      import("src/storages/AssistantMessageStorage"),
       import("src/storages/CharactersStorage"),
       import("src/storages/ChatsStorage"),
       import("src/storages/ConnectionProxiesStorage"),

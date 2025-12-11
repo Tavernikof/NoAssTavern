@@ -10,6 +10,7 @@
   border-radius: 6px;
   flex: 1;
   line-height: 1.45;
+  overflow-x: hidden;
 
   &[readonly], &[disabled] {
     background-color: var(--grey5020a);
