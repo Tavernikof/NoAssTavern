@@ -11,6 +11,7 @@ export type GlobalSettingsStorageItem = {
   proxyRequestsThroughBackend: boolean;
   socks5: string;
   notificationFile: string | null;
+  defaultAssistantSettings: AssistantSettings | null;
 }
 
 export class GlobalSettingsStorage {

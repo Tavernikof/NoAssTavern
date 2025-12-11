@@ -6,11 +6,11 @@ import { FormInput, SelectControlled } from "src/components/Form";
 import { DefaultFlowNodes } from "src/components/SchemeEditor";
 import { throwNodeError } from "src/helpers/throwNodeError.ts";
 
-type FlowNodeEreateEmptyMessageState = {
+type FlowNodeCreateEmptyMessageState = {
   role: { value: string, label: string } | null,
 }
 
-export const flowNodeCreateEmptyMessage: FlowNodeConfig<FlowNodeEreateEmptyMessageState> = {
+export const flowNodeCreateEmptyMessage: FlowNodeConfig<FlowNodeCreateEmptyMessageState> = {
   id: FlowNode.createEmptyMessage,
   label: "Create message",
   description: "Create empty message",

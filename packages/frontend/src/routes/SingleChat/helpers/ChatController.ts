@@ -98,16 +98,22 @@ export class ChatController {
   }
 
   @computed
+  get firstMessage(): MessageController | undefined {
+    const firstMessage = this.messages?.[0];
+    return firstMessage instanceof MessageController ? firstMessage : undefined;
+  }
+
+  @computed
   get lastMessage(): MessageController | undefined {
     const messages = this.messages;
     if (!messages) return undefined;
-    return messages[messages.length - 1];
+    const lastMessage = messages[messages.length - 1];
+    return lastMessage instanceof MessageController ? lastMessage : undefined;
   }
 
   @computed
   get firstMessageId() {
-    if (!this.messages) return null;
-    return this.messages[0].id;
+    return this.firstMessage?.id;
   }
 
   @computed
@@ -164,8 +170,16 @@ export class ChatController {
     });
   }
 
-  getPresetVars(toMessage: MessageController | undefined = this.lastMessage): PresetVars {
-    const toMessageIndex = this.getMessageIndex(toMessage?.id);
+  getPresetVars(config?: GetPresetVarsConfig): PresetVars {
+    const fromMessage = config?.fromMessage ?? this.firstMessage;
+    const toMessage = config?.toMessage ?? this.lastMessage;
+    let fromMessageIndex = this.getMessageIndex(fromMessage?.id);
+    let toMessageIndex = this.getMessageIndex(toMessage?.id);
+    if (typeof fromMessageIndex === "number" && typeof toMessageIndex === "number" && fromMessageIndex > toMessageIndex) {
+      const buffer = toMessageIndex;
+      toMessageIndex = fromMessageIndex;
+      fromMessageIndex = buffer;
+    }
 
     return {
       user: () => preparePersonaFields(this.persona?.character.name || ""),
@@ -213,6 +227,7 @@ export class ChatController {
       history: (rawArgument) => {
         let messages = this.messages ?? [];
         if (typeof toMessageIndex === "number") messages = messages.slice(0, toMessageIndex + 1);
+        if (typeof fromMessageIndex === "number") messages = messages.slice(fromMessageIndex);
 
         const [from, to] = rawArgument.split(":").filter(Boolean);
         messages = sliceFromEnd(messages, +from || null, +to || null);
@@ -241,7 +256,9 @@ export class ChatController {
         if (!this.messages || typeof toMessageIndex !== "number") return "";
         for (let i = toMessageIndex; i >= 0; i--) {
           const message = this.messages[i];
-          if (message.role === ChatMessageRole.USER) return message.message.message.trim();
+          if (message instanceof MessageController && message.role === ChatMessageRole.USER) {
+            return message.message.message.trim();
+          }
         }
         return "";
       },
@@ -250,7 +267,7 @@ export class ChatController {
         if (!rawArgument) return "";
 
         const list = rawArgument.includes("::")
-          ? rawArgument.split("::")
+          ? rawArgument.split("::").slice(1)
           // Replaced escaped commas with a placeholder to avoid splitting on them
           : rawArgument.replace(/\\,/g, "##�COMMA�##").split(",").map(item => item.trim().replace(/##�COMMA�##/g, ","));
 
@@ -269,7 +286,7 @@ export class ChatController {
         const position = rawArgument.split(":").filter(Boolean)[0] || "";
         const result: string[] = [];
 
-        const vars = this.getPresetVars(toMessage);
+        const vars = this.getPresetVars({ fromMessage, toMessage });
         const getMessages = (depth: number) => vars.history(`1:${depth}`) as string;
 
         this.loreBooks.forEach(({ loreBook, active }) => {
@@ -335,6 +352,19 @@ export class ChatController {
       chatMessage.forceSave();
     });
     return chatMessage;
+  }
+
+  getMessagesInterval(startMessageController: MessageController, endMessageController: MessageController) {
+    if (!this.messages) return null;
+    let startIndex = this.messages.findIndex(m => m.id === startMessageController.id);
+    let endIndex = this.messages.findIndex(m => m.id === endMessageController.id);
+    if (startIndex === -1 || endIndex === -1) return null;
+    if (startIndex >= endIndex) {
+      const buffer = endIndex;
+      endIndex = startIndex;
+      startIndex = buffer;
+    }
+    return this.messages.slice(startIndex, endIndex + 1).filter(m => m instanceof MessageController);
   }
 
   private getMessageIndex(messageId?: string) {

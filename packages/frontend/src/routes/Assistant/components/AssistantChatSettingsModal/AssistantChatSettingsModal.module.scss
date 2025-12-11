@@ -1,0 +1,10 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.footer {
+  background: var(--SmartThemeChatTintColor);
+  position: sticky;
+  bottom: 0;
+}

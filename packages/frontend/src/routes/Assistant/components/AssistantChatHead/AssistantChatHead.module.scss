@@ -1,0 +1,45 @@
+.container {
+  position: sticky;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: var(--assistant-chats-message-background);
+  height: 48px;
+  display: flex;
+  align-items: center;
+
+  &:before {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 20px;
+    width: 100%;
+    top: 100%;
+    background: linear-gradient(to bottom, var(--assistant-chats-message-background), transparent);
+    pointer-events: none;
+  }
+}
+
+.content {
+  width: 100%;
+  max-width: var(--assistant-chats-layout-width);
+  margin: 0 auto;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.info {
+}
+
+.actions {
+  margin-left: auto;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

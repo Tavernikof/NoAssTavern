@@ -48,6 +48,7 @@ class MessageStorage extends BaseStorage<ChatMessageStorageItem> {
     if (!message) return;
     message.swipes.forEach(swipe => {
       for (const promptKey in swipe.prompts) {
+        if (!swipe.prompts[promptKey]) continue;
         const requestId = swipe.prompts[promptKey].requestId;
         if (requestId) requestStorage.removeItem(requestId);
       }

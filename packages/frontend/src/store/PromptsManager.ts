@@ -7,7 +7,7 @@ import arrayToIdIndex from "src/helpers/arrayToIdIndex.ts";
 import { action } from "mobx";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 
-class PromptsManager extends AbstractManager<Prompt, PromptStorageItem> {
+export class PromptsManager extends AbstractManager<Prompt, PromptStorageItem> {
   constructor() {
     super(promptStorage, Prompt);
   }

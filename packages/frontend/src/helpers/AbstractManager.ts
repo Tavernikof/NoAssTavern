@@ -76,7 +76,7 @@ export abstract class AbstractManager<E extends BaseEntity, S extends { id: stri
 
   @action.bound
   remove(entity: E) {
-    this.storage.removeItem(entity.id).then(action(() => {
+    return this.storage.removeItem(entity.id).then(action(() => {
       this.list = this.list.filter(entityId => entityId !== entity.id);
       delete this.dict[entity.id];
     }));

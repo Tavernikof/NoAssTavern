@@ -156,18 +156,17 @@ class ClaudeProvider extends BaseBackendProvider {
 
   async generate(config: BackendProviderGenerateConfig<ClaudeConfig>): Promise<BackendProviderGenerateResponse> {
     const {
-      messageController,
       model,
       baseUrl = this.baseUrl,
       key = globalSettings.claudeKey,
       messages,
+      stop,
       onUpdate,
       abortController,
 
       generationConfig: {
         stream,
         temperature,
-        stopSequences,
         clientOnlyStop,
         maxOutputTokens,
         system,
@@ -176,13 +175,11 @@ class ClaudeProvider extends BaseBackendProvider {
       },
     } = config;
 
-    const stop = clientOnlyStop ? undefined : this.prepareStop(stopSequences, messageController);
-
     const requestBody = {
       max_tokens: maxOutputTokens,
       messages: messages,
       model: model,
-      stop_sequences: stop,
+      stop_sequences: stream && clientOnlyStop ? undefined : stop,
       stream: stream,
       system: system,
       temperature: temperature,

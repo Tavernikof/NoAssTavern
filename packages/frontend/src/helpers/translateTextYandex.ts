@@ -21,10 +21,11 @@ export const translateTextYandex = async (text: string, lang: TranslateLanguage)
     });
   });
 
-  const finalText = finalTexts.join("\n\n");
+  const finalText = chunkTexts(finalTexts, 3000)
+    .map(arr => arr.join("\n\n"));
 
-  return yandexTranslate(finalText, lang).then(translatedText => {
-    const translatedChunks = translatedText.split("\n\n");
+  return Promise.all(finalText.map(text => yandexTranslate(text, lang))).then(translatedTexts => {
+    const translatedChunks = translatedTexts.join('\n\n').split("\n\n");
 
     let i = 0;
     return parsedParagraphs.map((paragraph) => {
@@ -57,3 +58,46 @@ const yandexTranslate = (text: string, lang: TranslateLanguage): Promise<string>
     },
   }).then(resp => resp.data.text.join(""));
 };
+
+
+function chunkTexts(texts: string[], maxLength: number): string[][] {
+  // Если входной массив пуст, возвращаем пустой массив
+  if (!texts || texts.length === 0) {
+    return [];
+  }
+
+  const result: string[][] = [];
+  let currentChunk: string[] = [];
+  let currentLength = 0;
+
+  for (const text of texts) {
+    const textLength = text.length;
+
+    // Важный пограничный случай: если одна строка сама по себе длиннее, чем maxLength,
+    // она все равно должна попасть в свой собственный чанк.
+    // Наша логика это учтет: currentChunk будет пуст, и строка просто добавится в него.
+
+    // Проверяем: если текущий чанк НЕ пустой И добавление новой строки превысит лимит...
+    if (currentChunk.length > 0 && currentLength + textLength > maxLength) {
+      // ...тогда "закрываем" текущий чанк, добавляя его в результат
+      result.push(currentChunk);
+
+      // И начинаем новый чанк с текущей строки
+      currentChunk = [text];
+      currentLength = textLength;
+    } else {
+      // В противном случае (если чанк пуст или строка помещается),
+      // просто добавляем строку в текущий чанк
+      currentChunk.push(text);
+      currentLength += textLength;
+    }
+  }
+
+  // После окончания цикла не забываем добавить последний собранный чанк,
+  // если он не пустой.
+  if (currentChunk.length > 0) {
+    result.push(currentChunk);
+  }
+
+  return result;
+}

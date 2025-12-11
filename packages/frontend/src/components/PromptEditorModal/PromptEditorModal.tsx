@@ -7,7 +7,7 @@ import PromptBlockEditor from "src/components/PromptEditorModal/components/Promp
 import style from "./PromptEditorModal.module.scss";
 import PresetEditForm from "./components/PresetEditForm";
 import Button from "src/components/Button";
-import Form from "../Form";
+import Form, { FormInput, InputControlled } from "../Form";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { Prompt } from "src/store/Prompt.ts";
@@ -56,6 +56,12 @@ const PromptEditorModal: React.FC<Props> = (props) => {
       <PresetEditorControllerContext.Provider value={controller}>
         <div className={style.container}>
           <div className={style.aside}>
+            <FormInput label="Name:" name="name">
+              <InputControlled name="name" />
+            </FormInput>
+
+            <hr className={style.separator} />
+
             <PresetEditForm />
           </div>
           <div className={style.main}>
@@ -72,7 +78,7 @@ const PromptEditorModal: React.FC<Props> = (props) => {
             </div>
           </div>
         </div>
-        <PromptEditorBackendWatcher />
+        <PromptEditorBackendWatcher generationConfig={prompt.generationConfig} />
       </PresetEditorControllerContext.Provider>
     </Form>
   );

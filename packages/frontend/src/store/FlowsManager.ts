@@ -2,7 +2,7 @@ import { flowsStorage, FlowStorageItem } from "src/storages/FlowsStorage.ts";
 import { Flow } from "src/store/Flow.ts";
 import { AbstractManager } from "src/helpers/AbstractManager.ts";
 
-class FlowsManager extends AbstractManager<Flow, FlowStorageItem> {
+export class FlowsManager extends AbstractManager<Flow, FlowStorageItem> {
   constructor() {
     super(flowsStorage, Flow);
   }

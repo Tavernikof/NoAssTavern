@@ -1,0 +1,35 @@
+.container {
+  position: relative;
+  width: 100%;
+  max-width: var(--assistant-chats-layout-width);
+  margin: 0 auto;
+
+  padding: 8px;
+  padding-top: 0;
+}
+
+.input {
+  min-height: 100px;
+  max-height: 300px;
+  padding-bottom: calc(16px + 32px + 8px);
+}
+
+.submitButton {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--white70a);
+  color: var(--black100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @include anim();
+
+  &:hover {
+    background: var(--white100);
+  }
+}
+

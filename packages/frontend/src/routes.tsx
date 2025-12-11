@@ -8,6 +8,8 @@ export type RouteItem = Readonly<{
 }>;
 
 const AppLayout = () => import("src/components/App/components/AppLayout");
+const AssistantRoute = () => import("src/routes/Assistant");
+const AssistantLayout = () => import("src/routes/Assistant/AssistantLayout");
 
 export const routes = [
   {
@@ -57,6 +59,18 @@ export const routes = [
     name: "settings",
     component: () => import("src/routes/Settings"),
     layout: AppLayout,
+  },
+  {
+    path: "/assistant",
+    name: "assistant",
+    component: AssistantRoute,
+    layout: AssistantLayout,
+  },
+  {
+    path: "/assistant/:chatId",
+    name: "assistantChat",
+    component: AssistantRoute,
+    layout: AssistantLayout,
   },
   {
     path: "*",

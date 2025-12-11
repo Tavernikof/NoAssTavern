@@ -89,7 +89,8 @@ type OpenaiResponse = {
   service_tier: "auto" | "default" | "flex" | "priority";
 }
 
-type OpenaiStreamResponse = {
+type OpenaiStreamResponse =
+  | {
   "id": string,
   "object": "chat.completion.chunk",
   "created": number,
@@ -102,6 +103,17 @@ type OpenaiStreamResponse = {
       "delta": { content?: string },
       finish_reason: "stop" | "length" | "content_filter" | "tool_calls" | null;
     }[]
+}
+// Qwen-style error
+  | {
+  "error": {
+    "message": string,
+    "type": string,
+    "param": null,
+    "code": string,
+  },
+  "id": string,
+  "request_id": string,
 }
 
 type OpenaiConfig = {
@@ -140,18 +152,17 @@ class OpenaiProvider extends BaseBackendProvider {
 
   async generate(config: BackendProviderGenerateConfig<OpenaiConfig>): Promise<BackendProviderGenerateResponse> {
     const {
-      messageController,
       model,
       baseUrl = this.baseUrl,
       key = globalSettings.openaiKey,
       messages,
+      stop,
       onUpdate,
       abortController,
 
       generationConfig: {
         stream,
         temperature,
-        stopSequences,
         clientOnlyStop,
         maxOutputTokens,
         topP,
@@ -161,7 +172,6 @@ class OpenaiProvider extends BaseBackendProvider {
 
     } = config;
 
-    const stop = this.prepareStop(stopSequences, messageController);
 
     const requestBody: OpenaiRequest = {
       max_completion_tokens: maxOutputTokens,
@@ -174,7 +184,7 @@ class OpenaiProvider extends BaseBackendProvider {
       top_p: topP,
       // presence_penalty: presencePenalty,
       reasoning_effort: reasoningEffort ?? undefined,
-      thinking: { type: "disabled" },
+      // thinking: { type: "disabled" },
     };
     const url = `${stripLastSlash(baseUrl)}/chat/completions`;
 
@@ -223,8 +233,8 @@ class OpenaiProvider extends BaseBackendProvider {
         if (event.trim() === "[DONE]") return "DONE";
 
         const data = parseJSON(event) as OpenaiStreamResponse;
-        if (!data || !data.choices) return;
-        data.choices.map(choice => {
+        if (!data) return;
+        if ("choices" in data && Array.isArray(data.choices)) data.choices.map(choice => {
           if (choice.finish_reason && choice.finish_reason !== "stop") {
             error = "finishReason: " + choice.finish_reason;
           }
@@ -232,6 +242,10 @@ class OpenaiProvider extends BaseBackendProvider {
             chunk += choice.delta.content;
           }
         });
+
+        if ("error" in data) {
+          error = data.error.message;
+        }
 
         return {
           chunk,
@@ -245,8 +259,9 @@ class OpenaiProvider extends BaseBackendProvider {
         if (key === "choices") {
           const value = data.value as OpenaiResponse["choices"];
           const choice = value[0];
-          if (choice.finish_reason !== "stop") return { error: "finishReason: " + choice.finish_reason };
-          if (choice.message.refusal) return { error: "refusal: " + choice.message.refusal };
+          const message = choice.message.content;
+          if (choice.finish_reason !== "stop") return { message, error: "finishReason: " + choice.finish_reason };
+          if (choice.message.refusal) return { message, error: "refusal: " + choice.message.refusal };
           if (choice.message.content) return { message: choice.message.content };
           return;
         }
@@ -281,8 +296,8 @@ class OpenaiProvider extends BaseBackendProvider {
       method: "GET",
       url: `${stripLastSlash(baseUrl)}/${stripLastSlash(modelsEndpoint)}`,
       headers: {
-        "anthropic-version": "2023-06-01",
-        "x-api-key": key,
+        // "anthropic-version": "2023-06-01",
+        // "x-api-key": key,
         "authorization": `Bearer ${key}`,
       },
     }).then(

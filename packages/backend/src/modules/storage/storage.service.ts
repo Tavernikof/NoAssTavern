@@ -8,8 +8,12 @@ import { PromptsStorage } from "./storages/Prompts.js";
 import { RequestsStorage } from "./storages/Requests.js";
 import { ImagesStorage } from "./storages/Images.js";
 import { GlobalSettingsStorage } from "./storages/GlobalSettings.js";
+import { AssistantChatsStorage } from "./storages/AssistantChats.js";
+import { AssistantMessagesStorage } from "./storages/AssistantMessages.js";
 
 export class StorageService {
+  assistantChats = new AssistantChatsStorage(this);
+  assistantMessages = new AssistantMessagesStorage(this);
   characters = new CharactersStorage(this);
   chats = new ChatsStorage(this);
   connectionProxies = new ConnectionProxiesStorage(this);
@@ -22,6 +26,8 @@ export class StorageService {
   requests = new RequestsStorage(this);
 
   list = [
+    this.assistantChats,
+    this.assistantMessages,
     this.characters,
     this.chats,
     this.connectionProxies,

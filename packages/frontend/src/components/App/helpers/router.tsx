@@ -26,14 +26,14 @@ export const router = createHashRouter([{
 export const routesDict = arrayToIdIndex(routes, "name");
 export type RouteName = keyof typeof routesDict;
 
-const componentsCache: Record<string, React.LazyExoticComponent<React.FC>> = {};
-const layoutsCache: Map<RouteItem["layout"], React.LazyExoticComponent<React.FC<React.PropsWithChildren>>> = new Map();
+const componentsCache = new Map<RouteItem["component"], React.LazyExoticComponent<React.FC>>();
+const layoutsCache = new Map<RouteItem["layout"], React.LazyExoticComponent<React.FC<React.PropsWithChildren>>>();
 
 export const getCachedComponent = (route: RouteItem) => {
-  if (!componentsCache[route.path]) {
-    componentsCache[route.path] = React.lazy(route.component);
+  if (!componentsCache.get(route.component)) {
+    componentsCache.set(route.component, React.lazy(route.component));
   }
-  return componentsCache[route.path];
+  return componentsCache.get(route.component);
 };
 
 export const getCachedLayout = (route: RouteItem) => {

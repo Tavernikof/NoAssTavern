@@ -4,7 +4,7 @@ import { promptsManager } from "src/store/PromptsManager.ts";
 import { action, autorun, computed, makeObservable, observable, runInAction } from "mobx";
 import { FlowExtraBlock, FlowSchemeState } from "src/storages/FlowsStorage.ts";
 import _cloneDeep from "lodash/cloneDeep";
-import { defaultSchemesDict } from "src/enums/SchemeName.ts";
+import { defaultSchemesDict, isDefaultScheme } from "src/enums/SchemeName.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
 
 export class FlowEditorState {
@@ -127,6 +127,7 @@ export class FlowEditorState {
     const schemes: Record<string, FlowSchemeState> = {};
 
     for (const schemeName in this.schemeStates) {
+      if (!isDefaultScheme(schemeName) && !this.extraBlocks.find(b => b.id === schemeName)) continue;
       const state = this.schemeStates[schemeName];
 
       schemes[schemeName] = {
