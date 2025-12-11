@@ -144,15 +144,25 @@ type FlowNodeConfig<D = Record<string, any>> = {
 // ============================================================================
 
 interface Window {
-  flowsManager: import("src/store/FlowsManager.ts"),
-  charactersManager: import("src/store/CharactersManager.ts"),
-  chatsManager: import("src/store/ChatsManager.ts"),
-  promptsManager: import("src/store/PromptsManager.ts"),
-  imagesManager: import("src/store/ImagesManager.ts"),
-  loreBookManager: import("src/store/LoreBookManager.ts"),
-  globalSettings: import("src/store/GlobalSettings.ts"),
-  backupManager: import("src/store/BackupManager.ts"),
+  assistantChatsManager: import("src/store/AssistantChatsManager.ts").AssistantChatsManager,
+  flowsManager: import("src/store/FlowsManager.ts").FlowsManager,
+  charactersManager: import("src/store/CharactersManager.ts").CharactersManager,
+  chatsManager: import("src/store/ChatsManager.ts").ChatsManager,
+  promptsManager: import("src/store/PromptsManager.ts").PromptsManager,
+  imagesManager: import("src/store/ImagesManager.ts").ImagesManager,
+  loreBookManager: import("src/store/LoreBookManager.ts").LoreBookManager,
+  globalSettings: import("src/store/GlobalSettings.ts").GlobalSettings,
+  backupManager: import("src/store/BackupManager.ts").BackupManager,
   env: Record<string, string>
+}
+
+// ============================================================================
+
+type AssistantSettings = {
+  backendProviderId: import("src/enums/BackendProvider.ts").BackendProvider;
+  connectionProxyId: string | null;
+  model: string | null;
+  generationConfig: PromptGenerationConfig;
 }
 
 // ============================================================================

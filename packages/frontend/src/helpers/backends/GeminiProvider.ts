@@ -154,9 +154,9 @@ class GeminiProvider extends BaseBackendProvider {
         topK,
         presencePenalty,
         frequencyPenalty,
-        thinkingConfig: {
-          includeThoughts: true,
-        }
+        // thinkingConfig: {
+        //   includeThoughts: true,
+        // }
       },
       safetySettings,
     };

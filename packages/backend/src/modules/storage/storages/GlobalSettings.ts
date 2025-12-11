@@ -4,6 +4,7 @@ import { STORAGE_DIR } from "../../../env.js";
 import { StorageService } from "../storage.service.js";
 import fs from "fs";
 import { Entry, TextWriter } from "@zip.js/zip.js";
+import { BackendProvider } from "noasstavern-frontend/src/enums/BackendProvider.js";
 
 export const GlobalSettingsSchema = z.object({
   seedsImported: z.boolean().default(false),
@@ -13,6 +14,12 @@ export const GlobalSettingsSchema = z.object({
   proxyRequestsThroughBackend: z.boolean().default(false),
   socks5: z.string().default(""),
   notificationFile: z.string().nullish().default(null),
+  defaultAssistantSettings: z.object({
+    backendProviderId: z.string(),
+    connectionProxyId: z.string().nullish(),
+    model: z.string().nullish(),
+    generationConfig: z.looseObject({}),
+  }),
 });
 
 export type GlobalSettings = z.infer<typeof GlobalSettingsSchema>;
@@ -40,6 +47,12 @@ export class GlobalSettingsStorage {
         proxyRequestsThroughBackend: false,
         socks5: "",
         notificationFile: null,
+        defaultAssistantSettings: {
+          backendProviderId: 'openai',
+          connectionProxyId: null,
+          model: null,
+          generationConfig: {},
+        },
       });
     }
   }

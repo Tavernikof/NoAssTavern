@@ -4,7 +4,7 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { backendManager } from "src/store/BackendManager.ts";
 
-class ImagesManager {
+export class ImagesManager {
   private temp: Record<string, string> = {};
   @observable cache: Record<string, string | null> = {};
 

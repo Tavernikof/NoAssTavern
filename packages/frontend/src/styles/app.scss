@@ -25,3 +25,12 @@ body {
 [contenteditable]:focus {
   outline: none;
 }
+
+* {
+  scrollbar-color: var(--white30a) transparent;
+  scrollbar-width: thin;
+}
+
+hr {
+  border-color: var(--white20a)
+}

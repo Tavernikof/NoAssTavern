@@ -31,12 +31,6 @@ const PresetEditForm: React.FC<Props> = () => {
 
   return (
     <>
-      <FormInput label="Name:" name="name">
-        <InputControlled name="name" />
-      </FormInput>
-
-      <hr className={style.separator} />
-
       <FormInput label="Provider:" name="backendProviderId">
         <SelectControlled name="backendProviderId" options={backendProviderDict.selectOptions} />
       </FormInput>
@@ -89,7 +83,7 @@ const PresetEditForm: React.FC<Props> = () => {
         </FormInput>
       )}
 
-      <hr className={style.separator} />
+      <hr />
 
       {backendProvider?.config.map(({ name, label, type, options }) => (
         <React.Fragment key={name}>
@@ -121,7 +115,7 @@ const PresetEditForm: React.FC<Props> = () => {
 
       {backendProvider?.documentationLink && (
         <>
-          <hr className={style.separator} />
+          <hr />
           <a href={backendProvider.documentationLink} target="_blank">
             Full documentation{" "}
             <ExternalLink size={16} />
