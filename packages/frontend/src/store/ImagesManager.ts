@@ -37,6 +37,13 @@ export class ImagesManager {
     return id;
   }
 
+  async saveBase64(data: string, mimeType: string) {
+    const dataUrl = `data:${mimeType};base64,${data}`;
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return this.saveBlob(blob);
+  }
+
   saveTempItem(id: string) {
     const oldId = this.temp[id];
     if (!oldId) return;

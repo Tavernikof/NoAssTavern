@@ -1,6 +1,5 @@
 import { BaseBackendProvider, ResponseParserMessage } from "src/helpers/backends/BaseBackendProvider.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
-import parseJSON from "src/helpers/parseJSON.ts";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { AxiosError, AxiosResponse } from "axios";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
@@ -64,10 +63,17 @@ type GeminiModelsResponse = {
 type GeminiRawResponse = {
   "candidates": {
     "content": {
-      "parts": { "text": string }[],
+      "parts": {
+        "text": string,
+        "inlineData"?: {
+          data: string,
+          mimeType: string
+        }
+      }[],
       "role": "model"
     },
     finishReason?: GeminiFinishReason
+    finishMessage?: string
     index: 0
     "safetyRatings": { "category": string, "probability": string }[]
   }[],
@@ -191,6 +197,7 @@ class GeminiProvider extends BaseBackendProvider {
 
     const {
       message = "",
+      images,
       error = undefined,
       inputTokens = 0,
       outputTokens = 0,
@@ -198,35 +205,6 @@ class GeminiProvider extends BaseBackendProvider {
       response,
       stop: clientOnlyStop ? stop : undefined,
       onUpdate,
-
-      parseStreamEvent: (event) => {
-        const dataPrefix = "data: ";
-        if (!event.startsWith(dataPrefix)) return;
-
-        let chunk = "";
-        let error: string | undefined;
-        event = event.slice(dataPrefix.length);
-        const data = parseJSON(event) as GeminiRawResponse;
-        if (!data) return;
-        if (data.promptFeedback?.blockReason) {
-          error = "blockReason: " + data.promptFeedback?.blockReason;
-        } else if (data.candidates) {
-          const candidate = data.candidates[0];
-          if (candidate.finishReason && candidate.finishReason !== "STOP") {
-            error = "finishReason: " + candidate.finishReason;
-          }
-          if (candidate.content?.parts) {
-            chunk = candidate.content.parts.map(part => part.text).join("");
-          }
-        }
-
-        return {
-          chunk,
-          error,
-          inputTokens: data.usageMetadata?.promptTokenCount,
-          outputTokens: data.usageMetadata?.candidatesTokenCount,
-        };
-      },
 
       parseJson: (data) => {
         const response: ResponseParserMessage = {};
@@ -240,11 +218,21 @@ class GeminiProvider extends BaseBackendProvider {
           const value = data.value as GeminiRawResponse["candidates"];
           const candidate = value[0] as GeminiRawResponse["candidates"][number];
           if (candidate.finishReason && candidate.finishReason !== "STOP") {
-            response.error = "finishReason: " + candidate.finishReason;
+            response.error = `finishReason: ${candidate.finishReason} ${candidate.finishMessage || ""}`;
           }
-          if (candidate.content) {
-            response.chunk = candidate.content.parts.map(part => part.text).join("");
-          }
+          candidate.content?.parts?.forEach((part) => {
+            if (part.text) {
+              if (!response.message) response.message = "";
+              response.message += part.text;
+            }
+            if (part.inlineData) {
+              if (!response.images) response.images = [];
+              response.images.push({
+                data: part.inlineData.data,
+                mimeType: part.inlineData.mimeType,
+              });
+            }
+          });
         }
 
         if (key === "usageMetadata") {
@@ -259,6 +247,7 @@ class GeminiProvider extends BaseBackendProvider {
 
     return {
       message: message.trim(),
+      images,
       error,
       url,
       request: requestBody,

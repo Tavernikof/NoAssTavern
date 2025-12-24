@@ -6,6 +6,7 @@ import { requestStorage } from "src/storages/RequestStorage.ts";
 import { Entry, ZipWriter } from "@zip.js/zip.js";
 import parseJSON from "src/helpers/parseJSON.ts";
 import { assistantChatsStorage } from "src/storages/AssistantChatsStorage.ts";
+import { imagesStorage } from "src/storages/ImagesStorage.ts";
 
 export type AssistantMessageStorageItem = {
   id: string,
@@ -51,6 +52,12 @@ class AssistantMessageStorage extends BaseStorage<AssistantMessageStorageItem> {
         if (!swipe.prompts[promptKey]) continue;
         const requestId = swipe.prompts[promptKey].requestId;
         if (requestId) requestStorage.removeItem(requestId);
+        const images = swipe.prompts[promptKey].images;
+        if (Array.isArray(images)) {
+          for (const image of images) {
+            imagesStorage.removeItem(image.imageId);
+          }
+        }
       }
     });
     return super.removeItem(id);

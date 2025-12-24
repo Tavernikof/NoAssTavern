@@ -99,6 +99,11 @@ export class AssistantMessageController {
     this.setEditable(false);
   }
 
+  submitMessageFromEditor() {
+    this.updateMessageFromEditor();
+    this.assistantChatController.createAssistantMessage();
+  }
+
   @action
   deleteMessage() {
     this.assistantChatController.deleteMessage(this.id);
