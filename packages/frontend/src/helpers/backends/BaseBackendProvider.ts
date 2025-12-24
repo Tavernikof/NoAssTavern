@@ -3,23 +3,27 @@ import _isObjectLike from "lodash/isObjectLike";
 import { AxiosResponse } from "axios";
 import { JSONParser, ParsedElementInfo } from "@streamparser/json";
 
+export type ResponseParserImage = {
+  data: string,
+  mimeType: string,
+}
 export type ResponseParserMessage = {
   message?: string;
-  chunk?: string;
   error?: string;
   inputTokens?: number;
   outputTokens?: number;
+  images?: ResponseParserImage[];
 }
 
 type ResponseParserConfig = {
   response: AxiosResponse,
   stop?: string[],
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
-  parseStreamEvent: (event: string) => ResponseParserMessage | "DONE" | undefined,
   parseJson: (data: ParsedElementInfo.ParsedElementInfo) => ResponseParserMessage | "DONE" | undefined,
 }
 
 // ============================================================================
+const DATA_PREFIX = "data: ";
 
 export abstract class BaseBackendProvider {
   abstract baseUrl: string;
@@ -55,11 +59,12 @@ export abstract class BaseBackendProvider {
   }
 
   protected async createResponseParser(config: ResponseParserConfig) {
-    const { response, stop, onUpdate, parseStreamEvent, parseJson } = config;
+    const { response, stop, onUpdate, parseJson } = config;
     const hasStop = Array.isArray(stop) && stop.length;
 
     let stoped = false;
     let message = "";
+    let images: ResponseParserImage[] | undefined;
     let error: string | undefined;
     let inputTokens = 0;
     let outputTokens = 0;
@@ -71,72 +76,113 @@ export abstract class BaseBackendProvider {
       .pipeThrough(new TextDecoderStream())
       .getReader();
 
-    const processParserResponse = (response: ResponseParserMessage | "DONE" | undefined) => {
-      if (stoped) return;
-      if (!response) return;
-      if (response === "DONE") {
-        reader.cancel("DONE");
-        return;
-      }
+    const createParser = () => {
+      const parser = new JSONParser();
+      parser.onValue = (data) => {
+        const response = parseJson(data);
+        if (stoped) return;
+        if (!response) return;
+        if (response === "DONE") {
+          reader.cancel("DONE");
+          return;
+        }
 
-      if (response.message !== undefined) {
-        message = response.message;
-      } else if (response.chunk !== undefined) {
-        message += response.chunk;
-      }
-      if (response.error !== undefined) error = response.error;
-      if (response.inputTokens !== undefined) inputTokens = response.inputTokens;
-      if (response.outputTokens !== undefined) outputTokens = response.outputTokens;
+        if (response.message !== undefined) {
+          message += response.message;
+          onUpdate({ chunk: response.message });
 
-      if (error) {
-        // reader.cancel(error);
-        // return;
-      }
+        }
+        if (Array.isArray(response.images)) {
+          if (!Array.isArray(images)) images = [];
+          images.push(...response.images);
+        }
+        if (response.error !== undefined) error = response.error;
+        if (response.inputTokens !== undefined) inputTokens = response.inputTokens;
+        if (response.outputTokens !== undefined) outputTokens = response.outputTokens;
 
-      if (hasStop) {
-        const stopIndices = stop.map(s => message.indexOf(s)).filter(i => i !== -1);
-        if (stopIndices.length) {
-          const prefixIndex = Math.min(...stopIndices);
-          message = message.slice(0, prefixIndex);
-          reader.cancel("stop string");
+        if (error) {
+          // reader.cancel(error);
+          // return;
+        }
+
+        if (hasStop) {
+          const stopIndices = stop.map(s => message.indexOf(s)).filter(i => i !== -1);
+          if (stopIndices.length) {
+            const prefixIndex = Math.min(...stopIndices);
+            message = message.slice(0, prefixIndex);
+            reader.cancel("stop string");
+            stoped = true;
+            return;
+          }
+        }
+      };
+      parser.onEnd = () => {
+        recreateParser();
+      };
+      return parser;
+    };
+    const recreateParser = () => {
+      parser = createParser();
+    };
+    let parser = createParser();
+
+    let eventBuffer = "";
+    const processData = () => {
+      if (!eventBuffer) return;
+
+      if (eventBuffer.startsWith(DATA_PREFIX)) {
+        eventBuffer = eventBuffer.slice(DATA_PREFIX.length);
+        eventBuffer.trim();
+        if (eventBuffer === "[DONE]") {
           stoped = true;
           return;
         }
+
+        if (eventBuffer) parser.write(eventBuffer);
       }
 
-      if (response.chunk) {
-        onUpdate({ chunk: response.chunk });
-      }
-    };
-
-    const parser = new JSONParser();
-    parser.onValue = (data) => {
-      const parsedEvent = parseJson(data);
-      processParserResponse(parsedEvent);
+      eventBuffer = "";
     };
 
     try {
       while (true) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done) {
+          processData();
+          break;
+        }
 
         if (isStream) {
           const events = value.split("\n");
-          events.forEach(event => {
-            const parsedEvent = parseStreamEvent(event.trim());
-            processParserResponse(parsedEvent);
+          events.forEach((event, i) => {
+            if (stoped) return;
 
+            const isFirst = i === 0;
+            const isLast = i === events.length - 1;
+            if (isFirst) {
+              eventBuffer += event;
+            } else {
+              eventBuffer = event;
+            }
+            if (!isLast) processData();
           });
         } else {
           parser.write(value);
         }
       }
     } catch (e) {
+      console.error(e);
       error = (e as Error).message;
     }
 
+    message = message.trim();
+    if (!message && !images?.length && !error) {
+      error = "empty response";
+    }
+
     return {
-      message: message.trim(),
+      message,
+      images,
       error,
       inputTokens,
       outputTokens,

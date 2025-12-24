@@ -20,10 +20,8 @@ class AssistantChatsStorage extends BaseStorage<AssistantChatStorageItem> {
 
   async removeItem(id: string) {
     const messages = await assistantMessageStorage.getChatItems(id);
-    await Promise.all([
-      ...messages.map(message => assistantMessageStorage.removeItem(message.id)),
-      super.removeItem(id),
-    ]);
+    await Promise.all(messages.map(message => assistantMessageStorage.removeItem(message.id)));
+    return super.removeItem(id);
   }
 }
 

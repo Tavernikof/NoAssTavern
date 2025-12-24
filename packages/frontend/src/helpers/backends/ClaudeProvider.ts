@@ -1,6 +1,5 @@
 import { BaseBackendProvider, ResponseParserMessage } from "src/helpers/backends/BaseBackendProvider.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
-import parseJSON from "src/helpers/parseJSON.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
 import { PresetFieldType } from "src/enums/PresetFieldType.ts";
@@ -226,46 +225,26 @@ class ClaudeProvider extends BaseBackendProvider {
       stop: clientOnlyStop ? stop : undefined,
       onUpdate,
 
-      parseStreamEvent: (event) => {
-        const dataPrefix = "data: ";
-        if (!event.startsWith(dataPrefix)) return;
-
-        let chunk = "";
-        let error: string | undefined;
-        let inputTokens: number | undefined;
-        let outputTokens: number | undefined;
-
-        event = event.slice(dataPrefix.length);
-        const data = parseJSON(event) as ClaudeStreamEvent;
-        if (!data) return;
-
-        if (data.type === "message_start") {
-          inputTokens = data.message.usage?.input_tokens;
-        } else if (data.type === "content_block_start") {
-          chunk = data.content_block?.text || "";
-        } else if (data.type === "content_block_delta") {
-          chunk = data.delta?.text || "";
-        } else if (data.type === "message_delta") {
-          const stopReason = data.delta?.stop_reason;
-          if (stopReason && stopReason !== "end_turn" && stopReason !== "stop_sequence") {
-            error = `stopReason: ${stopReason}`;
-          }
-          outputTokens = data.usage?.output_tokens;
-        }
-
-        return {
-          chunk,
-          error,
-          inputTokens,
-          outputTokens,
-        };
-      },
-
       parseJson: (data) => {
         const response: ResponseParserMessage = {};
         const key = data.key;
 
-        if (key === "usage") {
+        if (data.value && typeof data.value === "object" && "type" in data.value) {
+          const value = data.value as ClaudeStreamEvent;
+          if (value.type === "message_start") {
+            response.inputTokens = value.message.usage?.input_tokens;
+          } else if (value.type === "content_block_start") {
+            response.message = value.content_block?.text || "";
+          } else if (value.type === "content_block_delta") {
+            response.message = value.delta?.text || "";
+          } else if (value.type === "message_delta") {
+            const stopReason = value.delta?.stop_reason;
+            if (stopReason && stopReason !== "end_turn" && stopReason !== "stop_sequence") {
+              response.error = `stopReason: ${stopReason}`;
+            }
+            response.outputTokens = value.usage?.output_tokens;
+          }
+        } else if (key === "usage") {
           const value = data.value as ClaudeResponse["usage"];
           response.inputTokens = value.input_tokens;
           response.outputTokens = value.output_tokens;
@@ -276,7 +255,7 @@ class ClaudeProvider extends BaseBackendProvider {
           }
         } else if (key === "content") {
           const value = data.value as ClaudeResponse["content"];
-          response.chunk = value.map(v => v.text).join("");
+          response.message = value.map(v => v.text).join("");
         }
 
         return response;

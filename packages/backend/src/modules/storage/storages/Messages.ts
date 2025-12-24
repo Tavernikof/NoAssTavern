@@ -6,9 +6,14 @@ import { STORAGE_DIR } from "../../../env.js";
 import { sortByCreatedAt } from "../utils/sortByCreatedAt.js";
 import { StorageService } from "../storage.service.js";
 
+export const ChatSwipePromptImageSchema = z.object({
+  imageId: z.string(),
+});
+
 export const ChatSwipePromptResultSchema = z.object({
   requestId: z.string().nullish(),
   message: z.string(),
+  images: z.array(ChatSwipePromptImageSchema).optional(),
   error: z.string().nullish(),
 });
 
@@ -48,10 +53,10 @@ export class MessagesStorage extends AbstractStorage<Message> {
   }
 
   async delete(id: string): Promise<boolean> {
-      const message = await this.get(id);
-      if (!message) return false;
-      this.updateDir(message.chatId);
-      return super.delete(id);
+    const message = await this.get(id);
+    if (!message) return false;
+    this.updateDir(message.chatId);
+    return super.delete(id);
   }
 
   listForChat(chatId: string): Promise<Message[]> {

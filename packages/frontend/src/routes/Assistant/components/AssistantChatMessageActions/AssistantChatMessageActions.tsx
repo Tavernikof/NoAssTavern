@@ -1,7 +1,7 @@
 import * as React from "react";
 import style from "./AssistantChatMessageActions.module.scss";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
-import { ArrowDownFromLine, Check, ChevronLeft, ChevronRight, Pen, Trash, X } from "lucide-react";
+import { ArrowDownFromLine, Check, ChevronLeft, ChevronRight, Pen, Trash, X, Send } from "lucide-react";
 import Tooltip from "src/components/Tooltip/Tooltip.tsx";
 import Button from "src/components/Button/Button.tsx";
 import { AssistantMessageController } from "src/routes/Assistant/helpers/AssistantMessageController.ts";
@@ -13,19 +13,29 @@ type Props = {
 
 const AssistantChatMessageActions: React.FC<Props> = (props) => {
   const { assistantMessage } = props;
-  const { editable, activeSwipe, swipes } = assistantMessage;
+  const { editable, activeSwipe, swipes, isLast } = assistantMessage;
 
   return (
     <div className={style.actions}>
       {editable
         ? (
-          <div className={style.actionsMain}>
-            <MessageActionButton onClick={() => assistantMessage.setEditable(false)} icon={X} />
-            <MessageActionButton
-              onClick={() => assistantMessage.updateMessageFromEditor()}
-              icon={Check}
-            />
-          </div>
+          <>
+            <div className={style.actionsMain}>
+              <MessageActionButton onClick={() => assistantMessage.setEditable(false)} icon={X} />
+              <MessageActionButton
+                onClick={() => assistantMessage.updateMessageFromEditor()}
+                icon={Check}
+              />
+            </div>
+            {isLast && (
+              <div className={style.actionsAside}>
+                <MessageActionButton
+                  onClick={() => assistantMessage.submitMessageFromEditor()}
+                  icon={Send}
+                />
+              </div>
+            )}
+          </>
         ) : (
           <>
             <div className={style.actionsMain}>

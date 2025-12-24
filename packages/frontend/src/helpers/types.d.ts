@@ -10,10 +10,15 @@ type ChatLoreBook = {
   active: boolean,
 }
 
+type ChatSwipePromptImage = {
+  imageId: string;
+}
+
 type ChatSwipePromptResult = {
   requestId?: string | null;
   message: string;
   error?: string | null;
+  images?: ChatSwipePromptImage[];
 }
 
 type ChatSwipe = {
@@ -101,13 +106,19 @@ type BackendProviderGenerateConfig<C extends Record<string, any> = {}> = {
   abortController: AbortController,
 };
 
+type BackendProviderGenerateImage = {
+  data: string,
+  mimeType: string,
+}
+
 type BackendProviderGenerateResponse = {
   message: string,
   error?: string,
   inputTokens: number,
   outputTokens: number,
   url: string,
-  request: Record<string, any>
+  request: Record<string, any>,
+  images?: BackendProviderGenerateImage[],
 };
 
 type BackendProviderGetModelsConfig = {

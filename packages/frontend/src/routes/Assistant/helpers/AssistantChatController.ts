@@ -12,6 +12,7 @@ import { openAssistantChatSettingsModal } from "src/routes/Assistant/components/
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
+import { imagesManager } from "src/store/ImagesManager.ts";
 
 type CreateAssistantMessageConfig = {
   id?: string,
@@ -134,13 +135,7 @@ export class AssistantChatController {
       role: ChatMessageRole.USER,
     });
 
-
-    const assistantMessage = await this.createMessage({
-      messages: [""],
-      assistantChatId,
-      role: ChatMessageRole.ASSISTANT,
-    });
-    if (assistantMessage) this.generateMessage(assistantMessage.id);
+    await this.createAssistantMessage(assistantChatId);
 
     if (shouldCreateChat) {
       this.setChatId(assistantChatId, true);
@@ -183,6 +178,16 @@ export class AssistantChatController {
     return newMessage;
   }
 
+  async createAssistantMessage(assistantChatId = this.assistantChatId) {
+    if (!assistantChatId) return;
+    const assistantMessage = await this.createMessage({
+      messages: [""],
+      assistantChatId,
+      role: ChatMessageRole.ASSISTANT,
+    });
+    if (assistantMessage) this.generateMessage(assistantMessage.id);
+  }
+
   generateMessage(targetMessageId: string) {
     if (!this.generationSettings) return;
     const { backendProviderId, connectionProxyId, model, generationConfig } = this.generationSettings;
@@ -217,15 +222,22 @@ export class AssistantChatController {
       abortController: abortController,
     };
 
-    return backendProvider.generate(data).then(action(response => {
-      const targetMessage = this.messagesDict[targetMessageId];
-      targetMessage.message.message = response.message;
-      targetMessage.message.error = response.error;
-      targetMessage.setPending(false);
+    return backendProvider.generate(data).then(async response => {
+      abortController.abort();
+      const images = response.images
+        ? await Promise.all(response.images.map(async image => ({ imageId: await imagesManager.saveBase64(image.data, image.mimeType) })))
+        : undefined;
+      runInAction(() => {
+        const targetMessage = this.messagesDict[targetMessageId];
+        targetMessage.message.message = response.message;
+        targetMessage.message.error = response.error;
+        targetMessage.message.images = images;
+        targetMessage.setPending(false);
+      });
       this.pendingGenerations.delete(abortController);
 
       if (!globalSettings.pageActive) globalSettings.playNotificationAudio();
-    }));
+    });
   }
 
   cancelAllRequests() {

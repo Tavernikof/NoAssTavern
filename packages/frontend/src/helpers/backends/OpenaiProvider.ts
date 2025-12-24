@@ -1,6 +1,5 @@
 import { BaseBackendProvider } from "src/helpers/backends/BaseBackendProvider.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
-import parseJSON from "src/helpers/parseJSON.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import { AxiosError, AxiosResponse } from "axios";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
@@ -55,13 +54,14 @@ type OpenaiRequest = {
 }
 
 // https://platform.openai.com/docs/api-reference/chat/object
-type OpenaiResponse = {
+type ChatGPTResponse = {
   id: string;
-  object: "chat.completion";
+  object: "chat.completion.chunk" | "chat.completion";
   created: number;
   model: string;
   choices: {
     index: number;
+    delta?: { content?: string },
     message: {
       role: string;
       content: string | null;
@@ -69,7 +69,7 @@ type OpenaiResponse = {
       annotations: []
     },
     logprobs: null;
-    finish_reason: "stop" | "length" | "content_filter" | "tool_calls";
+    finish_reason: "stop" | "length" | "content_filter" | "tool_calls" | "STOP";
   }[],
   usage: {
     prompt_tokens: number;
@@ -87,25 +87,8 @@ type OpenaiResponse = {
     }
   },
   service_tier: "auto" | "default" | "flex" | "priority";
-}
-
-type OpenaiStreamResponse =
-  | {
-  "id": string,
-  "object": "chat.completion.chunk",
-  "created": number,
-  "model": string,
-  service_tier: "auto" | "default" | "flex" | "priority";
-  "system_fingerprint": null,
-  "choices":
-    {
-      "index": number,
-      "delta": { content?: string },
-      finish_reason: "stop" | "length" | "content_filter" | "tool_calls" | null;
-    }[]
-}
-// Qwen-style error
-  | {
+};
+type QwenError = {
   "error": {
     "message": string,
     "type": string,
@@ -115,6 +98,10 @@ type OpenaiStreamResponse =
   "id": string,
   "request_id": string,
 }
+type OpenaiResponse =
+  | ChatGPTResponse
+  | QwenError
+  ;
 
 type OpenaiConfig = {
   stream: boolean;
@@ -215,6 +202,7 @@ class OpenaiProvider extends BaseBackendProvider {
 
     const {
       message = "",
+      images,
       error = undefined,
       inputTokens = 0,
       outputTokens = 0,
@@ -223,51 +211,28 @@ class OpenaiProvider extends BaseBackendProvider {
       stop: clientOnlyStop ? stop : undefined,
       onUpdate,
 
-      parseStreamEvent: (event) => {
-        const dataPrefix = "data: ";
-        if (!event.startsWith(dataPrefix)) return;
-
-        let chunk = "";
-        let error: string | undefined;
-        event = event.slice(dataPrefix.length);
-        if (event.trim() === "[DONE]") return "DONE";
-
-        const data = parseJSON(event) as OpenaiStreamResponse;
-        if (!data) return;
-        if ("choices" in data && Array.isArray(data.choices)) data.choices.map(choice => {
-          if (choice.finish_reason && choice.finish_reason !== "stop") {
-            error = "finishReason: " + choice.finish_reason;
-          }
-          if (choice.delta?.content) {
-            chunk += choice.delta.content;
-          }
-        });
-
-        if ("error" in data) {
-          error = data.error.message;
-        }
-
-        return {
-          chunk,
-          error,
-        };
-
-      },
-
       parseJson: (data) => {
         const key = data.key;
         if (key === "choices") {
-          const value = data.value as OpenaiResponse["choices"];
+          const value = data.value as ChatGPTResponse["choices"];
           const choice = value[0];
-          const message = choice.message.content;
-          if (choice.finish_reason !== "stop") return { message, error: "finishReason: " + choice.finish_reason };
-          if (choice.message.refusal) return { message, error: "refusal: " + choice.message.refusal };
-          if (choice.message.content) return { message: choice.message.content };
-          return;
+          const message = choice.message?.content || choice.delta?.content || undefined;
+          if (choice.finish_reason && choice.finish_reason !== "stop" && choice.finish_reason !== "STOP") return {
+            message,
+            error: "finishReason: " + choice.finish_reason,
+          };
+          if (choice.message?.refusal) return { message, error: "refusal: " + choice.message.refusal };
+          if (message) return { message };
         }
 
+        if (key === "error") {
+          const value = data.value as QwenError["error"];
+          return { error: `${value.code} ${value.message}` };
+        }
+
+
         if (key === "usage") {
-          const usage = data.value as OpenaiResponse["usage"];
+          const usage = data.value as ChatGPTResponse["usage"];
           return {
             inputTokens: usage.prompt_tokens,
             outputTokens: usage.completion_tokens,
@@ -278,6 +243,7 @@ class OpenaiProvider extends BaseBackendProvider {
 
     return {
       message: message.trim(),
+      images,
       error,
       url,
       request: requestBody,
