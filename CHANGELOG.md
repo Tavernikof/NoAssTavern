@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.1.1...v2.2.0) (2025-12-24)
+
+
+### Features
+
+* **assistant:** add support for generate images in assistant chats ([2dd075d](https://github.com/Tavernikof/NoAssTavern/commit/2dd075d57bf96cbcc966c164569861f90e334b34))
+
 ## [2.1.1](https://github.com/Tavernikof/NoAssTavern/compare/v2.1.0...v2.1.1) (2025-10-02)
 
 
