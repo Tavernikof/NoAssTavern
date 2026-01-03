@@ -92,6 +92,11 @@ export class AssistantMessageController {
   }
 
   @action
+  copyToClipboard() {
+    navigator.clipboard.writeText(this.message.message);
+  }
+
+  @action
   updateMessageFromEditor() {
     const message = this.editorTextarea?.value;
     if (typeof message !== "string") return;

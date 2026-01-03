@@ -1,0 +1,294 @@
+@use "src/styles/global" as *;
+
+.markdown {
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+
+  // Headings
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    font-weight: 600;
+    line-height: 1.25;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 {
+    font-size: 1.75em;
+  }
+
+  h2 {
+    font-size: 1.5em;
+  }
+
+  h3 {
+    font-size: 1.25em;
+  }
+
+  h4 {
+    font-size: 1.1em;
+  }
+
+  h5 {
+    font-size: 1em;
+  }
+
+  h6 {
+    font-size: 0.9em;
+    color: var(--grey70);
+  }
+
+  // Paragraphs
+  p {
+    margin: 0.75em 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // Links
+  a {
+    color: var(--SmartThemeUnderlineColor);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  // Lists
+  ul, ol {
+    margin: 0.75em 0;
+    padding-left: 1.5em;
+  }
+
+  ul {
+    list-style-type: circle;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  li {
+    margin: 0.25em 0;
+  }
+
+  // Blockquotes
+  blockquote {
+    margin: 0.75em 0;
+    padding: 0.5em 1em;
+    border-left: 3px solid var(--SmartThemeQuoteColor);
+    background: var(--black30a);
+    color: var(--SmartThemeEmColor);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  // Horizontal rule
+  hr {
+    border: none;
+    border-top: 1px solid var(--grey30);
+    margin: 1em 0;
+  }
+
+  // Tables
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75em 0;
+  }
+
+  th, td {
+    border: 1px solid var(--grey30);
+    padding: 0.5em 0.75em;
+    text-align: left;
+  }
+
+  th {
+    background: var(--black30a);
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) {
+    background: var(--black30a);
+  }
+
+  // Images
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+
+  // Inline code
+  code:not(pre code) {
+    @include monoFont();
+    background: var(--black50a);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  // Code blocks
+  pre {
+    margin: 0.75em 0;
+    padding: 1em;
+    overflow-x: auto;
+    border-radius: 6px;
+    background: #282c34;
+    @include monoFont();
+    font-size: 13px;
+    line-height: 1.5;
+
+    code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: #abb2bf;
+    }
+  }
+
+  // Task lists (GFM)
+  input[type="checkbox"] {
+    margin-right: 0.5em;
+  }
+
+  // Strikethrough
+  del {
+    color: var(--grey50);
+  }
+
+  // Strong and emphasis
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+}
+
+:global(.code-line) {
+  display: block;
+}
+
+// Highlight.js One Dark theme (inline)
+.markdown pre code {
+  // Keywords
+  :global(.hljs-keyword),
+  :global(.hljs-selector-tag),
+  :global(.hljs-literal),
+  :global(.hljs-section),
+  :global(.hljs-link) {
+    color: #c678dd;
+  }
+
+  // Functions
+  :global(.hljs-function) :global(.hljs-keyword) {
+    color: #c678dd;
+  }
+
+  :global(.hljs-title),
+  :global(.hljs-title.function_) {
+    color: #61afef;
+  }
+
+  // Strings
+  :global(.hljs-string),
+  :global(.hljs-attr),
+  :global(.hljs-symbol),
+  :global(.hljs-bullet),
+  :global(.hljs-addition) {
+    color: #98c379;
+  }
+
+  // Numbers
+  :global(.hljs-number) {
+    color: #d19a66;
+  }
+
+  // Variables and params
+  :global(.hljs-variable),
+  :global(.hljs-template-variable),
+  :global(.hljs-params) {
+    color: #e06c75;
+  }
+
+  // Comments
+  :global(.hljs-comment),
+  :global(.hljs-quote),
+  :global(.hljs-deletion) {
+    color: #5c6370;
+    font-style: italic;
+  }
+
+  // Types
+  :global(.hljs-type),
+  :global(.hljs-class) :global(.hljs-title),
+  :global(.hljs-built_in) {
+    color: #e5c07b;
+  }
+
+  // Attributes
+  :global(.hljs-attribute),
+  :global(.hljs-name),
+  :global(.hljs-tag) {
+    color: #e06c75;
+  }
+
+  // Meta
+  :global(.hljs-meta) {
+    color: #61afef;
+  }
+
+  :global(.hljs-meta) :global(.hljs-keyword) {
+    color: #c678dd;
+  }
+
+  :global(.hljs-meta) :global(.hljs-string) {
+    color: #98c379;
+  }
+
+  // Emphasis
+  :global(.hljs-emphasis) {
+    font-style: italic;
+  }
+
+  :global(.hljs-strong) {
+    font-weight: bold;
+  }
+}
+
+.codeWithLineNumbers {
+  display: flex;
+  align-items: flex-start;
+}
+
+.lineNumbers {
+  flex-shrink: 0;
+  padding-right: 1em;
+
+  span {
+    counter-increment: linenumber;
+
+    &:before {
+      content: counter(linenumber);
+      display: block;
+      text-align: right;
+      color: #636d83;
+      user-select: none;
+    }
+  }
+}
