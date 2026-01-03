@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.2.0...v2.3.0) (2026-01-03)
+
+
+### Features
+
+* **assistant:** add copy button and refactor message renderer ([41c5c19](https://github.com/Tavernikof/NoAssTavern/commit/41c5c19e32c291146e56413d74f2f143e02c6791))
+
 # [2.2.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.1.1...v2.2.0) (2025-12-24)
 
 
