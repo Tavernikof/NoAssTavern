@@ -1,7 +1,7 @@
 import * as React from "react";
 import style from "./AssistantChatMessageActions.module.scss";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
-import { ArrowDownFromLine, Check, ChevronLeft, ChevronRight, Pen, Trash, X, Send } from "lucide-react";
+import { ArrowDownFromLine, Check, ChevronLeft, ChevronRight, Pen, Trash, X, Send, Clipboard } from "lucide-react";
 import Tooltip from "src/components/Tooltip/Tooltip.tsx";
 import Button from "src/components/Button/Button.tsx";
 import { AssistantMessageController } from "src/routes/Assistant/helpers/AssistantMessageController.ts";
@@ -40,6 +40,7 @@ const AssistantChatMessageActions: React.FC<Props> = (props) => {
           <>
             <div className={style.actionsMain}>
               <MessageActionButton icon={Pen} onClick={() => assistantMessage.setEditable(true)} />
+              <MessageActionButton icon={Clipboard} onClick={() => assistantMessage.copyToClipboard()} />
               <Tooltip
                 content={() => (
                   <div className={style.delete}>
