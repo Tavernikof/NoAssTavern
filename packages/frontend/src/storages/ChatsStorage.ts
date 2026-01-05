@@ -22,6 +22,7 @@ export type ChatStorageItem = {
   }[];
   impersonate: string | null;
   flow: FlowStorageItem;
+  variables: Record<string, string>;
 }
 
 class ChatsStorage extends BaseStorage<ChatStorageItem> {

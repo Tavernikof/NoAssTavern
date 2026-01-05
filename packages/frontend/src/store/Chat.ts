@@ -1,4 +1,4 @@
-import { action, makeObservable, observable, reaction } from "mobx";
+import { action, autorun, makeObservable, observable, reaction } from "mobx";
 import { chatsStorage, ChatStorageItem } from "src/storages/ChatsStorage.ts";
 import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
@@ -26,6 +26,7 @@ export class Chat {
   @observable persona: string | null;
   @observable impersonate: string | null;
   @observable flow: Flow;
+  variables: Record<string, string> = {};
 
   @observable isNew: boolean;
 
@@ -47,6 +48,7 @@ export class Chat {
     this.persona = data.persona;
     this.impersonate = data.impersonate;
     this.flow = new Flow(data.flow, { local: true });
+    this.variables = data.variables ?? {};
 
     makeObservable(this);
 
@@ -75,6 +77,7 @@ export class Chat {
       persona: data.persona || null,
       impersonate: data.impersonate || null,
       flow: data.flow?.serialize() || null,
+      variables: {},
     }, { isNew: true });
   }
 
@@ -104,6 +107,13 @@ export class Chat {
     this.characters.forEach(item => item.character.save());
   }
 
+  @action
+  setVar(name: string, value: string) {
+    if (this.variables[name] === value) return;
+    this.variables[name] = value;
+    chatsStorage.updateItem(this.serialize());
+  }
+
   serialize(): ChatStorageItem {
     return {
       id: this.id,
@@ -115,6 +125,7 @@ export class Chat {
       persona: this.persona,
       impersonate: this.impersonate,
       flow: this.flow.serialize(),
+      variables: this.variables,
     };
   }
 }

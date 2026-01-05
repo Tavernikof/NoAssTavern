@@ -23,6 +23,7 @@ export const ChatSchema = z.object({
   })),
   impersonate: z.string().nullish(),
   flow: FlowSchema,
+  variables: z.looseObject({}).optional(),
 });
 
 export type Chat = z.infer<typeof ChatSchema>;

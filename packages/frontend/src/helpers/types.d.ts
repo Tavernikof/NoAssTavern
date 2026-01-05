@@ -70,6 +70,17 @@ type GetPresetVarsConfig = {
   toMessage?: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
 }
 
+type LocalVariablesContainer = {
+  setVar: (name: string, value: string) => string,
+  incVar: (name: string) => string,
+  decVar: (name: string) => string,
+  getVar: (name: string) => string,
+}
+
+type GetPresetVarsContext = {
+  vars: LocalVariablesContainer
+}
+
 type PresetFieldConfig = {
   name: string,
   label: string,
