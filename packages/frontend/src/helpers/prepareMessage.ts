@@ -52,7 +52,7 @@ export const prepareMessage = (message: string, vars: PresetVars): string => {
     if (endIndex !== -1) {
       const varName = message.substring(startIndex + openTag.length, endIndex);
 
-      result += varName.replace(/^([\w_]*)(.*?)$/, (substring, variableName, rawArguments) => {
+      result += varName.replace(/^([\w_]*)(.*?)$/s, (substring, variableName, rawArguments) => {
         if (typeof variableName !== "string") return substring;
 
         const variable = vars[variableName];

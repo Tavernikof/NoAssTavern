@@ -14,6 +14,7 @@ import {
 } from "src/helpers/prepareMessage.ts";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
+import { ChatVariablesController } from "src/routes/SingleChat/helpers/ChatVariablesController.ts";
 
 export class ChatController {
   private dc = new DisposableContainer();
@@ -21,10 +22,13 @@ export class ChatController {
   chatId: string;
   @observable.ref messages: MessageController[] | undefined;
   messagesDict: Record<string, MessageController> = {};
+  variables: ChatVariablesController;
 
   constructor(chatId: string) {
     this.chatId = chatId;
     makeObservable(this);
+
+    this.variables = this.dc.add(new ChatVariablesController(this));
 
     messageStorage.getChatItems(this.chatId).then(action(messages => {
       if (this.dc.disposed) return;
@@ -170,7 +174,8 @@ export class ChatController {
     });
   }
 
-  getPresetVars(config?: GetPresetVarsConfig): PresetVars {
+  getPresetVars(config?: GetPresetVarsConfig, context?: GetPresetVarsContext): PresetVars {
+    if (!context) context = { vars: this.variables.createLocalVariablesContainer() };
     const fromMessage = config?.fromMessage ?? this.firstMessage;
     const toMessage = config?.toMessage ?? this.lastMessage;
     let fromMessageIndex = this.getMessageIndex(fromMessage?.id);
@@ -286,7 +291,7 @@ export class ChatController {
         const position = rawArgument.split(":").filter(Boolean)[0] || "";
         const result: string[] = [];
 
-        const vars = this.getPresetVars({ fromMessage, toMessage });
+        const vars = this.getPresetVars({ fromMessage, toMessage }, context);
         const getMessages = (depth: number) => vars.history(`1:${depth}`) as string;
 
         this.loreBooks.forEach(({ loreBook, active }) => {
@@ -300,26 +305,65 @@ export class ChatController {
         return result.join("\n");
       },
 
-      // // Replace {{setvar::name::value}} with empty string and set the variable name to value
-      // { regex: /{{setvar::([^:]+)::([^}]+)}}/gi, replace: (_, name, value) => { setLocalVariable(name.trim(), value); return ''; } },
-      // // Replace {{addvar::name::value}} with empty string and add value to the variable value
-      // { regex: /{{addvar::([^:]+)::([^}]+)}}/gi, replace: (_, name, value) => { addLocalVariable(name.trim(), value); return ''; } },
-      // // Replace {{incvar::name}} with empty string and increment the variable name by 1
-      // { regex: /{{incvar::([^}]+)}}/gi, replace: (_, name) => incrementLocalVariable(name.trim()) },
-      // // Replace {{decvar::name}} with empty string and decrement the variable name by 1
-      // { regex: /{{decvar::([^}]+)}}/gi, replace: (_, name) => decrementLocalVariable(name.trim()) },
-      // // Replace {{getvar::name}} with the value of the variable name
-      // { regex: /{{getvar::([^}]+)}}/gi, replace: (_, name) => getLocalVariable(name.trim()) },
-      // // Replace {{setglobalvar::name::value}} with empty string and set the global variable name to value
-      // { regex: /{{setglobalvar::([^:]+)::([^}]+)}}/gi, replace: (_, name, value) => { setGlobalVariable(name.trim(), value); return ''; } },
-      // // Replace {{addglobalvar::name::value}} with empty string and add value to the global variable value
-      // { regex: /{{addglobalvar::([^:]+)::([^}]+)}}/gi, replace: (_, name, value) => { addGlobalVariable(name.trim(), value); return ''; } },
-      // // Replace {{incglobalvar::name}} with empty string and increment the global variable name by 1
-      // { regex: /{{incglobalvar::([^}]+)}}/gi, replace: (_, name) => incrementGlobalVariable(name.trim()) },
-      // // Replace {{decglobalvar::name}} with empty string and decrement the global variable name by 1
-      // { regex: /{{decglobalvar::([^}]+)}}/gi, replace: (_, name) => decrementGlobalVariable(name.trim()) },
-      // // Replace {{getglobalvar::name}} with the value of the global variable name
-      // { regex: /{{getglobalvar::([^}]+)}}/gi, replace: (_, name) => getGlobalVariable(name.trim()) },
+      // {{setvar::name::value}}
+      setvar: (rawArgument) => {
+        const [, name, value] = rawArgument.split("::");
+        context.vars.setVar(name, value);
+        return "";
+      },
+      // {{addvar::name::value}}
+      addvar: (rawArgument) => {
+        const [, name, value] = rawArgument.split("::");
+        context.vars.setVar(name, value);
+        return "";
+      },
+      // {{incvar::name}}
+      incvar: (rawArgument) => {
+        const [, name] = rawArgument.split("::");
+        context.vars.incVar(name);
+        return "";
+      },
+      // {{decvar::name}}
+      decvar: (rawArgument) => {
+        const [, name] = rawArgument.split("::");
+        context.vars.decVar(name);
+        return "";
+      },
+      // {{getvar::name}}
+      getvar: (rawArgument) => {
+        const [, name] = rawArgument.split("::");
+        return context.vars.getVar(name);
+      },
+
+      // {{setglobalvar::name::value}}
+      setglobalvar: (rawArgument) => {
+        const [, name, value] = rawArgument.split("::");
+        this.variables.setVar(name, value);
+        return "";
+      },
+      // {{addglobalvar::name::value}}
+      addglobalvar: (rawArgument) => {
+        const [, name, value] = rawArgument.split("::");
+        this.variables.setVar(name, value);
+        return "";
+      },
+      // {{incglobalvar::name}}
+      incglobalvar: (rawArgument) => {
+        const [, name] = rawArgument.split("::");
+        this.variables.incVar(name);
+        return "";
+      },
+      // {{decglobalvar::name}}
+      decglobalvar: (rawArgument) => {
+        const [, name] = rawArgument.split("::");
+        this.variables.decVar(name);
+        return "";
+      },
+      // {{getglobalvar::name}}
+      getglobalvar: (rawArgument) => {
+        const [, name] = rawArgument.split("::");
+        return this.variables.getVar(name);
+      },
     };
   }
 
