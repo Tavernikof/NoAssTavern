@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.3.0...v2.4.0) (2026-01-05)
+
+
+### Features
+
+* **vars:** add setvar/getvar/etc macroses ([1a812e4](https://github.com/Tavernikof/NoAssTavern/commit/1a812e402df2e400c23e4a7ff97efdaa1ff4dba7))
+
 # [2.3.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.2.0...v2.3.0) (2026-01-03)
 
 
