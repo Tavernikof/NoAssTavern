@@ -3,7 +3,7 @@ import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import PromptEditor from "src/components/PromptEditorModal/components/PromptEditor";
 import { observer } from "mobx-react-lite";
 import { Select } from "src/components/Form";
-import { PresetEditor } from "src/components/CodeEditor/helpers/PresetEditor.ts";
+import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts";
 // import style from "./PromptBlockEditor.module.scss";
 
 const options = [

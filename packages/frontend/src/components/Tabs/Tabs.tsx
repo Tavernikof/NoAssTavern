@@ -9,19 +9,33 @@ export type TabItem = {
 }
 
 type Props = {
-  items: TabItem[]
+  items: TabItem[],
+  containerClassName?: string,
+  contentClassName?: string,
+  value?: string,
+  onChange?: (value: string) => void,
 };
 
 const Tabs: React.FC<Props> = (props) => {
-  const { items } = props;
-  const [activeItem, setActiveItem] = React.useState<string | null>();
+  const { items, containerClassName, contentClassName, value, onChange } = props;
+  const isControlled = value !== undefined;
+  const [internalActiveItem, setInternalActiveItem] = React.useState<string | null>();
+
+  const activeItem = isControlled ? value : internalActiveItem;
+  const setActiveItem = (key: string) => {
+    if (isControlled) {
+      onChange?.(key);
+    } else {
+      setInternalActiveItem(key);
+    }
+  };
 
   React.useEffect(() => {
-    if (!activeItem && items?.length) setActiveItem(items[0].key);
-  }, [items, activeItem]);
+    if (!isControlled && !internalActiveItem && items?.length) setInternalActiveItem(items[0].key);
+  }, [items, internalActiveItem, isControlled]);
 
   return (
-    <div className={style.container}>
+    <div className={clsx(style.container, containerClassName)}>
       <div className={style.heads}>
         {items.map(item => (
           <button
@@ -34,7 +48,9 @@ const Tabs: React.FC<Props> = (props) => {
           </button>
         ))}
       </div>
-      <div className={style.content}>{items.find(item => item.key === activeItem)?.content()}</div>
+      <div className={clsx(style.content, contentClassName)}>
+        {items.find(item => item.key === activeItem)?.content()}
+      </div>
     </div>
   );
 };

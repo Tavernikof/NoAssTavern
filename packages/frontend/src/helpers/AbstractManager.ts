@@ -55,7 +55,7 @@ export abstract class AbstractManager<E extends BaseEntity, S extends { id: stri
 
   @computed
   get fullList() {
-    return this.list.map(id => this.dict[id]);
+    return this.list?.map(id => this.dict[id]);
   }
 
   @computed

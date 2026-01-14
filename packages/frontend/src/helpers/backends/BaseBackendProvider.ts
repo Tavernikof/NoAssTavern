@@ -89,7 +89,7 @@ export abstract class BaseBackendProvider {
 
         if (response.message !== undefined) {
           message += response.message;
-          onUpdate({ chunk: response.message });
+          onUpdate({ chunk: response.message, message });
 
         }
         if (Array.isArray(response.images)) {

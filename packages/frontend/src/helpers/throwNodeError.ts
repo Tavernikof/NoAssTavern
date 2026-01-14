@@ -1,7 +1,7 @@
 import { runInAction } from "mobx";
 
-export const throwNodeError = (message: ChatSwipePromptResult, error: string): never => {
-  runInAction(() => message.error = error);
+export const throwNodeError = (message: ChatSwipePromptResult, error: Error | string): never => {
+  runInAction(() => message.error = error instanceof Error ? error.message : error);
   console.trace(error);
-  throw new Error(error);
+  throw error instanceof Error ? error : new Error(error);
 };

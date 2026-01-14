@@ -4,7 +4,6 @@ import { STORAGE_DIR } from "../../../env.js";
 import { StorageService } from "../storage.service.js";
 import fs from "fs";
 import { Entry, TextWriter } from "@zip.js/zip.js";
-import { BackendProvider } from "noasstavern-frontend/src/enums/BackendProvider.js";
 
 export const GlobalSettingsSchema = z.object({
   seedsImported: z.boolean().default(false),

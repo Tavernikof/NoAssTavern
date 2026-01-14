@@ -182,12 +182,11 @@ export class ChatMessageEditor extends EventEmitter<ChatMessageEditorEvents> {
     const { insertBreak } = editor;
 
     editor.insertBreak = editor.insertSoftBreak = () => {
-      const prefix = this.chatController.getUserPrefix();
       insertBreak();
 
       const newPrefix = this.getPrefix();
       Transforms.setNodes(editor, { id: uuid() });
-      if (!newPrefix) Transforms.insertText(editor, prefix);
+      if (!newPrefix) this.chatController.getUserPrefix().then(prefix => Transforms.insertText(editor, prefix));
     };
 
     // ========================================================================

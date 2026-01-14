@@ -7,7 +7,7 @@
 .toolbar {
   border-bottom: 1px solid var(--white20a);
   position: sticky;
-  top: 0;
+  top: -15px;
   background: var(--SmartThemeChatTintColor);
   padding: 8px 8px 8px calc(var(--code-editor-line-counter-width) + 8px);
   border-radius: 6px 6px 0 0;

@@ -6,6 +6,7 @@ import ChatLever from "src/routes/SingleChat/components/ChatLever";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton";
 import { Pen } from "lucide-react";
 import { openPromptEditorModal } from "src/components/PromptEditorModal";
+import ChatCodeBlockLever from "src/routes/SingleChat/components/ChatCodeBlockLever/ChatCodeBlockLever.tsx";
 
 type Props = Record<string, never>;
 
@@ -15,7 +16,7 @@ const ChatLevers: React.FC<Props> = () => {
   return (
     <div className={style.container}>
       {flow.prompts.map(prompt => {
-        if (!prompt.levers.length) return null;
+        if (!prompt.levers.length && !prompt.codeBlocks?.length) return null;
         return (
           <div className={style.block} id={`prompt-${prompt.id}`} key={prompt.id}>
             <div className={style.head}>
@@ -23,6 +24,9 @@ const ChatLevers: React.FC<Props> = () => {
               <MessageActionButton icon={Pen} onClick={() => openPromptEditorModal({ prompt })} />
             </div>
             {prompt.levers.map((lever, i) => <ChatLever key={i} prompt={prompt} lever={lever} />)}
+            {prompt.codeBlocks?.map((_, i) => (
+              <ChatCodeBlockLever key={i} prompt={prompt} codeBlockIndex={i} />
+            ))}
           </div>
         );
       })}

@@ -148,10 +148,10 @@ export class LoreBook {
     return new LoreBook(loreBookStorageItem, { isNew: true, local, parentCharacter: this.parentCharacter });
   }
 
-  getActiveEntries(position: string, getMessages: ((depth: number) => string)): LoreBookEntry[] {
+  async getActiveEntries(position: string, getMessages: ((depth: number) => Promise<string>)): Promise<LoreBookEntry[]> {
     const activeIndices = new Set<number>();
 
-    const isPositionActive = (entry: LoreBookEntry, getText: () => string, vectorized?: boolean) => {
+    const isPositionActive = async (entry: LoreBookEntry, getText: () => string | Promise<string>, vectorized?: boolean) => {
       if (!entry.active) return false;
       if (entry.position !== position) return false;
       if (entry.strategy === LoreBookStrategy.constant) return true;
@@ -160,7 +160,7 @@ export class LoreBook {
       } else {
         if (entry.strategy === LoreBookStrategy.vectorized) return false;
       }
-      const text = getText();
+      const text = await getText();
 
       return entry.conditions.every(condition => {
         const { type, keywords } = condition;
@@ -192,11 +192,11 @@ export class LoreBook {
       });
     };
 
-    this.entries.forEach((entry, index) => {
-      if (isPositionActive(entry, () => getMessages(entry.depth || this.depth).toLowerCase())) {
+    await Promise.all(this.entries.map(async (entry, index) => {
+      if (await isPositionActive(entry, async () => (await getMessages(entry.depth || this.depth)).toLowerCase())) {
         activeIndices.add(index);
       }
-    });
+    }));
 
     let somethingAdded = false;
     do {
@@ -206,13 +206,13 @@ export class LoreBook {
         return texts;
       }, [] as string[]).join("\n\n").toLowerCase();
 
-      this.entries.forEach((entry, index) => {
+      await Promise.all(this.entries.map(async (entry, index) => {
         if (activeIndices.has(index)) return;
-        if (isPositionActive(entry, () => texts, true)) {
+        if (await isPositionActive(entry, () => texts, true)) {
           somethingAdded = true;
           activeIndices.add(index);
         }
-      });
+      }));
     } while (somethingAdded);
 
     return this.entries.filter((_, index) => activeIndices.has(index));

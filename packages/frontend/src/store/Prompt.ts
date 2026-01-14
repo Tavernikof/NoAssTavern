@@ -5,6 +5,8 @@ import { v4 as uuid } from "uuid";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.ts";
 import _cloneDeep from "lodash/cloneDeep";
+import { CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR, CodeBlock } from "src/store/CodeBlock.ts";
+import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 
 type PromptCreateConfig = {
   isNew?: boolean,
@@ -19,6 +21,7 @@ export class Prompt {
   @observable backendProviderId: BackendProvider;
   @observable connectionProxyId: string | null;
   @observable model: string;
+  @observable codeBlocks: PromptCodeBlock[];
 
   @observable.ref generationConfig: PromptGenerationConfig;
 
@@ -60,6 +63,7 @@ export class Prompt {
       generationConfig: {
         stream: true,
       },
+      codeBlocks: [],
     }, { isNew: true });
   }
 
@@ -82,8 +86,19 @@ export class Prompt {
   update(promptContent: Partial<PromptStorageItem>) {
     for (const field in promptContent) {
       const data = promptContent[field as keyof PromptStorageItem];
-      // @ts-expect-error fuck ts
-      if (data !== undefined) this[field] = data;
+      if (data !== undefined) {
+        if (field === "codeBlocks") {
+          this.codeBlocks = (data as PromptCodeBlock[]).map(promptCodeBlock => ({
+            ...promptCodeBlock,
+            codeBlock: promptCodeBlock.codeBlock instanceof CodeBlock
+              ? promptCodeBlock.codeBlock
+              : new CodeBlock(promptCodeBlock.codeBlock, { local: true }),
+          })) || [];
+        } else {
+          // @ts-expect-error fuck ts
+          this[field] = data;
+        }
+      }
     }
   }
 
@@ -100,24 +115,54 @@ export class Prompt {
     return new Prompt(promptStorageItem, { isNew: true, local });
   }
 
-  buildMessages(vars: PresetVars) {
-    return this.blocks.reduce<PresetPrompt>((messages, block) => {
-      const content = block.content.reduce<string[]>((content, blockContent) => {
-        if (blockContent.active) {
-          content.push(prepareMessage(blockContent.content, vars));
-        }
-        return content;
-      }, []).join("\n");
-      if (content.length) messages.push({ role: block.role, content });
+  async buildMessages(vars: PresetVars) {
+    const messages: PresetPrompt = [];
 
-      return messages;
-    }, []);
+    for (const block of this.blocks) {
+      const contentParts: string[] = [];
+
+      for (const blockContent of block.content) {
+        if (blockContent.active) {
+          contentParts.push(await prepareMessage(blockContent.content, vars));
+        }
+      }
+
+      const content = contentParts.join("\n");
+      if (content.length) messages.push({ role: block.role, content });
+    }
+
+    return messages;
   }
 
-  buildStopSequence(vars: PresetVars) {
+  async buildStopSequence(vars: PresetVars) {
     const { stopSequences } = this.generationConfig;
-    const stop = (stopSequences as string[] ?? []).map(str => prepareMessage(prepareImpersonate(str), vars));
+    const stop = await Promise.all(
+      (stopSequences as string[] ?? []).map(str => prepareMessage(prepareImpersonate(str), vars)),
+    );
     return stop.length ? stop : undefined;
+  }
+
+  @action.bound
+  toggleCodeBlock(codeBlock: PromptCodeBlock) {
+    codeBlock.active = !codeBlock.active;
+  }
+
+  async callCodeBlockFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>) {
+    if (Array.isArray(this.codeBlocks)) {
+      for (const codeBlock of this.codeBlocks) {
+        if (!codeBlock.active) continue;
+        try {
+          arg = await codeBlock.codeBlock.callFunction(functionName, arg);
+        } catch (e) {
+          if (e instanceof Error && e.message === CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR) {
+            continue;
+          } else {
+            throw e;
+          }
+        }
+      }
+    }
+    return arg;
   }
 
   serialize(): PromptStorageItem {
@@ -130,6 +175,7 @@ export class Prompt {
       connectionProxyId: this.connectionProxyId,
       model: this.model,
       generationConfig: this.generationConfig,
+      codeBlocks: this.codeBlocks?.map(item => ({ ...item, codeBlock: item.codeBlock.serialize() })) || [],
     };
   }
 }

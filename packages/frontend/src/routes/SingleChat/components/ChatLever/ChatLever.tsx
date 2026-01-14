@@ -6,6 +6,7 @@ import Tooltip from "src/components/Tooltip";
 import { Info } from "lucide-react";
 import { v4 as uuid } from "uuid";
 import { Prompt } from "src/store/Prompt.ts";
+import clsx from "clsx";
 
 type Props = {
   prompt: Prompt;
@@ -18,7 +19,7 @@ const ChatLever: React.FC<Props> = (props) => {
   const id = React.useMemo(() => uuid(), []);
 
   return (
-    <label htmlFor={id} className={style.row}>
+    <label htmlFor={id} className={clsx(style.row, block.active && style.rowActive)}>
       <Tooltip
         placement="right"
         content={() => (
@@ -42,7 +43,7 @@ const ChatLever: React.FC<Props> = (props) => {
         )}
       </Tooltip>
 
-      <span>{block.name}</span>
+      <span className={style.name}>{block.name}</span>
 
       <span className={style.checkbox}>
         <Checkbox

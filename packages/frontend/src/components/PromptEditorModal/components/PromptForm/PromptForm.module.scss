@@ -1,0 +1,24 @@
+
+.container {
+  height: 100%;
+  display: flex;
+  gap: 15px;
+  align-items: stretch;
+}
+
+.column {
+  padding: 15px 0;
+  @include overflow-scroll();
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.aside {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.main {
+  flex: 1;
+}

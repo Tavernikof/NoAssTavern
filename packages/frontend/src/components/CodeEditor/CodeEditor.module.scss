@@ -1,12 +1,4 @@
-.editor {
-  position: relative;
-  counter-reset: linenumber;
-  min-height: 200px;
-  @include monoFont();
-  font-size: 14px;
-  line-height: 1.45;
-
-  &:focus-visible {
-    outline: none;
-  }
+.editorContainer {
+  flex: 1;
+  min-height: 0;
 }
