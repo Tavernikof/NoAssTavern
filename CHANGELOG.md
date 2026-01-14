@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.4.0...v2.5.0) (2026-01-14)
+
+
+### Features
+
+* **code-blocks:** add code blocks fro custom js logic and summarize preset ([b5f1a34](https://github.com/Tavernikof/NoAssTavern/commit/b5f1a34ab1b1aa00d00e7162ba9590a7800516f6))
+
 # [2.4.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.3.0...v2.4.0) (2026-01-05)
 
 
