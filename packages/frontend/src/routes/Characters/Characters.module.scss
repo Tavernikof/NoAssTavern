@@ -1,3 +1,9 @@
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
 .actions {
   display: flex;
   gap: 10px;

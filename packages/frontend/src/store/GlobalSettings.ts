@@ -81,8 +81,7 @@ export class GlobalSettings {
     runInAction(() => this.ready = true);
 
     if (!seedsImported) {
-      await import("src/store/FlowsManager.ts").then(({ flowsManager }) => flowsManager.importDefault());
-      await import("src/store/PromptsManager.ts").then(({ promptsManager }) => promptsManager.importDefault());
+      await import("src/helpers/importSeeds.ts").then(({ importSeeds }) => importSeeds());
     }
   }
 

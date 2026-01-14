@@ -4,6 +4,16 @@
   align-items: center;
 }
 
+.rowActive {
+  .name {
+    opacity: 1;
+  }
+}
+
+.name {
+  opacity: .5;
+}
+
 .checkbox {
   flex-shrink: 0;
   margin-left: auto;

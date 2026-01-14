@@ -1,31 +1,49 @@
 import * as React from "react";
-import { useModalContext } from "src/components/Modals";
-import { PresetEditorController } from "src/components/CodeEditor/helpers/PresetEditorController.ts";
+import { PresetEditorController } from "src/components/PromptEditorModal/helpers/PresetEditorController.ts";
 import { observer } from "mobx-react-lite";
-import { PresetEditorControllerContext } from "src/components/CodeEditor/helpers/PresetEditorControllerContext.ts";
-import PromptBlockEditor from "src/components/PromptEditorModal/components/PromptBlockEditor";
-import style from "./PromptEditorModal.module.scss";
-import PresetEditForm from "./components/PresetEditForm";
-import Button from "src/components/Button";
-import Form, { FormInput, InputControlled } from "../Form";
-import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
-import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { Prompt } from "src/store/Prompt.ts";
-import PromptEditorAddBlock
-  from "src/components/PromptEditorModal/components/PromptEditorAddBlock/PromptEditorAddBlock.tsx";
-import PromptEditorBackendWatcher from "./components/PromptEditorBackendWatcher";
+import PromptForm from "src/components/PromptEditorModal/components/PromptForm";
+import { TabItem } from "src/components/Tabs";
+import Tabs from "src/components/Tabs/Tabs.tsx";
+import PromptCodeBlocks from "src/components/PromptEditorModal/components/PromptCodeBlocks";
+import { backendProviderDict } from "src/enums/BackendProvider.ts";
+import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { modelToPrompt } from "src/components/PromptEditorModal/helpers/promptEditorConverter.ts";
+import Form from "src/components/Form";
+import { PresetEditorControllerContext } from "./helpers/PresetEditorControllerContext.ts";
+import { useModalContext } from "src/components/Modals";
+import style from "./PromptEditorModal.module.scss";
+import Button from "src/components/Button/Button.tsx";
+import PromptEditorBackendWatcher from "./components/PromptEditorBackendWatcher";
+import PromptCodeBlocksCounter from "src/components/PromptEditorModal/components/PromptCodeBlocksCounter";
 
 type Props = {
   prompt: Prompt,
+  initialCodeBlockId?: string,
 };
 
 const PromptEditorModal: React.FC<Props> = (props) => {
-  const { prompt } = props;
+  const { prompt, initialCodeBlockId } = props;
   const { resolve } = useModalContext();
-  const controller = React.useMemo(() => new PresetEditorController(prompt), [prompt]);
+  const controller = React.useMemo(() => new PresetEditorController(prompt, initialCodeBlockId), [prompt, initialCodeBlockId]);
+
+  const items = React.useMemo<TabItem[]>(() => ([
+    {
+      key: "prompt",
+      title: "Prompt",
+      content: () => <PromptForm />,
+    },
+    {
+      key: "code-blocks",
+      title: <>Code blocks <PromptCodeBlocksCounter /></>,
+      content: () => <PromptCodeBlocks />,
+    },
+  ]), []);
+
   return (
     <Form
+      className={style.container}
+
       initialValue={React.useMemo(() => ({
         name: prompt.name,
         backendProviderId: backendProviderDict.selectOptions.find(o => o.value === prompt.backendProviderId),
@@ -34,9 +52,10 @@ const PromptEditorModal: React.FC<Props> = (props) => {
           ? connectionProxiesManager.selectOptions.find(option => option.value === prompt.connectionProxyId)
           : undefined,
       }), [prompt])}
+
       onSubmit={data => {
         const backendProviderId = data.backendProviderId?.value;
-        if(!backendProviderId) return;
+        if (!backendProviderId) return;
         const backendProvider = backendProviderDict.getById(backendProviderId);
         if (!backendProvider) return;
         prompt.update({
@@ -48,38 +67,29 @@ const PromptEditorModal: React.FC<Props> = (props) => {
             ...prompt.generationConfig,
             ...modelToPrompt(backendProvider, data),
           },
-          blocks: controller.getContent(),
+          blocks: controller.getBlocksContent(),
+          codeBlocks: controller.getCodeBlocksContent(),
         });
         resolve(prompt);
       }}
     >
       <PresetEditorControllerContext.Provider value={controller}>
-        <div className={style.container}>
-          <div className={style.aside}>
-            <FormInput label="Name:" name="name">
-              <InputControlled name="name" />
-            </FormInput>
+        <Tabs
+          containerClassName={style.tabs}
+          contentClassName={style.tabsContent}
+          items={items}
+          value={controller.selectedTab}
+          onChange={(tab) => controller.setSelectedTab(tab)}
+        />
 
-            <hr className={style.separator} />
-
-            <PresetEditForm />
-          </div>
-          <div className={style.main}>
-            {controller.blocks.map(block => (
-              <PromptBlockEditor key={block.id} editor={block} />
-            ))}
-            <PromptEditorAddBlock />
-          </div>
-        </div>
         <div className={style.footer}>
-          <div className={style.footerInner}>
-            <div className={style.save}>
-              <Button block>Save</Button>
-            </div>
+          <div className={style.save}>
+            <Button block>Save</Button>
           </div>
         </div>
-        <PromptEditorBackendWatcher generationConfig={prompt.generationConfig} />
       </PresetEditorControllerContext.Provider>
+
+      <PromptEditorBackendWatcher generationConfig={prompt.generationConfig} />
     </Form>
   );
 };

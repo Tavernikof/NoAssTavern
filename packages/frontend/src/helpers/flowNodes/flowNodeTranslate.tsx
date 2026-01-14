@@ -1,7 +1,7 @@
 import { FlowNode } from "src/enums/FlowNode.ts";
 import { translateText } from "src/helpers/translateText.ts";
 import { TranslateLanguage } from "src/helpers/translateTextYandex.ts";
-import { action, runInAction } from "mobx";
+import { action } from "mobx";
 import { CheckboxControlled, FormInput, SelectControlled } from "src/components/Form";
 import * as React from "react";
 import { DefaultFlowNodes } from "src/components/SchemeEditor";
@@ -49,7 +49,7 @@ export const flowNodeTranslate: FlowNodeConfig<FlowNodeTranslateState> = {
     );
   }),
 
-  process({ messageController, node }) {
+  process({ messageController, node, flow }) {
     const text = messageController.message.message;
     if (!text) return;
 
@@ -59,8 +59,7 @@ export const flowNodeTranslate: FlowNodeConfig<FlowNodeTranslateState> = {
 
     if (overflowTranslate && messageController.translate.message) return;
 
-    runInAction(() => messageController.pending = true);
-    return translateText(text, targetLanguage).then(
+    const promise = translateText(text, targetLanguage).then(
       action(translatedText => {
         if (overflowTranslate) {
           messageController[ChatSwipePrompt.translate].message = text;
@@ -69,13 +68,15 @@ export const flowNodeTranslate: FlowNodeConfig<FlowNodeTranslateState> = {
           messageController.translate.message = translatedText;
         }
         messageController.showTranslate = true;
-        messageController.pending = false;
       }),
       action((error) => {
         messageController.message.error = error.error;
-        messageController.pending = false;
         throw error;
       }),
     );
+
+    flow.registerAsyncProcess(messageController, promise);
+
+    return promise;
   },
 };

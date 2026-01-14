@@ -170,8 +170,8 @@ export class MessageController {
     return currentSwipe.prompts[slug] as Exclude<ChatSwipe["prompts"][S], undefined>;
   }
 
-  getPresetVars() {
-    return this.chatController.getPresetVars({ toMessage: this });
+  getPresetVars(config?: GetPresetVarsConfig) {
+    return this.chatController.getPresetVars({ ...config, toMessage: this });
   }
 
   forceSave() {

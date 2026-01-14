@@ -3,7 +3,7 @@ import style from "./Scheme.module.scss";
 import { Flow } from "src/store/Flow.ts";
 import { observer } from "mobx-react-lite";
 import { useFlowEditorContext } from "../../helpers/FlowEditorContext.ts";
-import SchemeEditor from "src/components/SchemeEditor";
+import SchemeEditor from "src/components/SchemeEditor/SchemeEditor";
 
 type Props = {
   schemeName: string;

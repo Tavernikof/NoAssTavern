@@ -1,7 +1,7 @@
 const openTag = "{{";
 const closeTag = "}}";
 
-export const prepareMessage = (message: string, vars: PresetVars): string => {
+export const prepareMessage = async (message: string, vars: PresetVars): Promise<string> => {
   let result = "";
   let lastIndex = 0;
 
@@ -51,16 +51,24 @@ export const prepareMessage = (message: string, vars: PresetVars): string => {
     // If we found a complete, balanced tag
     if (endIndex !== -1) {
       const varName = message.substring(startIndex + openTag.length, endIndex);
+      const match = varName.match(/^([\w_]*)(.*?)$/s);
 
-      result += varName.replace(/^([\w_]*)(.*?)$/s, (substring, variableName, rawArguments) => {
-        if (typeof variableName !== "string") return substring;
+      if (match) {
+        const [substring, variableName, rawArguments] = match;
 
-        const variable = vars[variableName];
-        const result = typeof variable === "function" ? variable(rawArguments) : variable;
-        if (typeof result === "string") return prepareMessage(result, vars);
+        if (typeof variableName === "string") {
+          const variable = vars[variableName];
+          const varResult = typeof variable === "function" ? await variable(rawArguments) : variable;
 
-        return openTag + substring + closeTag;
-      });
+          if (typeof varResult === "string") {
+            result += await prepareMessage(varResult, vars);
+          } else {
+            result += openTag + substring + closeTag;
+          }
+        } else {
+          result += openTag + substring + closeTag;
+        }
+      }
 
       lastIndex = endIndex + closeTag.length;
     } else {

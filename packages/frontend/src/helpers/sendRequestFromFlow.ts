@@ -3,9 +3,9 @@ import { Prompt } from "src/store/Prompt.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 
-export const sendRequestFromFlow = (
+export const sendRequestFromFlow = async (
   context: FlowProcessContext,
-  vars: PresetVars,
+  getVars: (prompt: Prompt) => PresetVars,
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
 ) => {
   const { flow, messageController, node, abortController } = context;
@@ -23,12 +23,14 @@ export const sendRequestFromFlow = (
     ? connectionProxiesManager.dict[prompt.connectionProxyId]
     : undefined;
 
+  const vars = getVars(prompt);
+
   const data: BackendProviderGenerateConfig<any> = {
     baseUrl: connectionProxy?.baseUrl,
     key: connectionProxy?.key,
     model: prompt.model,
-    messages: prompt.buildMessages(vars),
-    stop: prompt.buildStopSequence(vars),
+    messages: await prompt.buildMessages(vars),
+    stop: await prompt.buildStopSequence(vars),
     generationConfig: prompt.generationConfig,
     onUpdate: onUpdate,
     abortController: abortController,

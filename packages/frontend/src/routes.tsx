@@ -25,21 +25,9 @@ export const routes = [
     layout: AppLayout,
   },
   {
-    path: "/lorebooks",
-    name: "loreBooksList",
-    component: () => import("src/routes/LoreBooks"),
-    layout: AppLayout,
-  },
-  {
     path: "/prompts",
     name: "promptsList",
     component: () => import("src/routes/Prompts"),
-    layout: AppLayout,
-  },
-  {
-    path: "/flows",
-    name: "flowsList",
-    component: () => import("src/routes/Flows"),
     layout: AppLayout,
   },
   {

@@ -1,0 +1,12 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.footer {
+  margin-top: auto;
+  bottom: 0;
+  background: var(--SmartThemeChatTintColor);
+}

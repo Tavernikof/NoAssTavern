@@ -6,13 +6,14 @@ import { useFlowNodeContext } from "src/components/SchemeEditor/helpers/FlowNode
 // import style from "./Form.module.scss";
 
 type Props<FV extends FieldValues = FieldValues> = React.PropsWithChildren<{
+  className?: string;
   initialValue: UseFormProps<FV>["defaultValues"];
   onSubmit?: SubmitHandler<FV>,
   validationSchema?: Schema,
 }>
 
 const Form = <FV extends FieldValues = FieldValues>(props: Props<FV>) => {
-  const { initialValue, onSubmit, validationSchema, children } = props;
+  const { className, initialValue, onSubmit, validationSchema, children } = props;
 
   const flowNodeContext = useFlowNodeContext();
 
@@ -32,7 +33,7 @@ const Form = <FV extends FieldValues = FieldValues>(props: Props<FV>) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={onSubmit ? handleSubmit(onSubmit) : undefined}>
+      <form className={className} onSubmit={onSubmit ? handleSubmit(onSubmit) : undefined}>
         {children}
       </form>
     </FormProvider>

@@ -10,12 +10,14 @@ import { ImagesStorage } from "./storages/Images.js";
 import { GlobalSettingsStorage } from "./storages/GlobalSettings.js";
 import { AssistantChatsStorage } from "./storages/AssistantChats.js";
 import { AssistantMessagesStorage } from "./storages/AssistantMessages.js";
+import { CodeBlocksStorage } from "./storages/CodeBlocks.js";
 
 export class StorageService {
   assistantChats = new AssistantChatsStorage(this);
   assistantMessages = new AssistantMessagesStorage(this);
   characters = new CharactersStorage(this);
   chats = new ChatsStorage(this);
+  codeBlocks = new CodeBlocksStorage(this);
   connectionProxies = new ConnectionProxiesStorage(this);
   flows = new FlowsStorage(this);
   globalSettings = new GlobalSettingsStorage(this);
@@ -30,6 +32,7 @@ export class StorageService {
     this.assistantMessages,
     this.characters,
     this.chats,
+    this.codeBlocks,
     this.connectionProxies,
     this.flows,
     this.globalSettings,

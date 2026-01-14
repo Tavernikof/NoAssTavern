@@ -1,8 +1,8 @@
 import * as React from "react";
 import style from "./PromptEditor.module.scss";
-import { PresetEditor } from "src/components/CodeEditor/helpers/PresetEditor.ts";
-import { usePresetEditorControllerContext } from "src/components/CodeEditor/helpers/PresetEditorControllerContext.ts";
-import CodeEditor from "src/components/CodeEditor";
+import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts";
+import { usePresetEditorControllerContext } from "src/components/PromptEditorModal/helpers/PresetEditorControllerContext.ts";
+import BlockEditor from "../../../BlockEditor";
 import { ArrowDown, ArrowUp, Trash } from "lucide-react";
 import Button from "src/components/Button";
 
@@ -33,7 +33,7 @@ const PromptEditor: React.FC<Props> = (props) => {
         </div>
       </div>
 
-      <CodeEditor editor={editor} />
+      <BlockEditor editor={editor} />
     </div>
   );
 };

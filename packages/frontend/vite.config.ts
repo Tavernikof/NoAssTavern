@@ -25,6 +25,9 @@ export default defineConfig({
     port: Number(process.env.FRONTEND_PORT) || undefined,
     host: process.env.FRONTEND_HOST,
   },
+  optimizeDeps: {
+    include: ["monaco-editor"],
+  },
   plugins: [
     react({
       babel: {
@@ -33,7 +36,7 @@ export default defineConfig({
         },
       },
     }),
-    viteSingleFile(),
+    // viteSingleFile(),
   ],
   resolve: {
     alias: [

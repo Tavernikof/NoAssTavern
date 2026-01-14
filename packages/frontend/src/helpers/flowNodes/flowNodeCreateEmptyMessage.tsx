@@ -38,13 +38,13 @@ export const flowNodeCreateEmptyMessage: FlowNodeConfig<FlowNodeCreateEmptyMessa
     );
   }),
 
-  process(context) {
+  async process(context) {
     const { node, messageController: { chatController, message } } = context;
     const role = node.data.role?.value as ChatMessageRole;
     if (!role) throwNodeError(message, "Role not found");
 
     context.messageController = role === ChatMessageRole.ASSISTANT
-      ? chatController.createMessage({ role })
-      : chatController.createEmptyUserMessage();
+      ? await chatController.createMessage({ role })
+      : await chatController.createEmptyUserMessage();
   },
 };

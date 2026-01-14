@@ -54,6 +54,16 @@ type PresetBlockContent = {
   content: string;
 }
 
+type PromptCodeBlock = {
+  codeBlock: import("src/store/CodeBlock.ts").CodeBlock,
+  active: boolean,
+}
+
+type CodeBlockFunctionMeta = {
+  name: string;
+  documentation: string;
+}
+
 type PresetPrompt = PresetPromptBlock[]
 
 type PresetPromptBlock = {
@@ -61,13 +71,14 @@ type PresetPromptBlock = {
   content: string
 }
 
-type PresetVar = (rawArgument: string) => string | undefined
+type PresetVar = (rawArgument: string) => string | Promise<string> | undefined
 
 type PresetVars = Record<string, PresetVar>
 
 type GetPresetVarsConfig = {
   fromMessage?: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
   toMessage?: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
+  prompt?: import("src/store/Prompt.ts").Prompt
 }
 
 type LocalVariablesContainer = {
@@ -104,6 +115,7 @@ type ConnectionProxyCreateConfig = {
 
 type BackendProviderOnUpdateEvent = {
   chunk: string,
+  message: string,
 };
 
 type BackendProviderGenerateConfig<C extends Record<string, any> = {}> = {
@@ -170,6 +182,7 @@ interface Window {
   flowsManager: import("src/store/FlowsManager.ts").FlowsManager,
   charactersManager: import("src/store/CharactersManager.ts").CharactersManager,
   chatsManager: import("src/store/ChatsManager.ts").ChatsManager,
+  codeBlocksManager: import("src/store/CodeBlocksManager.ts").CodeBlocksManager,
   promptsManager: import("src/store/PromptsManager.ts").PromptsManager,
   imagesManager: import("src/store/ImagesManager.ts").ImagesManager,
   loreBookManager: import("src/store/LoreBookManager.ts").LoreBookManager,
@@ -200,3 +213,17 @@ type ClassFields<T> = {
 };
 
 type ReactUseState<V> = [V, React.Dispatch<React.SetStateAction<V>>];
+
+// ============================================================================
+// Code Block Function Types
+// ============================================================================
+
+type PreHistoryParams = {
+  messages: ChatSwipe[];
+};
+
+// ============================================================================
+
+type OnMessageParams = {
+  message: string
+};

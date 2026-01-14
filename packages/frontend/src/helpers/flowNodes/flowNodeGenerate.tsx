@@ -13,6 +13,7 @@ import { useFlowEditorContext } from "src/components/FlowEditorModal/helpers/Flo
 import { Prompt } from "src/store/Prompt.ts";
 import { sendRequestFromFlow } from "src/helpers/sendRequestFromFlow.ts";
 import { observer } from "mobx-react-lite";
+import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
 
 type FlowNodeGenerateState = {
   prompt: { value: string, label: string } | null,
@@ -57,29 +58,43 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
       currentPrompt.requestId = null;
       currentPrompt.message = "";
       currentPrompt.error = null;
-      messageController.pending = true;
     });
 
-    const vars = messageController.getPresetVars();
-
-    return sendRequestFromFlow(
+    const promise = sendRequestFromFlow(
       context,
-      vars,
-      action(({ chunk }) => currentPrompt.message += chunk),
-    ).then(action((data) => {
-      const { message, error } = data;
-      const request: RequestStorageItem = {
-        id: uuid(),
-        createdAt: new Date(),
-        provider: prompt.backendProviderId,
-        response: data,
-      };
-      currentPrompt.message = message;
-      currentPrompt.requestId = request.id;
-      requestStorage.updateItem(request).then(() => undefined);
-      if (error) throwNodeError(currentPrompt, error);
-    })).finally(action(() => {
-      messageController.pending = false;
-    }));
+      (prompt) => messageController.getPresetVars({ prompt }),
+      async ({ message }) => {
+        const result = await prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message });
+        runInAction(() => currentPrompt.message = result.message);
+      },
+    ).then(
+      (data) => {
+        const { message, error } = data;
+        const request: RequestStorageItem = {
+          id: uuid(),
+          createdAt: new Date(),
+          provider: prompt.backendProviderId,
+          response: data,
+        };
+        return prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message }).then(
+          action(({ message }) => {
+            currentPrompt.message = message;
+            currentPrompt.requestId = request.id;
+            requestStorage.updateItem(request).then(() => undefined);
+            if (error) throwNodeError(currentPrompt, error);
+          }),
+          (error) => {
+            throwNodeError(currentPrompt, error);
+          },
+        );
+      },
+      action((error) => {
+        if (error) throwNodeError(currentPrompt, error);
+      }),
+    );
+
+    flow.registerAsyncProcess(messageController, promise);
+
+    return  promise;
   },
 };

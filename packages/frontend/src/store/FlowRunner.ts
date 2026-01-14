@@ -36,7 +36,7 @@ export class FlowRunner {
     const node = this.findStartNode(scheme);
     if (!node) return Promise.reject(`Start node in "${schemeName}" not found`);
 
-    const process = this.processStep({
+    return this.processStep({
       flow,
       schemeName,
       messageController,
@@ -44,10 +44,6 @@ export class FlowRunner {
       node,
       abortController: this.abortController,
     });
-
-    this.flow.registerFlowRunner(this, process);
-
-    return process;
   }
 
   private async processStep(context: FlowProcessContext) {

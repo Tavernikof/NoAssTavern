@@ -1,6 +1,12 @@
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { IDBPDatabase } from "idb";
 import { BackendProvider } from "src/enums/BackendProvider.ts";
+import { CodeBlockStorageItem } from "src/storages/CodeBlocksStorage.ts";
+
+export type PromptCodeBlockStorageItem = {
+  active: boolean;
+  codeBlock: CodeBlockStorageItem;
+}
 
 export type PromptStorageItem = {
   id: string;
@@ -11,6 +17,7 @@ export type PromptStorageItem = {
   connectionProxyId: string | null;
   model: string;
   generationConfig: PromptGenerationConfig;
+  codeBlocks: PromptCodeBlockStorageItem[]
 }
 
 class PromptsStorage extends BaseStorage<PromptStorageItem> {

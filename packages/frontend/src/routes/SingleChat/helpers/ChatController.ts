@@ -1,4 +1,4 @@
-import { action, autorun, computed, makeObservable, observable, runInAction } from "mobx";
+import { action, autorun, computed, makeObservable, observable, runInAction, toJS } from "mobx";
 import { v4 as uuid } from "uuid";
 import { MessageController } from "./MessageController.ts";
 import { messageStorage } from "src/storages/MessageStorage.ts";
@@ -15,6 +15,7 @@ import {
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
 import { ChatVariablesController } from "src/routes/SingleChat/helpers/ChatVariablesController.ts";
+import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
 
 export class ChatController {
   private dc = new DisposableContainer();
@@ -166,7 +167,7 @@ export class ChatController {
     return this.flow.process(schemeName, messageController);
   }
 
-  createEmptyUserMessage(date?: Date) {
+  async createEmptyUserMessage(date?: Date) {
     return this.createMessage({
       messages: [prepareImpersonate(this.flow.userPrefix)],
       role: ChatMessageRole.USER,
@@ -229,16 +230,30 @@ export class ChatController {
       // {{history::10}} - последние 10 сообщений с конца
       // {{history:11}} - все сообщения начиная с 11 с конца
       // {{history:7:10}} - последние 3 сообщения начиная с 7
-      history: (rawArgument) => {
-        let messages = this.messages ?? [];
+      history: async (rawArgument) => {
+        let messages = (this.messages ?? []).map(m => toJS(m.currentSwipe));
+
         if (typeof toMessageIndex === "number") messages = messages.slice(0, toMessageIndex + 1);
         if (typeof fromMessageIndex === "number") messages = messages.slice(fromMessageIndex);
 
+        if (config?.prompt) {
+          const result = await config.prompt.callCodeBlockFunction(CodeBlockFunction.preHistory, { messages });
+          messages = result.messages;
+        }
+
         const [from, to] = rawArgument.split(":").filter(Boolean);
-        messages = sliceFromEnd(messages, +from || null, +to || null);
+        const prepareIndex = (indexStr: string) => {
+          let index: number | null = +indexStr;
+          index = Number.isNaN(index) ? null : index;
+          if (typeof index === "number" && index < 1) index = 1;
+          return index;
+        };
+        const fromIndex = prepareIndex(from);
+        const toIndex = prepareIndex(to);
+        messages = sliceFromEnd(messages, fromIndex, toIndex);
 
         return messages
-          .map(m => m.message.message.trim())
+          .map(m => (m.prompts[ChatSwipePrompt.message]?.message || "").trim())
           .filter(Boolean)
           .join("\n\n");
       },
@@ -287,20 +302,20 @@ export class ChatController {
 
       // {{lorebook}}
       // {{lorebook:in_chat}}
-      lorebook: (rawArgument) => {
+      lorebook: async (rawArgument) => {
         const position = rawArgument.split(":").filter(Boolean)[0] || "";
         const result: string[] = [];
 
         const vars = this.getPresetVars({ fromMessage, toMessage }, context);
-        const getMessages = (depth: number) => vars.history(`1:${depth}`) as string;
+        const getMessages = (depth: number) => vars.history(`1:${depth}`) as Promise<string>;
 
-        this.loreBooks.forEach(({ loreBook, active }) => {
-          if (!active) return;
-          const entries = loreBook.getActiveEntries(position, getMessages);
+        for (const { loreBook, active } of this.loreBooks) {
+          if (!active) continue;
+          const entries = await loreBook.getActiveEntries(position, getMessages);
           entries.forEach(entry => {
             result.push(entry.content);
           });
-        });
+        }
 
         return result.join("\n");
       },
@@ -367,26 +382,30 @@ export class ChatController {
     };
   }
 
-  createMessage(config: CreateTurnConfig) {
+  async createMessage(config: CreateTurnConfig) {
     const {
       id = uuid(),
       date = new Date(),
       messages = [""],
       role = ChatMessageRole.ASSISTANT,
     } = config;
+
+    const vars = this.getPresetVars();
+    const swipes = await Promise.all(messages.map(async message => ({
+      createdAt: date,
+      prompts: {
+        [ChatSwipePrompt.message]: { message: await prepareMessage(message, vars) },
+        [ChatSwipePrompt.translate]: { message: "" },
+      },
+    })));
+
     const chatMessage = new MessageController(this, {
       id: id,
       chatId: this.chatId,
       createdAt: date,
       role,
       activeSwipe: 0,
-      swipes: messages.map(message => ({
-        createdAt: date,
-        prompts: {
-          [ChatSwipePrompt.message]: { message: prepareMessage(message, this.getPresetVars()) },
-          [ChatSwipePrompt.translate]: { message: "" },
-        },
-      })),
+      swipes,
     });
 
     runInAction(() => {

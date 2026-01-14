@@ -31,7 +31,8 @@ export class Flow {
   @observable isNew: boolean;
   local: boolean;
 
-  @observable currentProcess: FlowRunner[] = [];
+  @observable private currentProcess: FlowRunner[] = [];
+  messageAsyncProcesses = new Map<MessageController, Promise<any>[]>();
 
   constructor(data: FlowStorageItem, config?: FlowCreateConfig) {
     this.isNew = config?.isNew ?? false;
@@ -121,7 +122,32 @@ export class Flow {
   @action
   process(schemeName: string, messageController: MessageController): Promise<void> {
     const flowRunner = new FlowRunner(this, schemeName, messageController);
-    return flowRunner.process();
+    const process = flowRunner.process();
+
+    this.currentProcess.push(flowRunner);
+
+    process.finally(action(() => {
+      const index = this.currentProcess.findIndex(runner => runner === flowRunner);
+      if (index !== -1) runInAction(() => this.currentProcess.splice(index, 1));
+    }));
+    return process;
+  }
+
+  registerAsyncProcess(messageController: MessageController, promise: Promise<any>) {
+    runInAction(() => messageController.pending = true);
+    let messageProcess = this.messageAsyncProcesses.get(messageController);
+    if (!messageProcess) messageProcess = [];
+    messageProcess.push(promise);
+    this.messageAsyncProcesses.set(messageController, messageProcess);
+
+    promise.finally(() => {
+      let messageProcess = this.messageAsyncProcesses.get(messageController);
+      if (!messageProcess) messageProcess = [];
+      const messageProcessIndex = messageProcess.findIndex(p => p === promise);
+      if (messageProcessIndex !== -1) messageProcess.splice(messageProcessIndex, 1);
+      this.messageAsyncProcesses.set(messageController, messageProcess);
+      if (!messageProcess.length) runInAction(() => messageController.pending = false);
+    });
   }
 
   @action
@@ -130,14 +156,6 @@ export class Flow {
     flowStorageItem.id = uuid();
     flowStorageItem.createdAt = new Date();
     return new Flow(flowStorageItem, { isNew: true, local });
-  }
-
-  registerFlowRunner(flowRunner: FlowRunner, process: Promise<void>) {
-    this.currentProcess.push(flowRunner);
-    process.finally(() => {
-      const index = this.currentProcess.findIndex(runner => runner === flowRunner);
-      if (index !== -1) runInAction(() => this.currentProcess.splice(index, 1));
-    });
   }
 
   serialize(): FlowStorageItem {
