@@ -94,8 +94,6 @@ export default defineConfig({
       provider: "local",
     },
 
-    logo: "/logo.png",
-
     socialLinks: [
       { icon: "github", link: "https://github.com/Tavernikof/NoassTavern" },
     ],
