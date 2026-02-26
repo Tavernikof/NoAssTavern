@@ -4,6 +4,7 @@ import "destyle.css";
 import "./styles/fonts.scss";
 import "./styles/vars.scss";
 import "./styles/app.scss";
+import "./styles/markdown.scss";
 import App from "./components/App";
 
 createRoot(document.getElementById("root")!).render(

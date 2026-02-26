@@ -1,13 +1,14 @@
 import * as React from "react";
-import style from "./Front.module.scss";
+import Title from "src/components/Title";
 
-type Props = {};
+type Props = Record<string, never>;
 
-const Front: React.FC<Props> = (props) => {
-  const {} = props;
-
+const Front: React.FC<Props> = () => {
   return (
-    <div></div>
+    <div className="markdown">
+      <Title>Welcome to NoassTavern</Title>
+      <p>Check <a href={env.DOCS_URL} target="_blank">the documentation</a> for quick start guide</p>
+    </div>
   );
 };
 

@@ -45,5 +45,11 @@ export async function buildServer() {
     prefix: "/",
   });
 
+  app.register(staticServe, {
+    root: path.resolve(APP_ROOT, "packages", "docs", ".vitepress", "dist"),
+    prefix: "/docs",
+    decorateReply: false,
+  });
+
   return app;
 }

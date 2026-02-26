@@ -24,9 +24,7 @@ function calcHash(dir) {
   return hash.digest("hex");
 }
 
-function buildIfNeeded(project, baseDir) {
-  const srcDir = path.resolve(baseDir, "src");
-  const distDir = path.resolve(baseDir, "dist");
+function buildIfNeeded(project, srcDir, distDir) {
   const hashPath = path.resolve(distDir, HASH_FILENAME);
 
   const newHash = calcHash(srcDir);
@@ -44,8 +42,17 @@ function buildIfNeeded(project, baseDir) {
 }
 
 function main() {
- buildIfNeeded("frontend", "packages/frontend");
- buildIfNeeded("backend", "packages/backend");
+  const frontendSrcDir = path.resolve("packages", "frontend", "src");
+  const frontendDistDir = path.resolve("packages", "frontend", "dist");
+  buildIfNeeded("frontend", frontendSrcDir, frontendDistDir);
+
+  const backendSrcDir = path.resolve("packages", "backend", "src");
+  const backendDistDir = path.resolve("packages", "backend", "dist");
+  buildIfNeeded("backend", backendSrcDir, backendDistDir);
+
+  const docsSrcDir = path.resolve("packages", "docs", "ru");
+  const docsDistDir = path.resolve("packages", "docs", ".vitepress", "dist");
+  buildIfNeeded("docs", docsSrcDir, docsDistDir);
 }
 
 main();

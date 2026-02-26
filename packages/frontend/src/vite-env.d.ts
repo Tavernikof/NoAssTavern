@@ -1,3 +1,6 @@
 /// <reference types="vite/client" />
 
-declare const env: { BACKEND_URL: string };
+declare const env: {
+  BACKEND_URL: string;
+  DOCS_URL: string;
+};
