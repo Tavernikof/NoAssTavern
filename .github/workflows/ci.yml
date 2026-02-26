@@ -58,8 +58,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn semantic-release
 
-      - name: Build
+      - name: Build frontend
         run: yarn build:frontend
+
+      - name: Build docs
+        run: yarn docs:build
+
+      - name: Copy docs into frontend dist
+        run: cp -r packages/docs/.vitepress/dist packages/frontend/dist/docs
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
