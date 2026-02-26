@@ -42,7 +42,7 @@ const MarkdownRenderer: React.FC<Props> = ({ children }) => {
 
   return (
     <div
-      className={styles.markdown}
+      className="markdown"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

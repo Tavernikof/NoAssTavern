@@ -1,14 +1,16 @@
 import { defineConfig } from "vitepress";
 
+const base = process.env.DOCS_BASE_PATH || "/docs/";
+
 export default defineConfig({
-  base: "/docs/",
+  base,
 
   ignoreDeadLinks: [
     /^http:\/\/localhost/,
   ],
 
   head: [
-    ["link", { rel: "icon", href: "/docs/favicon.ico" }],
+    ["link", { rel: "icon", href: `${base}favicon.ico` }],
   ],
 
   markdown: {

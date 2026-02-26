@@ -60,9 +60,13 @@ jobs:
 
       - name: Build frontend
         run: yarn build:frontend
+        env:
+          DOCS_BASE_PATH: /NoAssTavern/docs/
 
       - name: Build docs
         run: yarn docs:build
+        env:
+          DOCS_BASE_PATH: /NoAssTavern/docs/
 
       - name: Copy docs into frontend dist
         run: cp -r packages/docs/.vitepress/dist packages/frontend/dist/docs

@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
-import { viteSingleFile } from "vite-plugin-singlefile";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
@@ -20,7 +19,12 @@ dotenv.populate(process.env as dotenv.DotenvPopulateInput, envDefault);
 // https://vite.dev/config/
 export default defineConfig({
   base: "",
-  define: { env: { BACKEND_URL: process.env.BACKEND_URL } },
+  define: {
+    env: {
+      BACKEND_URL: process.env.BACKEND_URL,
+      DOCS_URL: process.env.DOCS_BASE_PATH || "/docs/",
+    },
+  },
   server: {
     port: Number(process.env.FRONTEND_PORT) || undefined,
     host: process.env.FRONTEND_HOST,
