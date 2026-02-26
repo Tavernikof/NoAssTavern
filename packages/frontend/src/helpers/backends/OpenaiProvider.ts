@@ -213,16 +213,19 @@ class OpenaiProvider extends BaseBackendProvider {
 
       parseJson: (data) => {
         const key = data.key;
+        console.log(data);
         if (key === "choices") {
           const value = data.value as ChatGPTResponse["choices"];
           const choice = value[0];
-          const message = choice.message?.content || choice.delta?.content || undefined;
-          if (choice.finish_reason && choice.finish_reason !== "stop" && choice.finish_reason !== "STOP") return {
-            message,
-            error: "finishReason: " + choice.finish_reason,
-          };
-          if (choice.message?.refusal) return { message, error: "refusal: " + choice.message.refusal };
-          if (message) return { message };
+          if (choice) {
+            const message = choice.message?.content || choice.delta?.content || undefined;
+            if (choice.finish_reason && choice.finish_reason !== "stop" && choice.finish_reason !== "STOP") return {
+              message,
+              error: "finishReason: " + choice.finish_reason,
+            };
+            if (choice.message?.refusal) return { message, error: "refusal: " + choice.message.refusal };
+            if (message) return { message };
+          }
         }
 
         if (key === "error") {
@@ -233,10 +236,12 @@ class OpenaiProvider extends BaseBackendProvider {
 
         if (key === "usage") {
           const usage = data.value as ChatGPTResponse["usage"];
-          return {
-            inputTokens: usage.prompt_tokens,
-            outputTokens: usage.completion_tokens,
-          };
+          if (usage) {
+            return {
+              inputTokens: usage.prompt_tokens,
+              outputTokens: usage.completion_tokens,
+            };
+          }
         }
       },
     });
