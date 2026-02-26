@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.5.0...v2.6.0) (2026-02-26)
+
+
+### Features
+
+* **docs:** add docs ([0dd6c07](https://github.com/Tavernikof/NoAssTavern/commit/0dd6c07a4ad5dd9dccd9db28a78f2d9cb710ae17))
+
 # [2.5.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.4.0...v2.5.0) (2026-01-14)
 
 
