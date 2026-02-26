@@ -64,7 +64,7 @@ jobs:
           DOCS_BASE_PATH: /NoAssTavern/docs/
 
       - name: Build docs
-        run: yarn docs:build
+        run: yarn build:docs
         env:
           DOCS_BASE_PATH: /NoAssTavern/docs/
 
