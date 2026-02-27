@@ -26,3 +26,6 @@ git clone git@github.com:Tavernikof/NoAssTavern.git
 2. В папке с проектом запустить `start.bat` (шиндоус) или `start.sh` (линукс/мак)
 
 3. Открыть http://localhost:4501 (Может быть другой порт, правильная ссылка будет в консоли)
+
+## Далее:
+- [Быстрый старт](/ru/guide/quick-start.md)
