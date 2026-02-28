@@ -1,3 +1,10 @@
+## [2.6.5](https://github.com/Tavernikof/NoAssTavern/compare/v2.6.4...v2.6.5) (2026-02-28)
+
+
+### Bug Fixes
+
+* **docs:** update docs ([516334f](https://github.com/Tavernikof/NoAssTavern/commit/516334fbb5faf6f6bb1de30b81f98bb29fb28329))
+
 ## [2.6.4](https://github.com/Tavernikof/NoAssTavern/compare/v2.6.3...v2.6.4) (2026-02-27)
 
 
