@@ -24,6 +24,7 @@ export class ChatController {
   @observable.ref messages: MessageController[] | undefined;
   messagesDict: Record<string, MessageController> = {};
   variables: ChatVariablesController;
+  @observable private messagesLoaded = false;
 
   constructor(chatId: string) {
     this.chatId = chatId;
@@ -31,15 +32,16 @@ export class ChatController {
 
     this.variables = this.dc.add(new ChatVariablesController(this));
 
-    messageStorage.getChatItems(this.chatId).then(action(messages => {
+    messageStorage.getChatItems(this.chatId).then(async messages => {
       if (this.dc.disposed) return;
 
-      this.messagesDict = {};
-
-      this.messages = messages.map(message => {
-        const chatMessage = new MessageController(this, message);
-        this.messagesDict[chatMessage.id] = chatMessage;
-        return chatMessage;
+      runInAction(() => {
+        this.messagesDict = {};
+        this.messages = messages.map(message => {
+          const chatMessage = new MessageController(this, message);
+          this.messagesDict[chatMessage.id] = chatMessage;
+          return chatMessage;
+        });
       });
 
       if (!messages.length) {
@@ -50,22 +52,23 @@ export class ChatController {
           });
         });
         if (!greetings.length) greetings.push("");
-        this.createMessage({
+        await this.createMessage({
           messages: greetings,
           date: new Date(),
         });
       }
 
       setTimeout(() => {
+        runInAction(() => this.messagesLoaded = true);
         const messages = this.messages;
         if (!messages) return;
         const lastMessage = messages[messages.length - 1];
         if (lastMessage) lastMessage.focusEditor();
       });
-    }));
+    });
 
     this.dc.addReaction(autorun(() => {
-      if (!this.messages) return;
+      if (!this.messages || !this.messagesLoaded) return;
       if (this.flow.isProcess) return;
       if (!this.lastMessage || this.lastMessage.role !== ChatMessageRole.USER) {
         this.createEmptyUserMessage(new Date(+(new Date()) + 1));

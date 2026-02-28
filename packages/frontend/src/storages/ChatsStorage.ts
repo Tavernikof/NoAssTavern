@@ -37,13 +37,11 @@ class ChatsStorage extends BaseStorage<ChatStorageItem> {
   async removeItem(id: string) {
     const messages = await messageStorage.getChatItems(id);
     const chat = await this.getItem(id);
-    await Promise.all([
-      ...messages.map(message => messageStorage.removeItem(message.id)),
-      ...chat.characters.map(({ character }) => {
-        if (character.imageId) return imagesStorage.removeItem(character.imageId);
-      }),
-      super.removeItem(id),
-    ]);
+    await Promise.all(messages.map(message => messageStorage.removeItem(message.id)));
+    await Promise.all(chat.characters.map(({ character }) => {
+      if (character.imageId) return imagesStorage.removeItem(character.imageId);
+    }));
+    await super.removeItem(id);
   }
 }
 
