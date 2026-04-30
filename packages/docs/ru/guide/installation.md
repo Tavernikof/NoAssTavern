@@ -13,7 +13,7 @@ https://tavernikof.github.io/NoAssTavern/
 ## Локальный
 Для этого тебе понадобятся:
 1. [Git](https://git-scm.com/)
-2. [Node.js 20+](https://nodejs.org/en)
+2. [Node.js 22+](https://nodejs.org/en)
 
 Установка и запуск:
 1. Скачивание проекта

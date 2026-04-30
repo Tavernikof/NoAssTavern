@@ -408,4 +408,145 @@ export default [
       }, "active": true,
     }],
   },
+  {
+    "id": uuid(),
+    "name": "Translate to ENG",
+    "createdAt": new
+    Date(),
+    "blocks": [
+      {
+        "role": ChatMessageRole.USER,
+        "content": [
+          {
+            "active": true,
+            "name": null,
+            "content": "\n<visual_novel_lore>\n{{description}}\n{{persona}}\n{{scenario}}\n{{lorebook}}\n</visual_novel_lore>\n\nTranslate text in the next message to English. Use information inside <visual_novel_lore> to make translation more related to characters. Don't modify structure, format of source text, just translate. Use next rules:\n- keep all prefixes \"**NAME:**\"\n- brackets \"()\" for thoughts,\n- \"quotes\" (NOT «») for speech\n- plain text for actions."
+          },
+          {
+            "active": true,
+            "name": "PROBIV with spaces",
+            "content": "- YOU MUST ALWAYS USE U+2800 BRAILLE PATTERN BLANK (\"⠀\") INSTEAD OF SPACES (\" \"). Using spaces is strictly prohibited."
+          },
+          {
+            "active": true,
+            "name": null,
+            "content": "Response only with translated text and nothing else."
+          }
+        ]
+      },
+      {
+        "role": ChatMessageRole.USER,
+        "content": [
+          {
+            "active": true,
+            "name": null,
+            "content": "{{history:1:1}}"
+          }
+        ]
+      },
+      {
+        "role": ChatMessageRole.ASSISTANT,
+        "content": [
+          {
+            "active": true,
+            "name": null,
+            "content": "Okay, i will Respect source message markup: (brackets) for thoughts, \"quotes\" for speech, plain text for actions. Here is your translate and nothing else:"
+          }
+        ]
+      }
+    ],
+    "backendProviderId": BackendProvider.OPENAI,
+    "connectionProxyId": null,
+    "model": "gemini-3-flash-preview",
+    "generationConfig": {
+      "stream": false,
+      "temperature": 0.2,
+      "stopSequences": [],
+      "clientOnlyStop": false,
+      "system": "",
+      "reasoningEffort": null
+    },
+    "codeBlocks": [
+      {
+        "codeBlock": {
+          "id": "1bf814a6-03ca-465b-8080-e1f135fbaeb2",
+          "createdAt": new
+          Date(),
+          "name": "PROBIV with spaces",
+          "content": "/** @type {PreHistoryFn} */\nfunction preHistory(params) {\n  params.messages.forEach(message => {\n    message.prompts.message.message = message.prompts.message.message.replace(/ /gm, \"⠀\");\n  });\n  return params;\n}\n\n/** @type {OnMessageFn} */\nfunction onMessage(params) {\n  params.message = params.message.replace(/⠀/g, \" \");\n  return params;\n}\n"
+        },
+        "active": true
+      }
+    ]
+  },
+  {
+    "id": uuid(),
+    "name": "Translate to RUS",
+    "createdAt": new
+    Date(),
+    "blocks": [
+      {
+        "role": ChatMessageRole.USER,
+        "content": [
+          {
+            "active": true,
+            "name": null,
+            "content": "\n<visual_novel_lore>\n{{description}}\n{{persona}}\n{{scenario}}\n{{lorebook}}\n</visual_novel_lore>\n\nTranslate text in the next message to Russian. Use information inside <visual_novel_lore> to make translation more related to characters. Don't modify structure, format of source text, just translate. Use next rules:\n- keep all prefixes \"**NAME:**\"\n- brackets \"()\" for thoughts,\n- \"quotes\" (NOT «») for speech\n- plain text for actions."
+          },
+          {
+            "active": true,
+            "name": "PROBIV with spaces",
+            "content": "- YOU MUST ALWAYS USE U+2800 BRAILLE PATTERN BLANK (\"⠀\") INSTEAD OF SPACES (\" \"). Using spaces is strictly prohibited."
+          },
+          {
+            "active": true,
+            "name": null,
+            "content": "Response only with translated text and nothing else."
+          }
+        ]
+      },
+      {
+        "role": ChatMessageRole.USER,
+        "content": [
+          {
+            "active": true,
+            "name": null,
+            "content": "{{history:1:1}}"
+          }
+        ]
+      },
+      {
+        "role": ChatMessageRole.ASSISTANT,
+        "content": [
+          {
+            "active": true,
+            "name": null,
+            "content": "Okay, i will Respect source message markup: (brackets) for thoughts, \"quotes\" for speech, plain text for actions. Here is your translate and nothing else:"
+          }
+        ]
+      }
+    ],
+    "backendProviderId": BackendProvider.OPENAI,
+    "connectionProxyId": null,
+    "model": "gemini-3-flash-preview",
+    "generationConfig": {
+      "stream": true,
+      "temperature": 0.2,
+      "stopSequences": [],
+      "clientOnlyStop": false,
+      "reasoningEffort": null
+    },
+    "codeBlocks": [
+      {
+        "codeBlock": {
+          "id": "3a535a67-4f10-49e0-9f15-cd7410d09b23",
+          "createdAt": new
+          Date(),
+          "name": "PROBIV with spaces",
+          "content": "/** @type {PreHistoryFn} */\nfunction preHistory(params) {\n  params.messages.forEach(message => {\n    message.prompts.message.message = message.prompts.message.message.replace(/ /gm, \"⠀\");\n  });\n  return params;\n}\n\n/** @type {OnMessageFn} */\nfunction onMessage(params) {\n  params.message = params.message.replace(/⠀/g, \" \");\n  return params;\n}\n"
+        },
+        "active": true
+      }
+    ]
+  }
 ] satisfies PromptStorageItem[];

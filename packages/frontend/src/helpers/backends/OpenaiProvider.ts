@@ -171,7 +171,6 @@ class OpenaiProvider extends BaseBackendProvider {
       top_p: topP,
       // presence_penalty: presencePenalty,
       reasoning_effort: reasoningEffort ?? undefined,
-      // thinking: { type: "disabled" },
     };
     const url = `${stripLastSlash(baseUrl)}/chat/completions`;
 
@@ -213,7 +212,6 @@ class OpenaiProvider extends BaseBackendProvider {
 
       parseJson: (data) => {
         const key = data.key;
-        console.log(data);
         if (key === "choices") {
           const value = data.value as ChatGPTResponse["choices"];
           const choice = value[0];

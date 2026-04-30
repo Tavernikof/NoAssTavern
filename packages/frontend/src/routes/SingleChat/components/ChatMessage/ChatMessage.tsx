@@ -59,7 +59,7 @@ const ChatMessage: React.FC<Props> = (props) => {
 
         {message.error && <ChatMessageError>{message.error}</ChatMessageError>}
         {showTranslate && translate.error && (
-          <ChatMessageError><b>Translate error:</b><br />{translate.error}</ChatMessageError>
+          <ChatMessageError><><b>Translate error:</b><br />{translate.error}</></ChatMessageError>
         )}
 
         <MessageActions />

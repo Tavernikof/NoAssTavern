@@ -60,6 +60,7 @@ export default defineConfig({
               items: [
                 { text: "Режим ассистента", link: "/ru/features/assistant" },
                 { text: "Саммари", link: "/ru/features/summary" },
+                { text: "Перевод через LLM", link: "/ru/features/llm-translate" },
               ],
             },
           ],
