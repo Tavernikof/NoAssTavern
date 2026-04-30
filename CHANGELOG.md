@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.6.6...v2.7.0) (2026-04-30)
+
+
+### Features
+
+* **llm-translate:** add llm translate block ([f045159](https://github.com/Tavernikof/NoAssTavern/commit/f045159e244c1a272d56640c519c4ad95d37e368))
+
 ## [2.6.6](https://github.com/Tavernikof/NoAssTavern/compare/v2.6.5...v2.6.6) (2026-02-28)
 
 
