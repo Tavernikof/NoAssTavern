@@ -17,7 +17,7 @@ type FlowNodeTranslateState = {
 export const flowNodeTranslate: FlowNodeConfig<FlowNodeTranslateState> = {
   id: FlowNode.translate,
   label: "Translate",
-  description: "Translate last message",
+  description: "Translates last message through 'Yandex Translate'",
   initialState: {
     language: null,
     overwriteTranslate: false,

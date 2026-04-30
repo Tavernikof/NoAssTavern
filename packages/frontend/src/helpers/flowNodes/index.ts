@@ -8,10 +8,12 @@ import { flowNodeStart } from "src/helpers/flowNodes/flowNodeStart.tsx";
 import { flowNodeCreateEmptyMessage } from "src/helpers/flowNodes/flowNodeCreateEmptyMessage.tsx";
 import { flowNodeScheme } from "src/helpers/flowNodes/flowNodeScheme.tsx";
 import { flowNodeNotify } from "src/helpers/flowNodes/flowNodeNotify.tsx";
+import { flowNodeLlmTranslate } from "src/helpers/flowNodes/flowNodeLlmTranslate.tsx";
 
 export const flowNodes: FlowNodeConfig<any>[] = [
   flowNodeStart,
   flowNodeGenerate,
+  flowNodeLlmTranslate,
   flowNodeNotify,
   flowNodeScheme,
   flowNodeTranslate,
