@@ -1,6 +1,6 @@
 import * as React from "react";
 import style from "./BlockEditorBlock.module.scss";
-import { RenderElementProps } from "slate-react";
+import { ReactEditor, RenderElementProps } from "slate-react";
 import { useBlockEditorContext } from "src/components/BlockEditor/helpers/BlockEditorContext.ts";
 import { observer } from "mobx-react-lite";
 import Checkbox from "src/components/Form/components/Checkbox";
@@ -21,7 +21,7 @@ const BlockEditorBlock: React.FC<Props> = (props) => {
 
   React.useEffect(() => {
     setLocalName(name);
-  }, [name])
+  }, [name]);
 
   const toggleActive = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     Transforms.setNodes(
@@ -32,13 +32,18 @@ const BlockEditorBlock: React.FC<Props> = (props) => {
   }, [editor, id]);
 
   const updateName = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalName(e.currentTarget.value);
+    const value = e.currentTarget.value;
+    setLocalName(value);
     Transforms.setNodes(
       editor,
-      { name: e.currentTarget.value },
+      { name: value },
       { at: [], match: (node) => isBlock(node) && node.id === id },
     );
   }, [editor, id]);
+
+  const onNameFocus = React.useCallback(() => {
+    ReactEditor.blur(editor);
+  }, [editor]);
 
   const onRemove = React.useCallback(() => {
     Transforms.removeNodes(editor, {
@@ -51,7 +56,7 @@ const BlockEditorBlock: React.FC<Props> = (props) => {
     <div{...props.attributes} className={style.container}>
       <div className={style.head} contentEditable={false}>
         <Checkbox checked={active} onChange={toggleActive} label="Active" />
-        <Input value={localName} onChange={updateName} placeholder="Block name" />
+        <Input value={localName} onChange={updateName} onFocus={onNameFocus} placeholder="Block name" />
         <Button type="button" onClick={onRemove} iconBefore={Trash} />
       </div>
       {props.children}
