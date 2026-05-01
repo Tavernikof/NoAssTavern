@@ -6,6 +6,7 @@ import _cloneDeep from "lodash/cloneDeep";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 import { imagesManager } from "src/store/ImagesManager.ts";
+import { imagesStorage } from "src/storages/ImagesStorage.ts";
 
 type CharacterCreateConfig = {
   isNew?: boolean
@@ -87,6 +88,9 @@ export class Character {
 
   @action
   update(characterContent: Partial<CharacterStorageItem>) {
+    if ("imageId" in characterContent && this.imageId && this.imageId !== characterContent.imageId) {
+      imagesStorage.removeItem(this.imageId);
+    }
     for (const field in characterContent) {
       const data = characterContent[field as keyof CharacterStorageItem];
       // @ts-expect-error fuck ts

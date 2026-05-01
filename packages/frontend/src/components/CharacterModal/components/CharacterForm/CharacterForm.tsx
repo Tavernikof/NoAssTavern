@@ -6,12 +6,14 @@ import Button from "src/components/Button/Button.tsx";
 import { Save } from "lucide-react";
 import Form from "src/components/Form/Form.tsx";
 import { Character } from "src/store/Character.ts";
+import CharacterAvatarField from "../CharacterAvatarField";
 
-type CharacterModalForm = {
+export type CharacterModalForm = {
   name: string,
   description: string,
   scenario: string,
   greetings: { text: string }[],
+  imageId: string | null,
 }
 
 
@@ -30,6 +32,7 @@ const CharacterForm: React.FC<Props> = (props) => {
         description: character.description,
         scenario: character.scenario,
         greetings: (character.greetings).map(text => ({ text })),
+        imageId: character.imageId,
       }), [])}
       onSubmit={React.useCallback((data: CharacterModalForm) => {
         character.update({
@@ -40,9 +43,14 @@ const CharacterForm: React.FC<Props> = (props) => {
       }, [])}
     >
       <FormFields>
-        <FormInput label="Name:">
-          <InputControlled name="name" />
-        </FormInput>
+        <div className={style.top}>
+          <div className={style.name}>
+            <FormInput label="Name:">
+              <InputControlled name="name" />
+            </FormInput>
+          </div>
+          <CharacterAvatarField />
+        </div>
         <FormInput label="Description:">
           <TextareaControlled name="description" autoHeight />
         </FormInput>
