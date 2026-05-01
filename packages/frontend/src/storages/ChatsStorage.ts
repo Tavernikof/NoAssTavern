@@ -21,6 +21,7 @@ export type ChatStorageItem = {
     active: boolean;
   }[];
   impersonate: string | null;
+  impersonateHistory: string[] | null;
   flow: FlowStorageItem;
   variables: Record<string, string>;
 }

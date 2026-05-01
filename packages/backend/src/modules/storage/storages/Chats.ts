@@ -22,6 +22,7 @@ export const ChatSchema = z.object({
     active: z.boolean(),
   })),
   impersonate: z.string().nullish(),
+  impersonateHistory: z.array(z.string()).nullish(),
   flow: FlowSchema,
   variables: z.looseObject({}).optional(),
 });

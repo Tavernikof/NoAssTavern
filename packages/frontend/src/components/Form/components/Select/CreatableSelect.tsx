@@ -18,4 +18,4 @@ const CreatableSelect = React.forwardRef<React.ElementRef<typeof ReactCreatableS
   );
 });
 
-export default React.memo(CreatableSelect) as typeof CreatableSelect;
+export default React.memo(CreatableSelect) as typeof ReactCreatableSelect;

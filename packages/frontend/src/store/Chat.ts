@@ -1,4 +1,4 @@
-import { action, autorun, makeObservable, observable, reaction } from "mobx";
+import { action, computed, makeObservable, observable, reaction } from "mobx";
 import { chatsStorage, ChatStorageItem } from "src/storages/ChatsStorage.ts";
 import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
@@ -25,6 +25,7 @@ export class Chat {
   @observable loreBooks: ChatLoreBook[];
   @observable persona: string | null;
   @observable impersonate: string | null;
+  @observable impersonateHistory: string[] = [];
   @observable flow: Flow;
   variables: Record<string, string> = {};
 
@@ -47,6 +48,7 @@ export class Chat {
     })) || [];
     this.persona = data.persona;
     this.impersonate = data.impersonate;
+    this.impersonateHistory = data.impersonateHistory || [];
     this.flow = new Flow(data.flow, { local: true });
     this.variables = data.variables ?? {};
 
@@ -76,9 +78,25 @@ export class Chat {
       loreBooks: data.loreBooks?.map(item => ({ loreBook: item.loreBook.serialize(), active: item.active })) || [],
       persona: data.persona || null,
       impersonate: data.impersonate || null,
+      impersonateHistory: data.impersonateHistory || null,
       flow: data.flow?.serialize() || null,
       variables: {},
     }, { isNew: true });
+  }
+
+  @computed
+  get impersonateOptions() {
+    const options: { value: string, label: string, custom?: boolean }[] = [];
+    this.characters.map(c => options.push({
+      value: c.character.name,
+      label: c.character.name,
+    }));
+    this.impersonateHistory.forEach(c => options.push({
+      value: c,
+      label: c,
+      custom: true,
+    }));
+    return options;
   }
 
   @action
@@ -98,7 +116,16 @@ export class Chat {
 
   @action
   updateImpersonate(impersonate: string | null) {
+    if (impersonate && !this.impersonateOptions.find(o => o.value === impersonate)) {
+      this.impersonateHistory.push(impersonate);
+    }
     this.impersonate = impersonate;
+  }
+
+  @action
+  removeImpersonate(impersonate: string) {
+    const index = this.impersonateHistory.findIndex(i => i === impersonate);
+    this.impersonateHistory.splice(index, 1);
   }
 
   @action
@@ -124,6 +151,7 @@ export class Chat {
       loreBooks: this.loreBooks.map(item => ({ ...item, loreBook: item.loreBook.serialize() })),
       persona: this.persona,
       impersonate: this.impersonate,
+      impersonateHistory: this.impersonateHistory,
       flow: this.flow.serialize(),
       variables: this.variables,
     };

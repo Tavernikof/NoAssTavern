@@ -3,7 +3,7 @@ import style from "./ChatMembers.module.scss";
 import { useChatControllerContext } from "src/routes/SingleChat/helpers/ChatControllerContext.ts";
 import CharacterAvatar from "src/components/CharacterAvatar/CharacterAvatar.tsx";
 import { Checkbox, CreatableSelect, FormInput } from "src/components/Form";
-import { Book, Pen } from "lucide-react";
+import { Book, Pen, Trash } from "lucide-react";
 import { openPromptEditorModal } from "src/components/PromptEditorModal";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { openCharacterModal } from "src/components/CharacterModal";
@@ -18,21 +18,12 @@ type Props = Record<string, never>;
 
 const ChatMembers: React.FC<Props> = () => {
   const { chat, characters, persona, personaId, flow, loreBooks } = useChatControllerContext();
+  const { impersonate, impersonateOptions } = chat;
 
-  const impersonateOptions = React.useMemo(() => {
-    const options = characters.map(c => ({
-      value: c.character.name,
-      label: c.character.name,
-    }));
-    options.push({ value: "GM", label: "GM" });
-    options.push({ value: "System", label: "System" });
-    return options;
-  }, []);
-
-  const impersonateValue = React.useMemo(() => chat.impersonate ? ({
-    label: chat.impersonate,
-    value: chat.impersonate,
-  }) : null, [chat.impersonate]);
+  const impersonateValue = React.useMemo(() => impersonate ? ({
+    label: impersonate,
+    value: impersonate,
+  }) : null, [impersonate]);
 
   return (
     <div className={style.container}>
@@ -111,11 +102,27 @@ const ChatMembers: React.FC<Props> = () => {
       )}
 
       <FormInput label="Impersonate:">
-        <CreatableSelect
+        <CreatableSelect<typeof impersonateOptions[number]>
           value={impersonateValue}
-          onChange={(value) => chat.updateImpersonate((value as { value: string })?.value || null)}
+          onChange={(value) => chat.updateImpersonate(value?.value || null)}
           options={impersonateOptions}
           placeholder={persona?.character?.name}
+          formatOptionLabel={(option) => {
+            return <div className={style.impersonateOption}>
+              {option.label}
+              {option.custom && (
+                <MessageActionButton
+                  className={style.impersonateOptionAction}
+                  icon={Trash}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    chat.removeImpersonate(option.value)
+                  }}
+                />
+              )}
+            </div>;
+          }}
           isClearable
         />
       </FormInput>
