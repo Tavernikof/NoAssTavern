@@ -1,5 +1,7 @@
 @echo off
 
+cd /d "%~dp0"
+
 where node >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
     echo Node.js required

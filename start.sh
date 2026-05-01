@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd "$(dirname "$0")"
+
 on_error() {
     echo
     echo "An error occurred. Press Enter to exit..."
