@@ -16,17 +16,19 @@ const ChatFormScenario: React.FC<Props> = () => {
   const { scenarios, scenario, selectedScenario, setSelectedScenario } = context;
 
   React.useEffect(() => {
+    context.scenario = value;
+  }, [value]);
+
+  React.useEffect(() => {
     onChange(scenario);
-  }, [scenario]);
+  }, [selectedScenario]);
 
   return (
     <FormInput label="Scenario:" name="scenario">
       <Textarea
         autoHeight
         value={value}
-        onChange={(e) => {
-          context.scenario = e.target.value;
-        }}
+        onChange={onChange}
       />
       {scenarios.length > 1 && (
         <div className={style.select}>
