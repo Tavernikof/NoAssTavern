@@ -1,7 +1,7 @@
 const openTag = "{{";
 const closeTag = "}}";
 
-export const prepareMessage = async (message: string, vars: PresetVars): Promise<string> => {
+export const prepareMessage = async (message: string, vars: PresetVarsGetter): Promise<string> => {
   let result = "";
   let lastIndex = 0;
 
@@ -57,7 +57,7 @@ export const prepareMessage = async (message: string, vars: PresetVars): Promise
         const [substring, variableName, rawArguments] = match;
 
         if (typeof variableName === "string") {
-          const variable = vars[variableName];
+          const variable = vars.vars[variableName];
           const varResult = typeof variable === "function" ? await variable(rawArguments) : variable;
 
           if (typeof varResult === "string") {

@@ -12,7 +12,7 @@ export type PromptStorageItem = {
   id: string;
   name: string;
   createdAt: Date;
-  blocks: PromptBlock[];
+  blocks: (PromptMessageBlock | PromptHistoryBlock)[];
   backendProviderId: BackendProvider;
   connectionProxyId: string | null;
   model: string;

@@ -5,7 +5,7 @@ import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts"
 
 export const sendRequestFromFlow = async (
   context: FlowProcessContext,
-  getVars: (prompt: Prompt) => PresetVars,
+  getVars: (prompt: Prompt) => PresetVarsGetter,
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
 ) => {
   const { flow, messageController, node, abortController } = context;

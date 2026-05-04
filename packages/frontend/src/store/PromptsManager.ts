@@ -34,8 +34,8 @@ export class PromptsManager extends AbstractManager<Prompt, PromptStorageItem> {
               charDescription: "{{description}}",
             };
 
-            const blocks: PromptBlock[] = [];
-            let currentBlock: PromptBlock | undefined;
+            const blocks: PromptMessageBlock[] = [];
+            let currentBlock: PromptMessageBlock | undefined;
 
             order.forEach(({ identifier, enabled }) => {
               const prompt = promptsDict[identifier];

@@ -9,11 +9,13 @@ type Props = Record<string, never>;
 const PromptEditorAddBlock: React.FC<Props> = () => {
   const controller = usePresetEditorControllerContext();
 
-  const onAdd = () => controller.addBlock();
+  const onAddBlock = () => controller.addBlock();
+  const onAddHistory = () => controller.addHistory();
 
   return (
     <div className={style.container}>
-      <Button type="button" onClick={onAdd} iconBefore={Plus}>Add block</Button>
+      <Button type="button" onClick={onAddBlock} iconBefore={Plus}>Add block</Button>
+      <Button type="button" onClick={onAddHistory} iconBefore={Plus}>Add history</Button>
     </div>
   );
 };

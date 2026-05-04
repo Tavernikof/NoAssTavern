@@ -178,7 +178,7 @@ export class ChatController {
     });
   }
 
-  getPresetVars(config?: GetPresetVarsConfig, context?: GetPresetVarsContext): PresetVars {
+  getPresetVars(config?: GetPresetVarsConfig, context?: GetPresetVarsContext) {
     if (!context) context = { vars: this.variables.createLocalVariablesContainer() };
     const fromMessage = config?.fromMessage ?? this.firstMessage;
     const toMessage = config?.toMessage ?? this.lastMessage;
@@ -190,7 +190,24 @@ export class ChatController {
       fromMessageIndex = buffer;
     }
 
-    return {
+    const getHistory: PresetGetHistory = async (params) => {
+      const { from, to } = params;
+      let messages = (this.messages ?? []).map(m => ({ role: m.role, ...toJS(m.currentSwipe) }));
+
+      if (typeof toMessageIndex === "number") messages = messages.slice(0, toMessageIndex + 1);
+      if (typeof fromMessageIndex === "number") messages = messages.slice(fromMessageIndex);
+
+      if (config?.prompt) {
+        const result = await config.prompt.callCodeBlockFunction(CodeBlockFunction.preHistory, { messages });
+        messages = result.messages;
+      }
+
+      messages = sliceFromEnd(messages, from, to);
+
+      return messages;
+    };
+
+    const vars: PresetVars = {
       user: () => preparePersonaFields(this.persona?.character.name || ""),
       persona: () => preparePersonaFields(this.persona?.character.description || ""),
       impersonate: () => this.chat.impersonate || "{{user}}",
@@ -234,16 +251,6 @@ export class ChatController {
       // {{history:11}} - все сообщения начиная с 11 с конца
       // {{history:7:10}} - последние 3 сообщения начиная с 7
       history: async (rawArgument) => {
-        let messages = (this.messages ?? []).map(m => toJS(m.currentSwipe));
-
-        if (typeof toMessageIndex === "number") messages = messages.slice(0, toMessageIndex + 1);
-        if (typeof fromMessageIndex === "number") messages = messages.slice(fromMessageIndex);
-
-        if (config?.prompt) {
-          const result = await config.prompt.callCodeBlockFunction(CodeBlockFunction.preHistory, { messages });
-          messages = result.messages;
-        }
-
         const [from, to] = rawArgument.split(":").filter(Boolean);
         const prepareIndex = (indexStr: string) => {
           let index: number | null = +indexStr;
@@ -253,7 +260,7 @@ export class ChatController {
         };
         const fromIndex = prepareIndex(from);
         const toIndex = prepareIndex(to);
-        messages = sliceFromEnd(messages, fromIndex, toIndex);
+        const messages = await getHistory({ from: fromIndex, to: toIndex });
 
         return messages
           .map(m => (m.prompts[ChatSwipePrompt.message]?.message || "").trim())
@@ -309,7 +316,7 @@ export class ChatController {
         const position = rawArgument.split(":").filter(Boolean)[0] || "";
         const result: string[] = [];
 
-        const vars = this.getPresetVars({ fromMessage, toMessage }, context);
+        const { vars } = this.getPresetVars({ fromMessage, toMessage }, context);
         const getMessages = (depth: number) => vars.history(`1:${depth}`) as Promise<string>;
 
         for (const { loreBook, active } of this.loreBooks) {
@@ -383,6 +390,8 @@ export class ChatController {
         return this.variables.getVar(name);
       },
     };
+
+    return { vars, getHistory };
   }
 
   async createMessage(config: CreateTurnConfig) {

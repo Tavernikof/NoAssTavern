@@ -31,7 +31,7 @@ export class PresetEditor {
   private inited: boolean;
   @observable role: ChatMessageRole;
 
-  constructor(block: PromptBlock) {
+  constructor(block: PromptMessageBlock) {
     this.editor = this.createEditor();
     this.role = block.role;
     this.initialValue = this.parseContent(block.content);
@@ -39,8 +39,9 @@ export class PresetEditor {
     makeObservable(this);
   }
 
-  serialize(): PromptBlock {
+  serialize(): PromptMessageBlock {
     return {
+      type: "message",
       role: this.role,
       content: this.getContent(),
     };

@@ -7,6 +7,7 @@ import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.t
 import _cloneDeep from "lodash/cloneDeep";
 import { CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR, CodeBlock } from "src/store/CodeBlock.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
+import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 
 type PromptCreateConfig = {
   isNew?: boolean,
@@ -17,7 +18,7 @@ export class Prompt {
   @observable id: string;
   @observable name: string;
   @observable createdAt: Date;
-  @observable blocks: PromptBlock[];
+  @observable blocks: (PromptMessageBlock | PromptHistoryBlock)[];
   @observable backendProviderId: BackendProvider;
   @observable connectionProxyId: string | null;
   @observable model: string;
@@ -70,9 +71,11 @@ export class Prompt {
   @computed
   get levers() {
     return this.blocks.reduce<[number, number][]>((levers, block, blockIndex) => {
-      block.content.forEach((item, itemIndex) => {
-        if (item.name !== null) levers.push([blockIndex, itemIndex]);
-      });
+      if (block.type !== "history") {
+        block.content.forEach((item, itemIndex) => {
+          if (item.name !== null) levers.push([blockIndex, itemIndex]);
+        });
+      }
       return levers;
     }, []);
   }
@@ -115,26 +118,36 @@ export class Prompt {
     return new Prompt(promptStorageItem, { isNew: true, local });
   }
 
-  async buildMessages(vars: PresetVars) {
+  async buildMessages(vars: PresetVarsGetter) {
     const messages: PresetPrompt = [];
-
     for (const block of this.blocks) {
-      const contentParts: string[] = [];
-
-      for (const blockContent of block.content) {
-        if (blockContent.active) {
-          contentParts.push(await prepareMessage(blockContent.content, vars));
+      if (block.type === "history") {
+        const history = await vars.getHistory({
+          from: block.from,
+          to: block.to,
+        });
+        history.forEach(message => {
+          messages.push({
+            role: message.role,
+            content: (message.prompts[ChatSwipePrompt.message]?.message || "").trim(),
+          });
+        });
+      } else {
+        const contentParts: string[] = [];
+        for (const blockContent of block.content) {
+          if (blockContent.active) {
+            contentParts.push(await prepareMessage(blockContent.content, vars));
+          }
         }
+        const content = contentParts.join("\n");
+        if (content.length) messages.push({ role: block.role, content });
       }
-
-      const content = contentParts.join("\n");
-      if (content.length) messages.push({ role: block.role, content });
     }
 
     return messages;
   }
 
-  async buildStopSequence(vars: PresetVars) {
+  async buildStopSequence(vars: PresetVarsGetter) {
     const { stopSequences } = this.generationConfig;
     const stop = await Promise.all(
       (stopSequences as string[] ?? []).map(str => prepareMessage(prepareImpersonate(str), vars)),

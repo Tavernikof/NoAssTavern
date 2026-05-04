@@ -7,6 +7,9 @@ import PromptEditorAddBlock from "../PromptEditorAddBlock";
 import clsx from "clsx";
 import { observer } from "mobx-react-lite";
 import { usePresetEditorControllerContext } from "../../helpers/PresetEditorControllerContext.ts";
+import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts";
+import { PresetHistoryEditor } from "src/components/BlockEditor/helpers/PresetHistoryEditor.ts";
+import PromptHistoryBlockEditor from "src/components/PromptEditorModal/components/PromptHistoryBlockEditor";
 
 type Props = Record<string, never>;
 
@@ -26,9 +29,11 @@ const PromptForm: React.FC<Props> = () => {
           <PresetEditForm />
         </div>
         <div className={clsx(style.column, style.main)}>
-          {controller.blocks.map(block => (
-            <PromptBlockEditor key={block.id} editor={block} />
-          ))}
+          {controller.blocks.map(block => {
+            if (block instanceof PresetEditor) return <PromptBlockEditor key={block.id} editor={block} />;
+            if (block instanceof PresetHistoryEditor) return <PromptHistoryBlockEditor key={block.id} editor={block} />;
+            return null;
+          })}
           <PromptEditorAddBlock />
         </div>
       </div>

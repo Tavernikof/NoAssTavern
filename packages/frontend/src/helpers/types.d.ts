@@ -43,9 +43,16 @@ type CreateTurnConfig = {
 
 type PromptGenerationConfig = Record<string, any>
 
-type PromptBlock = {
+type PromptMessageBlock = {
+  type?: "message"
   role: import("src/enums/ChatManagerRole.ts").ChatMessageRole;
   content: PresetBlockContent[];
+}
+
+type PromptHistoryBlock = {
+  type: "history"
+  from: number | null,
+  to: number | null,
 }
 
 type PresetBlockContent = {
@@ -73,7 +80,15 @@ type PresetPromptBlock = {
 
 type PresetVar = (rawArgument: string) => string | Promise<string> | undefined
 
-type PresetVars = Record<string, PresetVar>
+type PresetGetHistoryMessage = (ChatSwipe & { role: import("src/enums/ChatManagerRole.ts").ChatMessageRole })
+type PresetGetHistoryConfig = { from?: number | null, to?: number | null };
+type PresetGetHistory = (config: PresetGetHistoryConfig) => Promise<PresetGetHistoryMessage[]>
+type PresetVars = Record<string, PresetVar>;
+
+type PresetVarsGetter = {
+  vars: Record<string, PresetVar>
+  getHistory: PresetGetHistory
+}
 
 type GetPresetVarsConfig = {
   fromMessage?: import("src/routes/SingleChat/helpers/MessageController.ts").MessageController
@@ -219,7 +234,7 @@ type ReactUseState<V> = [V, React.Dispatch<React.SetStateAction<V>>];
 // ============================================================================
 
 type PreHistoryParams = {
-  messages: ChatSwipe[];
+  messages: PresetGetHistoryMessage[];
 };
 
 // ============================================================================

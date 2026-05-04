@@ -15,16 +15,18 @@ type Props = {
 
 const ChatLever: React.FC<Props> = (props) => {
   const { prompt, lever } = props;
-  const block = prompt.blocks[lever[0]].content[lever[1]];
   const id = React.useMemo(() => uuid(), []);
+  const block = prompt.blocks[lever[0]];
+  if (block.type === "history") return null;
+  const blockContent = block.content[lever[1]];
 
   return (
-    <label htmlFor={id} className={clsx(style.row, block.active && style.rowActive)}>
+    <label htmlFor={id} className={clsx(style.row, blockContent.active && style.rowActive)}>
       <Tooltip
         placement="right"
         content={() => (
-          block.content
-            ? <div className={style.content}>{block.content}</div>
+          blockContent.content
+            ? <div className={style.content}>{blockContent.content}</div>
             : <div className={style.no}>No content</div>
         )}>
         {({ elementRef, getReferenceProps }) => (
@@ -43,13 +45,13 @@ const ChatLever: React.FC<Props> = (props) => {
         )}
       </Tooltip>
 
-      <span className={style.name}>{block.name}</span>
+      <span className={style.name}>{blockContent.name}</span>
 
       <span className={style.checkbox}>
         <Checkbox
           id={id}
-          checked={block.active}
-          onChange={() => prompt.toggleBlockContent(block)}
+          checked={blockContent.active}
+          onChange={() => prompt.toggleBlockContent(blockContent)}
         />
       </span>
     </label>
