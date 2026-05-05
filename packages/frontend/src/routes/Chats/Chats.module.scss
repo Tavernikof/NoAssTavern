@@ -1,3 +1,14 @@
-.actions {
+.head {
   margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+.actions {
+}
+
+.aside {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

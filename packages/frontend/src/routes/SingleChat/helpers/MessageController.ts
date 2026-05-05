@@ -38,6 +38,7 @@ export class MessageController {
 
     reaction(() => this.serialize(), _debounce((object) => {
       messageStorage.updateItem(object);
+      chatController.chat.updateUpdatedAt();
     }, 300));
 
     reaction(() => this.editable, (editable) => {

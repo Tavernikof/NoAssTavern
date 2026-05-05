@@ -10,6 +10,7 @@ import path from "path";
 export const ChatSchema = z.object({
   id: z.uuid(),
   createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
   name: z.string(),
   scenario: z.string(),
   characters: z.array(z.object({

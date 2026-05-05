@@ -9,6 +9,7 @@ import { imagesStorage } from "src/storages/ImagesStorage.ts";
 export type ChatStorageItem = {
   id: string;
   createdAt: Date;
+  updatedAt: Date;
   name: string;
   scenario: string;
   characters: {

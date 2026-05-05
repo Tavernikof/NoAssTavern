@@ -7,6 +7,13 @@ import { openChatFormModal } from "src/components/ChatFormModal";
 import ChatsList from "src/routes/Chats/components/ChatsList";
 import { chatsManager } from "src/store/ChatsManager.ts";
 import { useNavigate } from "react-router";
+import { Select } from "src/components/Form";
+import { observer } from "mobx-react-lite";
+
+const sortingOptions = [
+  { label: "Create date", value: "createdAt" },
+  { label: "Change date", value: "updatedAt" },
+];
 
 type Props = Record<string, never>;
 
@@ -16,21 +23,31 @@ const Chats: React.FC<Props> = () => {
   return (
     <>
       <Title>Chats</Title>
-      <div className={style.actions}>
-        <Button
-          iconBefore={MessageCirclePlus}
-          onClick={() => {
-            openChatFormModal({}).result.then(chat => {
-              chatsManager.add(chat);
-              navigate(`/chats/${chat.id}`);
-            });
-          }}>
-          Create
-        </Button>
+      <div className={style.head}>
+        <div className={style.actions}>
+          <Button
+            iconBefore={MessageCirclePlus}
+            onClick={() => {
+              openChatFormModal({}).result.then(chat => {
+                chatsManager.add(chat);
+                navigate(`/chats/${chat.id}`);
+              });
+            }}>
+            Create
+          </Button>
+        </div>
+        <div className={style.aside}>
+          Sort by:
+          <Select
+            value={sortingOptions.find(o => o.value === chatsManager.sort)}
+            onChange={v => chatsManager.setSort((v as typeof sortingOptions[number]).value)}
+            options={sortingOptions}
+          />
+        </div>
       </div>
       <ChatsList />
     </>
   );
 };
 
-export default React.memo(Chats) as typeof Chats;
+export default observer(Chats) as typeof Chats;

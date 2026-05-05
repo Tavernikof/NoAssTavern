@@ -5,6 +5,7 @@ import { Flow } from "src/store/Flow.ts";
 import { v4 as uuid } from "uuid";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { imagesStorage } from "src/storages/ImagesStorage.ts";
+import { parseDate } from "src/helpers/date.ts";
 
 type ChatCreateConfig = {
   isNew?: boolean
@@ -19,6 +20,7 @@ export type ChatUpdateDto = Omit<ChatStorageItem, "id" | "createdAt" | "characte
 export class Chat {
   @observable id: string;
   @observable createdAt: Date;
+  @observable updatedAt: Date;
   @observable name: string;
   @observable scenario: string;
   @observable characters: ChatCharacter[];
@@ -37,7 +39,8 @@ export class Chat {
     this.id = data.id;
     this.name = data.name;
     this.scenario = data.scenario;
-    this.createdAt = data.createdAt;
+    this.createdAt = parseDate(data.createdAt)!;
+    this.updatedAt = parseDate(data.updatedAt) || this.createdAt;
     this.characters = data.characters.map(item => ({
       ...item,
       character: new Character(item.character, { local: true }),
@@ -54,8 +57,16 @@ export class Chat {
 
     makeObservable(this);
 
-    reaction(() => [this.serialize(), this.isNew] as const, ([object]) => {
-      chatsStorage.updateItem(object);
+    reaction(() => {
+      const object = this.serialize(true);
+      delete (object as any).updatedAt;
+      return object;
+    }, () => {
+      this.updateUpdatedAt();
+    });
+
+    reaction(() => [this.updatedAt, this.isNew] as const, () => {
+      chatsStorage.updateItem(this.serialize());
     });
 
     reaction(() => this.characters, (characters, prevCharacters) => {
@@ -74,6 +85,7 @@ export class Chat {
       name: data.name || "",
       scenario: data.scenario || "",
       createdAt: new Date(),
+      updatedAt: new Date(),
       characters: data.characters?.map(item => ({ character: item.character.serialize(), active: item.active })) || [],
       loreBooks: data.loreBooks?.map(item => ({ loreBook: item.loreBook.serialize(), active: item.active })) || [],
       persona: data.persona || null,
@@ -141,10 +153,16 @@ export class Chat {
     chatsStorage.updateItem(this.serialize());
   }
 
-  serialize(): ChatStorageItem {
+  @action
+  updateUpdatedAt() {
+    this.updatedAt = new Date();
+  }
+
+  serialize(omitUpdateAt?: boolean): ChatStorageItem {
     return {
       id: this.id,
       createdAt: this.createdAt,
+      updatedAt: omitUpdateAt ? undefined as unknown as Date : this.updatedAt,
       name: this.name,
       scenario: this.scenario,
       characters: this.characters.map(item => ({ ...item, character: item.character.serialize() })),

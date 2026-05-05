@@ -9,7 +9,7 @@ type Props = Record<string, never>;
 const ChatsList: React.FC<Props> = () => {
   return (
     <div className={style.container}>
-      {chatsManager.list.map(chatId => <ChatListItem key={chatId} chatId={chatId} />)}
+      {chatsManager.sortedList.map(chatId => <ChatListItem key={chatId} chatId={chatId} />)}
     </div>
   );
 };

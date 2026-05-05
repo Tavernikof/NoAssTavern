@@ -16,6 +16,7 @@ type Props = {
 
 const ChatListItem: React.FC<Props> = (props) => {
   const { chatId } = props;
+  const { sort } = chatsManager;
   const chat = chatsManager.dict[chatId];
   const { name, characters, flow } = chat;
   const firstCharacter = characters[0]?.character;
@@ -33,7 +34,7 @@ const ChatListItem: React.FC<Props> = (props) => {
       </div>
       <div className={style.aside}>
         <div className={style.date}>
-          {dayjs(chat.createdAt).format("YYYY-MM-DD HH:mm:ss")}
+          {dayjs(chat[sort]).format("YYYY-MM-DD HH:mm:ss")}
         </div>
         <Tooltip
           content={() => (

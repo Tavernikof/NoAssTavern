@@ -1,13 +1,19 @@
-import { when } from "mobx";
+import { action, computed, makeObservable, observable, when } from "mobx";
 import { Chat } from "src/store/Chat.ts";
 import { chatsStorage, ChatStorageItem } from "src/storages/ChatsStorage.ts";
 import { charactersManager } from "src/store/CharactersManager.ts";
 import { flowsManager } from "src/store/FlowsManager.ts";
 import { AbstractManager } from "src/helpers/AbstractManager.ts";
+import { sortByCreatedAt, sortByUpdatedAt } from "src/helpers/sortBy.ts";
+
+const SORT_KEY = "chats_manager_sort";
 
 export class ChatsManager extends AbstractManager<Chat, ChatStorageItem> {
+  @observable sort: "createdAt" | "updatedAt" = localStorage[SORT_KEY] || "createdAt";
+
   constructor() {
     super(chatsStorage, Chat);
+    makeObservable(this);
   }
 
   protected async migrateEntity(item: ChatStorageItem) {
@@ -27,6 +33,20 @@ export class ChatsManager extends AbstractManager<Chat, ChatStorageItem> {
 
   getLabel(entity: Chat): string {
     return entity.name;
+  }
+
+  @computed
+  get sortedList() {
+    const newList = this.list.map(id => this.dict[id]);
+    if (this.sort === "createdAt") newList.sort(sortByCreatedAt);
+    if (this.sort === "updatedAt") newList.sort(sortByUpdatedAt);
+    return newList.map(chat => chat.id);
+  }
+
+  @action
+  setSort(sort: typeof chatsManager["sort"]) {
+    localStorage[SORT_KEY] = sort;
+    this.sort = sort;
   }
 }
 
