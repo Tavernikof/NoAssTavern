@@ -17,6 +17,13 @@ if %MAJOR% LSS 22 (
     goto :error
 )
 
+where corepack >nul 2>nul
+if %ERRORLEVEL% NEQ 0 (
+    echo Corepack required
+    echo Go to https://github.com/nodejs/corepack to install
+    goto :error
+)
+
 call corepack enable
 if errorlevel 1 goto :error
 call yarn

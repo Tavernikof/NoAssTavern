@@ -26,6 +26,12 @@ if [ "$NODE_MAJOR" -lt 22 ]; then
     on_error
 fi
 
+if ! command -v corepack > /dev/null 2>&1; then
+    echo "Corepack required"
+    echo "Go to https://github.com/nodejs/corepack to install"
+    on_error
+fi
+
 corepack enable
 yarn
 node scripts/build.js
