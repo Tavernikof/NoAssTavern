@@ -2,8 +2,8 @@ import * as React from "react";
 import style from "./PromptBlockContainer.module.scss";
 import { ArrowDown, ArrowUp, Trash } from "lucide-react";
 import {
-  usePresetEditorControllerContext,
-} from "src/components/PromptEditorModal/helpers/PresetEditorControllerContext.ts";
+  usePromptEditorControllerContext,
+} from "src/components/PromptEditorModal/helpers/PromptEditorControllerContext.ts";
 import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts";
 import { PresetHistoryEditor } from "src/components/BlockEditor/helpers/PresetHistoryEditor.ts";
 
@@ -15,7 +15,7 @@ type Props = React.PropsWithChildren<{
 const PromptBlockContainer: React.FC<Props> = (props) => {
   const { editor, toolbar, children } = props;
 
-  const controller = usePresetEditorControllerContext();
+  const controller = usePromptEditorControllerContext();
 
   const onMoveUp = () => controller.moveUpBlock(editor);
   const onMoveDown = () => controller.moveDownBlock(editor);

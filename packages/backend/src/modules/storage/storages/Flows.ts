@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AbstractStorage } from "../utils/AbstractStorage.js";
 import { PromptSchema } from "./Prompts.js";
 import { StorageService } from "../storage.service.js";
+import { CodeBlockSchema } from "./CodeBlocks.js";
 
 export const FlowSchemeNodeSchema = z.object({
   id: z.string(),
@@ -34,6 +35,10 @@ export const FlowSchema = z.object({
   schemes: z.object().catchall(FlowSchemeStateSchema),
   extraBlocks: z.array(FlowExtraBlockSchema),
   prompts: z.array(PromptSchema),
+  codeBlocks: z.array(z.object({
+    codeBlock: CodeBlockSchema,
+    active: z.boolean(),
+  })),
 });
 
 export type Flow = z.infer<typeof FlowSchema>;

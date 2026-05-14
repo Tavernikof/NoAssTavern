@@ -1,0 +1,66 @@
+.container {
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 10px 0;
+  @include overflow-scroll();
+}
+
+.sidebar {
+  width: 300px;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.promptName {
+  flex: 1;
+}
+
+.header {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.note {
+  font-size: 85%;
+  padding-left: 8px;
+  opacity: .5;
+}
+
+.actions {
+  margin-left: auto;
+}
+
+.input {
+  flex: 1;
+  max-width: 400px;
+}

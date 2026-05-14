@@ -6,15 +6,18 @@ import { FlowExtraBlock, FlowSchemeState } from "src/storages/FlowsStorage.ts";
 import _cloneDeep from "lodash/cloneDeep";
 import { defaultSchemesDict, isDefaultScheme } from "src/enums/SchemeName.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
+import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
 
-export class FlowEditorState {
+export class FlowEditorController {
   private dc = new DisposableContainer();
   @observable.shallow schemeStates: Record<string, FlowSchemeState> = {};
   @observable extraBlocks: FlowExtraBlock[];
   @observable promptsDict: Record<string, { prompt: Prompt, new: boolean, used: boolean }> = {};
+  @observable selectedTab: string;
   flow: Flow;
+  codeBlocksEditorController: CodeBlocksEditorController;
 
-  constructor(flow: Flow) {
+  constructor(flow: Flow, initialCodeBlockId?: string) {
     this.flow = flow;
     this.extraBlocks = _cloneDeep(flow.extraBlocks);
     for (const schemeName in flow.schemes) {
@@ -24,6 +27,9 @@ export class FlowEditorState {
     flow.prompts.forEach(prompt => {
       this.promptsDict[prompt.id] = { prompt, new: false, used: true };
     });
+
+    this.codeBlocksEditorController = new CodeBlocksEditorController(flow.codeBlocks, initialCodeBlockId);
+    this.selectedTab = initialCodeBlockId ? "code-blocks" : "flow";
 
     makeObservable(this);
 
@@ -90,6 +96,11 @@ export class FlowEditorState {
   }
 
   @action
+  setSelectedTab(tab: string) {
+    this.selectedTab = tab;
+  }
+
+  @action
   setSchemeState(schemeName: string, state: FlowSchemeState) {
     this.schemeStates[schemeName] = state;
   }
@@ -152,6 +163,7 @@ export class FlowEditorState {
       schemes,
       prompts: this.prompts.map(p => p.prompt),
       extraBlocks: this.extraBlocks,
+      codeBlocks: this.codeBlocksEditorController.getCodeBlocksContent(),
     };
   }
 }

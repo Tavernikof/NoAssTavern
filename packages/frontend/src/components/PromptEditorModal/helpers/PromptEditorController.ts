@@ -2,16 +2,14 @@ import { action, makeObservable, observable } from "mobx";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts";
 import { Prompt } from "src/store/Prompt.ts";
-import { PresetEditorCodeBlock } from "src/components/PromptEditorModal/helpers/PresetEditorCodeBlock.ts";
-import { CodeBlock } from "src/store/CodeBlock.ts";
 import { PresetHistoryEditor } from "src/components/BlockEditor/helpers/PresetHistoryEditor.ts";
+import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
 
-export class PresetEditorController {
+export class PromptEditorController {
   prompt: Prompt;
   @observable.ref blocks: (PresetEditor | PresetHistoryEditor)[];
-  @observable.ref codeBlocks: PresetEditorCodeBlock[];
-  @observable selectedCodeBlock: PresetEditorCodeBlock | null = null;
   @observable selectedTab: string;
+  codeBlocksEditorController: CodeBlocksEditorController
 
   constructor(prompt: Prompt, initialCodeBlockId?: string) {
     this.prompt = prompt;
@@ -19,9 +17,8 @@ export class PresetEditorController {
       if (block.type === "history") return new PresetHistoryEditor(block);
       return new PresetEditor(block);
     });
-    this.codeBlocks = prompt.codeBlocks?.map(promptCodeBlock => new PresetEditorCodeBlock(promptCodeBlock)) || [];
-    this.selectedCodeBlock = initialCodeBlockId ? this.codeBlocks.find(codeBlock => codeBlock.codeBlock.id === initialCodeBlockId) || null : null;
-    this.selectedTab = this.selectedCodeBlock ? "code-blocks" : "prompt";
+    this.codeBlocksEditorController = new CodeBlocksEditorController(prompt.codeBlocks, initialCodeBlockId);
+    this.selectedTab = initialCodeBlockId ? "code-blocks" : "prompt";
 
     makeObservable(this);
   }
@@ -89,55 +86,5 @@ export class PresetEditorController {
         from: null,
         to: null,
       })];
-  }
-
-  // ==========================================================================
-
-  getCodeBlocksContent() {
-    return this.codeBlocks.map(block => block.serialize());
-  }
-
-  @action
-  private moveCodeBlock(codeBlock: PresetEditorCodeBlock, down: boolean) {
-    this.codeBlocks = this.moveElementInArray(this.codeBlocks, codeBlock, down);
-  }
-
-  moveUpCodeBlock(codeBlock: PresetEditorCodeBlock) {
-    this.moveCodeBlock(codeBlock, false);
-  }
-
-  moveDownCodeBlock(codeBlock: PresetEditorCodeBlock) {
-    this.moveCodeBlock(codeBlock, true);
-  }
-
-  @action
-  removeCodeBlock(codeBlock: PresetEditorCodeBlock) {
-    this.codeBlocks = this.codeBlocks.filter(b => b !== codeBlock);
-  }
-
-  @action
-  addCodeBlock() {
-    this.codeBlocks = [
-      new PresetEditorCodeBlock({
-        active: true,
-        codeBlock: CodeBlock.createEmpty(),
-      }),
-      ...this.codeBlocks,
-    ];
-  }
-
-  cloneCodeBlock(codeBlock: CodeBlock) {
-    this.codeBlocks = [
-      new PresetEditorCodeBlock({
-        active: true,
-        codeBlock: codeBlock.clone(),
-      }),
-      ...this.codeBlocks,
-    ];
-  }
-
-  @action
-  selectCodeBlock(codeBlock: PresetEditorCodeBlock | null) {
-    this.selectedCodeBlock = codeBlock;
   }
 }

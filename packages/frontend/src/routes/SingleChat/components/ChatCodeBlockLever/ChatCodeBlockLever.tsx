@@ -5,41 +5,38 @@ import { observer } from "mobx-react-lite";
 import Tooltip from "src/components/Tooltip";
 import { Code, Pen } from "lucide-react";
 import { v4 as uuid } from "uuid";
-import { Prompt } from "src/store/Prompt.ts";
 import clsx from "clsx";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton";
-import { openPromptEditorModal } from "src/components/PromptEditorModal";
+import { runInAction } from "mobx";
 
 type Props = {
-  prompt: Prompt;
-  codeBlockIndex: number;
+  codeBlock: PromptCodeBlock;
+  onEdit: () => any
 };
 
 const ChatCodeBlockLever: React.FC<Props> = (props) => {
-  const { prompt, codeBlockIndex } = props;
-  const promptCodeBlock = prompt.codeBlocks[codeBlockIndex];
+  const { codeBlock, onEdit } = props;
   const id = React.useMemo(() => uuid(), []);
 
   const handleToggle = React.useCallback(() => {
-    prompt.toggleCodeBlock(promptCodeBlock);
-  }, [prompt, promptCodeBlock]);
+    runInAction(() => {
+      codeBlock.active = !codeBlock.active;
+    });
+  }, [codeBlock]);
 
   return (
-    <label htmlFor={id} className={clsx(style.row, promptCodeBlock.active && style.rowActive)}>
+    <label htmlFor={id} className={clsx(style.row, codeBlock.active && style.rowActive)}>
       <Tooltip
         placement="right"
         content={() => (
           <>
-            {promptCodeBlock.codeBlock.content
-              ? <div className={style.content}>{promptCodeBlock.codeBlock.content}</div>
+            {codeBlock.codeBlock.content
+              ? <div className={style.content}>{codeBlock.codeBlock.content}</div>
               : <div className={style.no}>No content</div>
             }
             <MessageActionButton
               icon={Pen}
-              onClick={() => openPromptEditorModal({
-                prompt,
-                initialCodeBlockId: promptCodeBlock.codeBlock.id,
-              })}
+              onClick={onEdit}
             />
           </>
         )}>
@@ -59,13 +56,13 @@ const ChatCodeBlockLever: React.FC<Props> = (props) => {
         )}
       </Tooltip>
 
-      <span className={style.name}>{promptCodeBlock.codeBlock.name ||
+      <span className={style.name}>{codeBlock.codeBlock.name ||
         <span className={style.muted}>No title</span>}</span>
 
       <span className={style.checkbox}>
         <Checkbox
           id={id}
-          checked={promptCodeBlock.active}
+          checked={codeBlock.active}
           onChange={handleToggle}
         />
       </span>

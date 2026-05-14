@@ -2,7 +2,7 @@ import { action, makeObservable, observable } from "mobx";
 import { CodeBlock } from "src/store/CodeBlock.ts";
 import { PromptCodeBlockStorageItem } from "src/storages/PromptsStorage.ts";
 
-export class PresetEditorCodeBlock {
+export class CodeBlockEditorBlockController {
   @observable active: boolean;
   @observable name: string;
   @observable content: string;

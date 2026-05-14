@@ -1,7 +1,7 @@
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { IDBPDatabase } from "idb";
 import { Edge } from "@xyflow/react";
-import { PromptStorageItem } from "src/storages/PromptsStorage.ts";
+import { PromptCodeBlockStorageItem, PromptStorageItem } from "src/storages/PromptsStorage.ts";
 
 export type FlowSchemeNode<D = Record<string, any>> = {
   id: string,
@@ -25,6 +25,7 @@ export type FlowStorageItem = {
   schemes: Record<string, FlowSchemeState>,
   extraBlocks: FlowExtraBlock[],
   prompts: PromptStorageItem[],
+  codeBlocks: PromptCodeBlockStorageItem[],
 }
 
 class FlowsStorage extends BaseStorage<FlowStorageItem> {

@@ -5,13 +5,16 @@ import { v4 as uuid } from "uuid";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.ts";
 import _cloneDeep from "lodash/cloneDeep";
-import { CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR, CodeBlock } from "src/store/CodeBlock.ts";
+import { CodeBlock } from "src/store/CodeBlock.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
+import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
+import { Flow } from "src/store/Flow.ts";
 
 type PromptCreateConfig = {
   isNew?: boolean,
-  local?: boolean
+  local?: boolean,
+  parentFlow?: Flow,
 }
 
 export class Prompt {
@@ -28,10 +31,12 @@ export class Prompt {
 
   @observable isNew: boolean;
   local: boolean;
+  parentFlow: Flow | null = null;
 
   constructor(data: PromptStorageItem, config?: PromptCreateConfig) {
     this.isNew = config?.isNew ?? false;
     this.local = config?.local ?? false;
+    this.parentFlow = config?.parentFlow ?? null;
 
     this.update(data);
 
@@ -155,26 +160,9 @@ export class Prompt {
     return stop.length ? stop : undefined;
   }
 
-  @action.bound
-  toggleCodeBlock(codeBlock: PromptCodeBlock) {
-    codeBlock.active = !codeBlock.active;
-  }
-
   async callCodeBlockFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>) {
-    if (Array.isArray(this.codeBlocks)) {
-      for (const codeBlock of this.codeBlocks) {
-        if (!codeBlock.active) continue;
-        try {
-          arg = await codeBlock.codeBlock.callFunction(functionName, arg);
-        } catch (e) {
-          if (e instanceof Error && e.message === CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR) {
-            continue;
-          } else {
-            throw e;
-          }
-        }
-      }
-    }
+    arg = await codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg);
+    if (this.parentFlow) arg = await codeBlocksManager.callCodeBlockFunction(this.parentFlow.codeBlocks, functionName, arg);
     return arg;
   }
 

@@ -138,6 +138,7 @@ export class CodeBlock implements DisposableItem {
   }
 
   async callFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>): Promise<CodeBlockFunctionArg<T>> {
+    // const start = Date.now();
     const worker = this.createWorker();
 
     return new Promise<CodeBlockFunctionArg<T>>((resolve, reject) => {
@@ -162,6 +163,7 @@ export class CodeBlock implements DisposableItem {
           } else {
             reject(e.data.error || new Error("Unknown worker error"));
           }
+          // console.log(`Done ${functionName} in ${Date.now() - start}ms`);
         }
       };
 

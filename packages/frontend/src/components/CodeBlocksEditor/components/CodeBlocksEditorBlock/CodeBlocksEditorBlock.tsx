@@ -1,18 +1,18 @@
 import * as React from "react";
-import style from "./PromptCodeBlock.module.scss";
+import style from "./CodeBlocksEditorBlock.module.scss";
 import Button from "src/components/Button";
 import { ChevronLeft } from "lucide-react";
 import { FormInput, Input } from "src/components/Form";
 import CodeEditor, { CodeEditorApi } from "src/components/CodeEditor/CodeEditor.tsx";
 import { observer } from "mobx-react-lite";
-import { PresetEditorCodeBlock } from "src/components/PromptEditorModal/helpers/PresetEditorCodeBlock.ts";
+import { CodeBlockEditorBlockController } from "../../helpers/CodeBlockEditorBlockController.ts";
 
 type Props = {
   onBack: () => void;
-  promptCodeBlock: PresetEditorCodeBlock;
+  promptCodeBlock: CodeBlockEditorBlockController;
 };
 
-const PromptCodeBlock: React.FC<Props> = (props) => {
+const CodeBlocksEditorBlock: React.FC<Props> = (props) => {
   const { onBack, promptCodeBlock } = props;
   const codeEditorRef = React.useRef<CodeEditorApi>(null);
 
@@ -31,9 +31,8 @@ const PromptCodeBlock: React.FC<Props> = (props) => {
           Back to list
         </Button>
         <div className={style.name}>
-          <FormInput label="Name" name="name">
+          <FormInput label="Name">
             <Input
-              name="name"
               value={promptCodeBlock.name}
               onInput={(e) => promptCodeBlock.setName(e.currentTarget.value)}
             />
@@ -46,4 +45,4 @@ const PromptCodeBlock: React.FC<Props> = (props) => {
   );
 };
 
-export default observer(PromptCodeBlock) as typeof PromptCodeBlock;
+export default observer(CodeBlocksEditorBlock) as typeof CodeBlocksEditorBlock;

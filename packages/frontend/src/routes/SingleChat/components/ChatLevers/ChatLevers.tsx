@@ -7,6 +7,7 @@ import MessageActionButton from "src/routes/SingleChat/components/MessageActionB
 import { Pen } from "lucide-react";
 import { openPromptEditorModal } from "src/components/PromptEditorModal";
 import ChatCodeBlockLever from "src/routes/SingleChat/components/ChatCodeBlockLever/ChatCodeBlockLever.tsx";
+import { openFlowEditorModal } from "src/components/FlowEditorModal";
 
 type Props = Record<string, never>;
 
@@ -24,12 +25,37 @@ const ChatLevers: React.FC<Props> = () => {
               <MessageActionButton icon={Pen} onClick={() => openPromptEditorModal({ prompt })} />
             </div>
             {prompt.levers.map((lever, i) => <ChatLever key={i} prompt={prompt} lever={lever} />)}
-            {prompt.codeBlocks?.map((_, i) => (
-              <ChatCodeBlockLever key={i} prompt={prompt} codeBlockIndex={i} />
+            {prompt.codeBlocks?.map((codeBlock, i) => (
+              <ChatCodeBlockLever
+                key={i}
+                codeBlock={codeBlock}
+                onEdit={() => openPromptEditorModal({
+                  prompt,
+                  initialCodeBlockId: codeBlock.codeBlock.id,
+                })}
+              />
             ))}
           </div>
         );
       })}
+
+      {Boolean(flow.codeBlocks.length) && (
+        <div className={style.container}>
+          <div className={style.head}>
+            <div className={style.title}>Flow</div>
+          </div>
+          {flow.codeBlocks.map((codeBlock, i) => (
+            <ChatCodeBlockLever
+              key={i}
+              codeBlock={codeBlock}
+              onEdit={() => openFlowEditorModal({
+                flow,
+                initialCodeBlockId: codeBlock.codeBlock.id,
+              })}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

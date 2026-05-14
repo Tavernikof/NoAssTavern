@@ -1,17 +1,19 @@
 import * as React from "react";
-import style from "./PromptCodeBlocksList.module.scss";
+import style from "./CodeBlocksEditorList.module.scss";
 import Button from "src/components/Button/Button.tsx";
 import { Plus, Trash, ArrowUp, ArrowDown } from "lucide-react";
 import { Checkbox, Select } from "src/components/Form";
 import { observer } from "mobx-react-lite";
-import { usePresetEditorControllerContext } from "../../helpers/PresetEditorControllerContext.ts";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton";
 import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
+import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
 
-type Props = Record<string, never>;
+type Props = {
+  controller: CodeBlocksEditorController;
+};
 
-const PromptCodeBlocksList: React.FC<Props> = () => {
-  const controller = usePresetEditorControllerContext();
+const CodeBlocksEditorList: React.FC<Props> = (props) => {
+  const { controller } = props;
   const { codeBlocks } = controller;
 
   return (
@@ -75,4 +77,4 @@ const PromptCodeBlocksList: React.FC<Props> = () => {
   );
 };
 
-export default observer(PromptCodeBlocksList) as typeof PromptCodeBlocksList;
+export default observer(CodeBlocksEditorList) as typeof CodeBlocksEditorList;

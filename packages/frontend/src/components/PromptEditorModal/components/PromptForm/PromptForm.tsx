@@ -6,7 +6,7 @@ import PromptBlockEditor from "../PromptBlockEditor";
 import PromptEditorAddBlock from "../PromptEditorAddBlock";
 import clsx from "clsx";
 import { observer } from "mobx-react-lite";
-import { usePresetEditorControllerContext } from "../../helpers/PresetEditorControllerContext.ts";
+import { usePromptEditorControllerContext } from "../../helpers/PromptEditorControllerContext.ts";
 import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts";
 import { PresetHistoryEditor } from "src/components/BlockEditor/helpers/PresetHistoryEditor.ts";
 import PromptHistoryBlockEditor from "src/components/PromptEditorModal/components/PromptHistoryBlockEditor";
@@ -14,7 +14,7 @@ import PromptHistoryBlockEditor from "src/components/PromptEditorModal/component
 type Props = Record<string, never>;
 
 const PromptForm: React.FC<Props> = () => {
-  const controller = usePresetEditorControllerContext();
+  const controller = usePromptEditorControllerContext();
 
   return (
     <>

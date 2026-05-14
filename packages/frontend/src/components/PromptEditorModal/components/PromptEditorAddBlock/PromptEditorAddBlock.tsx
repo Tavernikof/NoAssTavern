@@ -1,13 +1,13 @@
 import * as React from "react";
 import style from "./PromptEditorAddBlock.module.scss";
-import { usePresetEditorControllerContext } from "src/components/PromptEditorModal/helpers/PresetEditorControllerContext.ts";
+import { usePromptEditorControllerContext } from "src/components/PromptEditorModal/helpers/PromptEditorControllerContext.ts";
 import Button from "src/components/Button";
 import { Plus } from "lucide-react";
 
 type Props = Record<string, never>;
 
 const PromptEditorAddBlock: React.FC<Props> = () => {
-  const controller = usePresetEditorControllerContext();
+  const controller = usePromptEditorControllerContext();
 
   const onAddBlock = () => controller.addBlock();
   const onAddHistory = () => controller.addHistory();

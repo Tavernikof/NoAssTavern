@@ -13,7 +13,7 @@ const Scheme: React.FC<Props> = (props) => {
   const { schemeName } = props;
   const context = useFlowEditorContext();
   const { flow } = context;
-  const scheme = React.useMemo(() => flow.schemes[schemeName] || Flow.createEmptySchemeState(), []);
+  const scheme = React.useMemo(() => context.schemeStates[schemeName] || flow.schemes[schemeName] || Flow.createEmptySchemeState(), []);
 
   return (
     <div className={style.editor}>

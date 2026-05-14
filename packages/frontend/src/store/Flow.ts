@@ -13,6 +13,9 @@ import randomString from "src/helpers/randomString.ts";
 import { FlowRunner } from "src/store/FlowRunner.ts";
 import _cloneDeep from "lodash/cloneDeep";
 import { PromptStorageItem } from "src/storages/PromptsStorage.ts";
+import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
+import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
+import { CodeBlock } from "src/store/CodeBlock.ts";
 
 type FlowCreateConfig = {
   isNew?: boolean
@@ -27,6 +30,7 @@ export class Flow {
   @observable.ref schemes: Record<string, FlowSchemeState>;
   @observable extraBlocks: FlowExtraBlock[];
   @observable prompts: Prompt[] = [];
+  @observable codeBlocks: PromptCodeBlock[] = [];
 
   @observable isNew: boolean;
   local: boolean;
@@ -72,6 +76,7 @@ export class Flow {
       schemes: {},
       extraBlocks: [],
       prompts: [],
+      codeBlocks: [],
     }, { isNew: true });
   }
 
@@ -97,8 +102,15 @@ export class Flow {
         if (field === "prompts") {
           this[field] = (data as PromptStorageItem[]).map(prompt => prompt instanceof Prompt
             ? prompt
-            : new Prompt(prompt, { local: true }),
+            : new Prompt(prompt, { local: true, parentFlow: this }),
           );
+        } else if (field === "codeBlocks") {
+          this.codeBlocks = (data as PromptCodeBlock[]).map(promptCodeBlock => ({
+            ...promptCodeBlock,
+            codeBlock: promptCodeBlock.codeBlock instanceof CodeBlock
+              ? promptCodeBlock.codeBlock
+              : new CodeBlock(promptCodeBlock.codeBlock, { local: true }),
+          })) || [];
         } else {
           // @ts-expect-error fuck ts
           this[field] = data;
@@ -150,6 +162,10 @@ export class Flow {
     });
   }
 
+  async callCodeBlockFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>) {
+    return codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg);
+  }
+
   @action
   clone(local?: boolean) {
     const flowStorageItem = _cloneDeep(this.serialize());
@@ -167,6 +183,7 @@ export class Flow {
       schemes: toJS(this.schemes),
       extraBlocks: toJS(this.extraBlocks),
       prompts: this.prompts.map(prompt => prompt.serialize()),
+      codeBlocks: this.codeBlocks?.map(item => ({ ...item, codeBlock: item.codeBlock.serialize() })) || [],
     };
   }
 }

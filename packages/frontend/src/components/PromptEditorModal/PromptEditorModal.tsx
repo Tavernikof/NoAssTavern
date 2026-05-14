@@ -1,21 +1,20 @@
 import * as React from "react";
-import { PresetEditorController } from "src/components/PromptEditorModal/helpers/PresetEditorController.ts";
+import { PromptEditorController } from "src/components/PromptEditorModal/helpers/PromptEditorController.ts";
 import { observer } from "mobx-react-lite";
 import { Prompt } from "src/store/Prompt.ts";
 import PromptForm from "src/components/PromptEditorModal/components/PromptForm";
 import { TabItem } from "src/components/Tabs";
 import Tabs from "src/components/Tabs/Tabs.tsx";
-import PromptCodeBlocks from "src/components/PromptEditorModal/components/PromptCodeBlocks";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { modelToPrompt } from "src/components/PromptEditorModal/helpers/promptEditorConverter.ts";
 import Form from "src/components/Form";
-import { PresetEditorControllerContext } from "./helpers/PresetEditorControllerContext.ts";
+import { PromptEditorControllerContext } from "./helpers/PromptEditorControllerContext.ts";
 import { useModalContext } from "src/components/Modals";
 import style from "./PromptEditorModal.module.scss";
 import Button from "src/components/Button/Button.tsx";
 import PromptEditorBackendWatcher from "./components/PromptEditorBackendWatcher";
-import PromptCodeBlocksCounter from "src/components/PromptEditorModal/components/PromptCodeBlocksCounter";
+import CodeBlocksEditor, { CodeBlocksEditorCounter } from "src/components/CodeBlocksEditor";
 
 type Props = {
   prompt: Prompt,
@@ -25,7 +24,7 @@ type Props = {
 const PromptEditorModal: React.FC<Props> = (props) => {
   const { prompt, initialCodeBlockId } = props;
   const { resolve } = useModalContext();
-  const controller = React.useMemo(() => new PresetEditorController(prompt, initialCodeBlockId), [prompt, initialCodeBlockId]);
+  const controller = React.useMemo(() => new PromptEditorController(prompt, initialCodeBlockId), [prompt, initialCodeBlockId]);
 
   const items = React.useMemo<TabItem[]>(() => ([
     {
@@ -35,10 +34,10 @@ const PromptEditorModal: React.FC<Props> = (props) => {
     },
     {
       key: "code-blocks",
-      title: <>Code blocks <PromptCodeBlocksCounter /></>,
-      content: () => <PromptCodeBlocks />,
+      title: <>Code blocks <CodeBlocksEditorCounter controller={controller.codeBlocksEditorController} /></>,
+      content: () => <CodeBlocksEditor controller={controller.codeBlocksEditorController} />,
     },
-  ]), []);
+  ]), [controller]);
 
   return (
     <Form
@@ -68,12 +67,12 @@ const PromptEditorModal: React.FC<Props> = (props) => {
             ...modelToPrompt(backendProvider, data),
           },
           blocks: controller.getBlocksContent(),
-          codeBlocks: controller.getCodeBlocksContent(),
+          codeBlocks: controller.codeBlocksEditorController.getCodeBlocksContent(),
         });
         resolve(prompt);
       }}
     >
-      <PresetEditorControllerContext.Provider value={controller}>
+      <PromptEditorControllerContext.Provider value={controller}>
         <Tabs
           containerClassName={style.tabs}
           contentClassName={style.tabsContent}
@@ -87,7 +86,7 @@ const PromptEditorModal: React.FC<Props> = (props) => {
             <Button block>Save</Button>
           </div>
         </div>
-      </PresetEditorControllerContext.Provider>
+      </PromptEditorControllerContext.Provider>
 
       <PromptEditorBackendWatcher generationConfig={prompt.generationConfig} />
     </Form>

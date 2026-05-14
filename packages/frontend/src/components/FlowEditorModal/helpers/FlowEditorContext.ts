@@ -1,7 +1,7 @@
 import * as React from "react";
-import { FlowEditorState } from "./FlowEditorState.ts";
+import { FlowEditorController } from "./FlowEditorController.ts";
 
-export type FlowEditorContextType = FlowEditorState;
+export type FlowEditorContextType = FlowEditorController;
 
 export const FlowEditorContext = React.createContext<FlowEditorContextType | null>(null);
 
