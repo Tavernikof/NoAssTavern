@@ -5985,6 +5985,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dompurify@npm:^3.4.3":
+  version: 3.4.3
+  resolution: "dompurify@npm:3.4.3"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/88b9e1a6d0a990e15fab46f4eb96163ef79f20634705b21c82651ffce1ccc5236e4007397d920234afab86123d49be863f2367bd6aacdf28a401aef4d177e0f9
+  languageName: node
+  linkType: hard
+
 "dot-prop@npm:^5.1.0":
   version: 5.3.0
   resolution: "dot-prop@npm:5.3.0"
@@ -9014,6 +9026,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     dayjs: "npm:^1.11.13"
     destyle.css: "npm:^4.0.1"
+    dompurify: "npm:^3.4.3"
     dotenv: "npm:^17.2.1"
     eslint: "npm:^9.17.0"
     eslint-plugin-react-hooks: "npm:^5.0.0"

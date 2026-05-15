@@ -1,12 +1,14 @@
 export enum CodeBlockFunction {
   preHistory = "preHistory",
   onMessage = "onMessage",
+  formatMessage = "formatMessage",
 }
 
 // WARNING: types should be defined at src/helpers/types.d.ts to make in work in monaco
 export interface CodeBlockFunctionSignatures {
   [CodeBlockFunction.preHistory]: PreHistoryParams;
   [CodeBlockFunction.onMessage]: OnMessageParams;
+  [CodeBlockFunction.formatMessage]: FormatMessageParams;
 }
 
 export type CodeBlockFunctionArg<T extends CodeBlockFunction> =
@@ -21,6 +23,10 @@ export const CODE_BLOCK_FUNCTION_META: Record<CodeBlockFunction, CodeBlockFuncti
   },
   [CodeBlockFunction.onMessage]: {
     name: "onMessage",
-    documentation: "Calls on every chunk received and after all message generated",
+    documentation: "Modify source message. Calls on every chunk received and after all message generated",
+  },
+  [CodeBlockFunction.formatMessage]: {
+    name: "formatMessage",
+    documentation: "Formats the display of a message without affecting the original message. Calls on every chunk received and after all message generated",
   },
 };

@@ -7,6 +7,7 @@ import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { SchemeName } from "src/enums/SchemeName.ts";
 import _debounce from "lodash/debounce";
 import { createEmptyPromptResult } from "src/helpers/createEmptyPromptResult.ts";
+import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
 
 export class MessageController {
   chatController: ChatController;
@@ -60,6 +61,34 @@ export class MessageController {
         this.editor = null;
       }
     });
+
+    reaction(() => this.message.message, (message) => {
+      this.chatController.flow.callCodeBlockFunction(CodeBlockFunction.formatMessage, {
+        message,
+        context: "message",
+        skipDefaultStyle: false,
+        allowHtml: false,
+      }).then(action(({ message, skipDefaultStyle, allowHtml }) => {
+        if (!this.formattedMessage) this.currentSwipe.prompts[ChatSwipePrompt.formattedMessage] = createEmptyPromptResult();
+        this.formattedMessage.message = message;
+        this.formattedMessage.skipDefaultStyle = skipDefaultStyle;
+        this.formattedMessage.allowHtml = allowHtml;
+      }));
+    });
+
+    reaction(() => this.translate.message, (message) => {
+      this.chatController.flow.callCodeBlockFunction(CodeBlockFunction.formatMessage, {
+        message,
+        context: "translate",
+        skipDefaultStyle: false,
+        allowHtml: false,
+      }).then(action(({ message, skipDefaultStyle, allowHtml }) => {
+        if (!this.formattedTranslate) this.currentSwipe.prompts[ChatSwipePrompt.formattedTranslate] = createEmptyPromptResult();
+        this.formattedTranslate.message = message;
+        this.formattedTranslate.skipDefaultStyle = skipDefaultStyle;
+        this.formattedTranslate.allowHtml = allowHtml;
+      }));
+    });
   }
 
   @computed
@@ -90,6 +119,16 @@ export class MessageController {
   @computed
   get translate(): ChatSwipePromptResult {
     return this.currentSwipe.prompts[ChatSwipePrompt.translate];
+  }
+
+  @computed
+  get formattedMessage(): ChatSwipePromptResult {
+    return this.currentSwipe.prompts[ChatSwipePrompt.formattedMessage];
+  }
+
+  @computed
+  get formattedTranslate(): ChatSwipePromptResult {
+    return this.currentSwipe.prompts[ChatSwipePrompt.formattedTranslate];
   }
 
   @action

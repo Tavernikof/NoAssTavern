@@ -19,7 +19,7 @@ type ChatSwipePromptResult = {
   message: string;
   error?: string | null;
   images?: ChatSwipePromptImage[];
-}
+} & Record<string, any>
 
 type ChatSwipe = {
   createdAt: Date,
@@ -241,4 +241,11 @@ type PreHistoryParams = {
 
 type OnMessageParams = {
   message: string
+};
+
+type FormatMessageParams = {
+  message: string,
+  context: "message" | "translate",
+  skipDefaultStyle: boolean,
+  allowHtml: boolean,
 };

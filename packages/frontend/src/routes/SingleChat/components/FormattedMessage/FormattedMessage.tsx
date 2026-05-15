@@ -1,38 +1,28 @@
 import * as React from "react";
-import { parseSpecialTokens, tokenClassNameMap } from "src/routes/SingleChat/helpers/parseText.ts";
-import sharedStyle from "src/routes/SingleChat/ChatShared.module.scss";
 import { useChatMessageContext } from "src/routes/SingleChat/helpers/ChatMessageContext.ts";
 import { observer } from "mobx-react-lite";
+import { parseText } from "../../helpers/parseText.ts";
+import ShadowedContent from "src/routes/SingleChat/components/ShadowedContent";
 
 type Props = Record<string, never>;
 
 const FormattedMessage: React.FC<Props> = () => {
   const { chatMessage } = useChatMessageContext();
-  const { message, translate, showTranslate } = chatMessage;
-  const text = (showTranslate && translate.message) ? translate.message : message.message;
+  const { formattedMessage, formattedTranslate, message, translate, showTranslate } = chatMessage;
+  const { message: finalMessage, skipDefaultStyle, allowHtml } = (showTranslate && translate?.message)
+    ? formattedTranslate?.message ? formattedTranslate : translate
+    : formattedMessage?.message ? formattedMessage : message;
 
-  const formattedMessage = React.useMemo(() => {
-    const formattedMessage: React.ReactNode[] = [];
-    const paragraphs = text
-      .split("\n")
-      .map(t => t.trim())
-      .filter(Boolean);
-    paragraphs.forEach((paragraph, i) => {
-      const children: React.ReactNode[] = [];
-      const { tokens } = parseSpecialTokens(paragraph);
-      tokens.forEach(({ token, text }, j) => {
-        children.push(token
-          ? <span key={j} className={token ? tokenClassNameMap[token[0]] : undefined}>{text}</span>
-          : <React.Fragment key={j}>{text}</React.Fragment>,
-        );
-      });
-      formattedMessage.push(<div key={i} className={sharedStyle.paragraph}>{children}</div>);
-    });
-    return formattedMessage;
-  }, [text]);
+  const { text: finalText, hasStyle } = React.useMemo(() => parseText({
+    message: finalMessage,
+    skipDefaultStyle,
+    allowHtml,
+  }), [finalMessage, skipDefaultStyle, allowHtml]);
 
   return (
-    <>{formattedMessage}</>
+    hasStyle
+      ? <ShadowedContent content={finalText} />
+      : <div dangerouslySetInnerHTML={{ __html: finalText }} />
   );
 };
 

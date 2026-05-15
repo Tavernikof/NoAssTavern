@@ -10,7 +10,7 @@ export const ChatSwipePromptImageSchema = z.object({
   imageId: z.string(),
 });
 
-export const ChatSwipePromptResultSchema = z.object({
+export const ChatSwipePromptResultSchema = z.looseObject({
   requestId: z.string().nullish(),
   message: z.string(),
   images: z.array(ChatSwipePromptImageSchema).optional(),

@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import sharedStyle from "../ChatShared.module.scss";
 
 export type ParsedTextChunk = {
@@ -79,27 +80,101 @@ export function parseSpecialTokens(input: string): { tokens: ParsedTextChunk[], 
   return { tokens, error };
 }
 
-//`GM:` *test "ads"* -> []
+const applyDefaultStyle = (message: string) => {
+  return message
+    .split("\n")
+    .map(paragraph => {
+      let finalText = "";
+      const { tokens } = parseSpecialTokens(paragraph.trim());
+      tokens.forEach(({ token, text }) => {
+        finalText += token
+          ? `<span class="${token ? tokenClassNameMap[token[0]] : ""}">${text}</span>`
+          : text;
+      });
+      if (!finalText) return "";
+      return `<div class="${sharedStyle.paragraph}">${finalText}</div>`;
+    })
+    .filter(Boolean)
+    .join("\n");
+};
 
-// const a = [
-//   {start: 0, end: 5, token: '`', text: "`GM:`" },
-//   {start: 5, end: 6, token: null, text: " " },
-//   {start: 6, end: 18, token: "*", text: " *test \"ads\"*" },
-//   ]
-//
-// // **привет** "как дела?"
-// const b = [
-//   {start: 0, end: 10, token: '`', text: "`GM:`" },
-//   {start: 10, end: 11, token: null, text: " " },
-//   {start: 11, end: 22, token: "\"", text: " \"как дела?\"" },
-// ]
-//
-// // "this is broken *text*
-// const c = [
-//   {start: 0, end: 16, token: '"', text: "\"this is broken " },
-//   {start: 16, end: 22, token: "*", text: "*text*" },
-// ]
-//
-// console.log(JSON.stringify(a));
-// console.log(JSON.stringify(b));
-// console.log(JSON.stringify(c));
+const skipStyleTags = new Set(["STYLE", "SCRIPT"]);
+
+const applyDefaultStyleToElement = (dom: Element) => {
+  const walker = document.createTreeWalker(dom, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      const parent = node.parentElement;
+      if (parent && skipStyleTags.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+      if (!node.textContent?.trim()) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+
+  const textNodes: Text[] = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode as Text);
+
+  for (const node of textNodes) {
+    const template = document.createElement("template");
+    template.innerHTML = applyDefaultStyle(node.textContent ?? "");
+    node.parentNode?.replaceChild(template.content, node);
+  }
+};
+
+const isLink = (node: Node): node is HTMLLinkElement => node.nodeName === "A";
+
+const isMailLink = (link: string) => link.startsWith("mailto:");
+
+const addTargetBlankToNode = (node: Element) => {
+  if (isLink(node)) {
+    if (isMailLink(node.href)) {
+      node.removeAttribute("target");
+      node.removeAttribute("rel");
+    } else {
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer");
+    }
+  }
+};
+
+const cleanHtml = (message: string) => {
+  DOMPurify.addHook("afterSanitizeAttributes", addTargetBlankToNode);
+  const dom = DOMPurify.sanitize(message, {
+    ADD_TAGS: ["style"],
+    FORBID_TAGS: ["title"],
+    FORCE_BODY: true,
+    RETURN_DOM: true,
+  }) as Element;
+  DOMPurify.removeHook("afterSanitizeAttributes", addTargetBlankToNode);
+  return dom;
+};
+
+const escapeHtmlTags = (message: string) => {
+  return message
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+};
+
+type ParseTextConfig = {
+  message: string
+  skipDefaultStyle?: boolean;
+  allowHtml: boolean;
+}
+
+export const parseText = (config: ParseTextConfig) => {
+  const { message, skipDefaultStyle, allowHtml } = config;
+  let text = message;
+  let hasStyle = false;
+  if (allowHtml) {
+    const dom = cleanHtml(text);
+    applyDefaultStyleToElement(dom);
+    text = dom.innerHTML;
+    hasStyle = Boolean(dom.querySelector("style") || dom.querySelector("*[style]"));
+  } else {
+    text = escapeHtmlTags(text);
+    if (!skipDefaultStyle) text = applyDefaultStyle(text);
+  }
+  return {
+    text,
+    hasStyle,
+  };
+};

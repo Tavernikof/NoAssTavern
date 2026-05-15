@@ -22,6 +22,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "destyle.css": "^4.0.1",
+    "dompurify": "^3.4.3",
     "dotenv": "^17.2.1",
     "exifreader": "^4.26.0",
     "google-translate-api-browser": "^5.0.0",
