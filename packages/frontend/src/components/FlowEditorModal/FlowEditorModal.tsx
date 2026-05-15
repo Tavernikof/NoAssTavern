@@ -7,9 +7,11 @@ import FlowEditor from "src/components/FlowEditorModal/components/FlowEditor";
 import Tabs, { TabItem } from "src/components/Tabs/Tabs.tsx";
 import style from "./FlowEditorModal.module.scss";
 import CodeBlocksEditor, { CodeBlocksEditorCounter } from "src/components/CodeBlocksEditor";
+import MediaGallery from "src/components/FlowEditorModal/components/MediaGallery";
 import Button from "src/components/Button/Button.tsx";
 import { useModalContext } from "src/components/Modals";
 import Form from "src/components/Form";
+import MediaGalleryCounter from "src/components/FlowEditorModal/components/MediaGalleryCounter";
 
 export type FlowEditorDto = {
   name: string;
@@ -47,6 +49,11 @@ const FlowEditorModal: React.FC<Props> = (props) => {
       title: controller ? <>Code blocks <CodeBlocksEditorCounter controller={controller.codeBlocksEditorController} /></> : null,
       content: () => controller ? <CodeBlocksEditor controller={controller.codeBlocksEditorController} /> : null,
     },
+    {
+      key: "media",
+      title: <>Media <MediaGalleryCounter /></>,
+      content: () => <MediaGallery />,
+    },
   ]), [controller]);
 
 
@@ -55,7 +62,8 @@ const FlowEditorModal: React.FC<Props> = (props) => {
     <Form<FlowEditorDto>
       className={style.container}
       initialValue={{ name: flow.name, userPrefix: flow.userPrefix || "" }}
-      onSubmit={(data: FlowEditorDto) => {
+      onSubmit={async (data: FlowEditorDto) => {
+        await controller.applyMediaChanges();
         flow.update({
           name: data.name,
           userPrefix: data.userPrefix,

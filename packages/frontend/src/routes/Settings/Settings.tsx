@@ -12,6 +12,7 @@ import ConnectionProxiesList from "src/routes/Settings/components/ConnectionProx
 import BackendSettings from "src/routes/Settings/components/BackendSettings";
 import NotificationSettings from "src/routes/Settings/components/NotificationSettings";
 import ConnectionSettings from "src/routes/Settings/components/ConnectionSettings";
+import StorageCleanup from "src/routes/Settings/components/StorageCleanup";
 
 type Props = Record<string, never>;
 
@@ -23,6 +24,11 @@ const Settings: React.FC<Props> = () => {
         <div className={style.block}>
           <Subtitle>Backend settings</Subtitle>
           <BackendSettings />
+        </div>
+
+        <div className={style.block}>
+          <Subtitle>Storage cleanup</Subtitle>
+          <StorageCleanup />
         </div>
 
         <div className={style.block}>

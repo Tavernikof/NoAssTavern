@@ -200,6 +200,7 @@ interface Window {
   codeBlocksManager: import("src/store/CodeBlocksManager.ts").CodeBlocksManager,
   promptsManager: import("src/store/PromptsManager.ts").PromptsManager,
   imagesManager: import("src/store/ImagesManager.ts").ImagesManager,
+  filesManager: import("src/store/FilesManager.ts").FilesManager,
   loreBookManager: import("src/store/LoreBookManager.ts").LoreBookManager,
   globalSettings: import("src/store/GlobalSettings.ts").GlobalSettings,
   backupManager: import("src/store/BackupManager.ts").BackupManager,

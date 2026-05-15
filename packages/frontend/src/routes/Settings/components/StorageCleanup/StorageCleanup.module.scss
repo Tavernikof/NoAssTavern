@@ -1,0 +1,22 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.summary {
+  font-size: 90%;
+  opacity: .8;
+}
+
+.error {
+  font-size: 90%;
+  color: #d04848;
+}

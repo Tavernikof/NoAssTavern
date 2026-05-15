@@ -1,10 +1,11 @@
-import { action, computed, makeObservable, observable, reaction } from "mobx";
+import { action, computed, makeObservable, observable, reaction, toJS } from "mobx";
 import { chatsStorage, ChatStorageItem } from "src/storages/ChatsStorage.ts";
 import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
 import { v4 as uuid } from "uuid";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { imagesStorage } from "src/storages/ImagesStorage.ts";
+import { filesStorage } from "src/storages/FilesStorage.ts";
 import { parseDate } from "src/helpers/date.ts";
 
 type ChatCreateConfig = {
@@ -77,6 +78,15 @@ export class Chat {
       });
       characters.forEach(item => item.character.save());
     });
+
+    reaction(() => this.flow, (flow, prevFlow) => {
+      if (prevFlow && prevFlow !== flow && prevFlow.mediaFiles?.length) {
+        prevFlow.mediaFiles.forEach(file => {
+          filesStorage.removeItem(file.id).catch(() => null);
+        });
+      }
+      flow?.save();
+    });
   }
 
   static createEmpty(data: ChatUpdateDto): Chat {
@@ -144,6 +154,7 @@ export class Chat {
   save() {
     this.isNew = false;
     this.characters.forEach(item => item.character.save());
+    this.flow?.save();
   }
 
   @action
@@ -169,7 +180,7 @@ export class Chat {
       loreBooks: this.loreBooks.map(item => ({ ...item, loreBook: item.loreBook.serialize() })),
       persona: this.persona,
       impersonate: this.impersonate,
-      impersonateHistory: this.impersonateHistory,
+      impersonateHistory: toJS(this.impersonateHistory),
       flow: this.flow.serialize(),
       variables: this.variables,
     };

@@ -10,10 +10,12 @@ import { requestsRoutes } from "./routes/requests.routes.js";
 import { StorageService } from "./storage.service.js";
 import { migrateRoutes } from "./routes/migrate.routes.js";
 import { imagesRoutes } from "./routes/images.routes.js";
+import { filesRoutes } from "./routes/files.routes.js";
 import { globalSettingsRoutes } from "./routes/globalSettings.routes.js";
 import { assistantChatsRoutes } from "./routes/assistantChats.routes.js";
 import { assistantMessagesRoutes } from "./routes/assistantMessages.routes.js";
 import { codeBlockRoutes } from "./routes/codeBlocks.routes.js";
+import { gcRoutes } from "./routes/gc.routes.js";
 
 export async function storageRoutes(app: FastifyInstance) {
   const service = new StorageService();
@@ -24,7 +26,9 @@ export async function storageRoutes(app: FastifyInstance) {
   app.register(chatsRoutes(service), { prefix: "/chats" });
   app.register(codeBlockRoutes(service), { prefix: "/codeBlocks" });
   app.register(connectionProxiesRoutes(service), { prefix: "/connectionProxies" });
+  app.register(filesRoutes(service), { prefix: "/files" });
   app.register(flowsRoutes(service), { prefix: "/flows" });
+  app.register(gcRoutes(service), { prefix: "/gc" });
   app.register(globalSettingsRoutes(service), { prefix: "/globalSettings" });
   app.register(imagesRoutes(service), { prefix: "/images" });
   app.register(loreBooksRoutes(service), { prefix: "/loreBooks" });

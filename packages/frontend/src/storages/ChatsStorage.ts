@@ -5,6 +5,7 @@ import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { messageStorage } from "src/storages/MessageStorage.ts";
 import { imagesStorage } from "src/storages/ImagesStorage.ts";
+import { filesStorage } from "src/storages/FilesStorage.ts";
 
 export type ChatStorageItem = {
   id: string;
@@ -43,6 +44,9 @@ class ChatsStorage extends BaseStorage<ChatStorageItem> {
     await Promise.all(chat.characters.map(({ character }) => {
       if (character.imageId) return imagesStorage.removeItem(character.imageId);
     }));
+    if (chat.flow?.mediaFiles?.length) {
+      await Promise.all(chat.flow.mediaFiles.map(file => filesStorage.removeItem(file.id).catch(() => null)));
+    }
     await super.removeItem(id);
   }
 }

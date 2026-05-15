@@ -1,10 +1,12 @@
 import { action, computed, makeObservable, observable, reaction, runInAction, toJS } from "mobx";
 import {
   FlowExtraBlock,
+  FlowMediaFile,
   FlowSchemeState,
   flowsStorage,
   FlowStorageItem,
 } from "src/storages/FlowsStorage.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 import { v4 as uuid } from "uuid";
 import { Prompt } from "src/store/Prompt.ts";
 import { FlowNode } from "src/enums/FlowNode.ts";
@@ -31,6 +33,7 @@ export class Flow {
   @observable extraBlocks: FlowExtraBlock[];
   @observable prompts: Prompt[] = [];
   @observable codeBlocks: PromptCodeBlock[] = [];
+  @observable mediaFiles: FlowMediaFile[] = [];
 
   @observable isNew: boolean;
   local: boolean;
@@ -77,6 +80,7 @@ export class Flow {
       extraBlocks: [],
       prompts: [],
       codeBlocks: [],
+      mediaFiles: [],
     }, { isNew: true });
   }
 
@@ -111,6 +115,8 @@ export class Flow {
               ? promptCodeBlock.codeBlock
               : new CodeBlock(promptCodeBlock.codeBlock, { local: true }),
           })) || [];
+        } else if (field === "mediaFiles") {
+          this.mediaFiles = (data as FlowMediaFile[]) || [];
         } else {
           // @ts-expect-error fuck ts
           this[field] = data;
@@ -123,6 +129,7 @@ export class Flow {
   @action
   save() {
     this.isNew = false;
+    this.mediaFiles.forEach(file => filesManager.saveTempItem(file.id));
   }
 
   @action
@@ -171,6 +178,12 @@ export class Flow {
     const flowStorageItem = _cloneDeep(this.serialize());
     flowStorageItem.id = uuid();
     flowStorageItem.createdAt = new Date();
+    if (flowStorageItem.mediaFiles?.length) {
+      flowStorageItem.mediaFiles = flowStorageItem.mediaFiles.map(item => ({
+        ...item,
+        id: filesManager.cloneItem(item.id),
+      }));
+    }
     return new Flow(flowStorageItem, { isNew: true, local });
   }
 
@@ -184,6 +197,7 @@ export class Flow {
       extraBlocks: toJS(this.extraBlocks),
       prompts: this.prompts.map(prompt => prompt.serialize()),
       codeBlocks: this.codeBlocks?.map(item => ({ ...item, codeBlock: item.codeBlock.serialize() })) || [],
+      mediaFiles: toJS(this.mediaFiles) || [],
     };
   }
 }

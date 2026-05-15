@@ -27,6 +27,14 @@ export const FlowExtraBlockSchema = z.object({
   key: z.string(),
 });
 
+export const FlowMediaFileSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+  createdAt: z.iso.datetime(),
+});
+
 export const FlowSchema = z.object({
   id: z.uuid(),
   createdAt: z.iso.datetime(),
@@ -39,6 +47,7 @@ export const FlowSchema = z.object({
     codeBlock: CodeBlockSchema,
     active: z.boolean(),
   })),
+  mediaFiles: z.array(FlowMediaFileSchema).optional(),
 });
 
 export type Flow = z.infer<typeof FlowSchema>;

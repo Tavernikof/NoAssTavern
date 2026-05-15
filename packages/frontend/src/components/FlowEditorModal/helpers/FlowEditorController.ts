@@ -2,11 +2,12 @@ import { Flow } from "src/store/Flow.ts";
 import { Prompt } from "src/store/Prompt.ts";
 import { promptsManager } from "src/store/PromptsManager.ts";
 import { action, autorun, computed, makeObservable, observable, runInAction } from "mobx";
-import { FlowExtraBlock, FlowSchemeState } from "src/storages/FlowsStorage.ts";
+import { FlowExtraBlock, FlowMediaFile, FlowSchemeState } from "src/storages/FlowsStorage.ts";
 import _cloneDeep from "lodash/cloneDeep";
 import { defaultSchemesDict, isDefaultScheme } from "src/enums/SchemeName.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
 import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 export class FlowEditorController {
   private dc = new DisposableContainer();
@@ -14,6 +15,8 @@ export class FlowEditorController {
   @observable extraBlocks: FlowExtraBlock[];
   @observable promptsDict: Record<string, { prompt: Prompt, new: boolean, used: boolean }> = {};
   @observable selectedTab: string;
+  @observable mediaFiles: FlowMediaFile[] = [];
+  @observable pendingMediaDeletions: string[] = [];
   flow: Flow;
   codeBlocksEditorController: CodeBlocksEditorController;
 
@@ -29,6 +32,7 @@ export class FlowEditorController {
     });
 
     this.codeBlocksEditorController = new CodeBlocksEditorController(flow.codeBlocks, initialCodeBlockId);
+    this.mediaFiles = _cloneDeep(flow.mediaFiles || []);
     this.selectedTab = initialCodeBlockId ? "code-blocks" : "flow";
 
     makeObservable(this);
@@ -124,6 +128,38 @@ export class FlowEditorController {
     delete this.schemeStates[blockId];
   }
 
+  @action.bound
+  async addMediaFile(file: File) {
+    const mimeType = file.type || "application/octet-stream";
+    const id = await filesManager.saveBlob(file, file.name, mimeType);
+    runInAction(() => {
+      this.mediaFiles.push({
+        id,
+        name: file.name,
+        mimeType,
+        size: file.size,
+        createdAt: new Date(),
+      });
+    });
+  }
+
+  @action
+  removeMediaFile(id: string) {
+    this.mediaFiles = this.mediaFiles.filter(file => file.id !== id);
+    if (!this.pendingMediaDeletions.includes(id)) {
+      this.pendingMediaDeletions.push(id);
+    }
+  }
+
+  async applyMediaChanges() {
+    const keptIds = new Set(this.mediaFiles.map(file => file.id));
+    const toDelete = this.pendingMediaDeletions.filter(id => !keptIds.has(id));
+    await Promise.all(toDelete.map(id => filesManager.removeItem(id).catch(() => null)));
+    runInAction(() => {
+      this.pendingMediaDeletions = [];
+    });
+  }
+
   @action
   removePrompt(promptId: string) {
     for (const id in this.promptsDict) {
@@ -164,6 +200,7 @@ export class FlowEditorController {
       prompts: this.prompts.map(p => p.prompt),
       extraBlocks: this.extraBlocks,
       codeBlocks: this.codeBlocksEditorController.getCodeBlocksContent(),
+      mediaFiles: _cloneDeep(this.mediaFiles),
     };
   }
 }

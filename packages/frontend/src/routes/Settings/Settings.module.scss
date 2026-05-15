@@ -11,6 +11,13 @@
 .block {
   display: flex;
   flex-direction: column;
+
+  &:after {
+    content: '';
+    height: 1px;
+    background: var(--white20a);
+    margin-top: 32px;
+  }
 }
 
 .note {

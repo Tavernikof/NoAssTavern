@@ -13,6 +13,7 @@ const CodeBlocksEditorCounter: React.FC<Props> = (props) => {
 
   const activeCount = codeBlocks.filter(codeBlock => codeBlock.active).length;
   const totalCount = codeBlocks.length;
+  if(!totalCount) return
   return totalCount === activeCount ? `(${totalCount})` : `(${activeCount}/${totalCount})`;
 };
 
