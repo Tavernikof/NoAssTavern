@@ -1,5 +1,5 @@
 import * as React from "react";
-import CodeBlocksEditorBlock from "./components/CodeBlocksEditorBlock";
+import CodeBlockForm from "src/components/CodeBlockForm";
 import CodeBlocksEditorList from "./components/CodeBlocksEditorList";
 import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
 import { observer } from "mobx-react-lite";
@@ -13,8 +13,11 @@ const CodeBlocksEditor: React.FC<Props> = (props) => {
   const { selectedCodeBlock } = controller;
 
   if (selectedCodeBlock) return (
-    <CodeBlocksEditorBlock
-      promptCodeBlock={selectedCodeBlock}
+    <CodeBlockForm
+      name={selectedCodeBlock.name}
+      content={selectedCodeBlock.content}
+      onNameChange={(value) => selectedCodeBlock.setName(value)}
+      onContentChange={(value) => selectedCodeBlock.setContent(value)}
       onBack={() => controller.selectCodeBlock(null)}
     />
   );

@@ -5,7 +5,7 @@ const opener = createModalOpener(React.lazy(() => import("./PromptEditorModal.ts
 
 export const openPromptEditorModal = (componentProps: Parameters<typeof opener>[0]["componentProps"]) => opener({
   title: "Prompt editor",
-  size: 1200,
+  size: 1600,
   fullHeight: true,
   componentProps,
 });

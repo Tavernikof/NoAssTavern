@@ -5,7 +5,7 @@ const opener = createModalOpener(React.lazy(() => import("./CodeBlockEditorModal
 
 export const openCodeBlockEditorModal = (componentProps: Parameters<typeof opener>[0]["componentProps"]) => opener({
   title: "Code block editor",
-  size: 1000,
+  size: 1600,
   fullHeight: true,
   componentProps,
 });

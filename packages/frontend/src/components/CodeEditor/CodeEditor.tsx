@@ -10,6 +10,7 @@ const DEFAULT_DEBOUNCE_MS = 300;
 export type CodeEditorApi = {
   getValue: () => string;
   setValue: (value: string) => void;
+  insertSnippet: (snippet: string) => void;
 }
 
 export type Props = {
@@ -83,6 +84,17 @@ const CodeEditor = React.forwardRef<CodeEditorApi, Props>((props, ref) => {
       }
       if (selections && selections.length > 0) {
         editor.setSelections(selections);
+      }
+    },
+    insertSnippet: (snippet: string) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+      editor.focus();
+      const controller = editor.getContribution<{ insert: (snippet: string) => void }>("snippetController2");
+      if (controller) {
+        controller.insert(snippet);
+      } else {
+        editor.trigger("keyboard", "type", { text: snippet });
       }
     },
   }), []);
