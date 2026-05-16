@@ -250,3 +250,12 @@ type FormatMessageParams = {
   skipDefaultStyle: boolean,
   allowHtml: boolean,
 };
+
+// ============================================================================
+// Code Block Sandbox Globals
+// ============================================================================
+
+declare function getFileUrl(id: string): Promise<string | null>;
+declare function getFileContent(id: string): Promise<string>;
+declare function getImageUrl(id: string): Promise<string | null>;
+declare function getImageContent(id: string): Promise<string>;

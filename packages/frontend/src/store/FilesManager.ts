@@ -99,6 +99,15 @@ export class FilesManager {
   getFileUrl(id: string) {
     return `${globalSettings.backendUrl}/api/storage/files/${id}`;
   }
+
+  async getFileText(id: string): Promise<string> {
+    if (globalSettings.isBackendEnabled) {
+      const response = await fetch(this.getFileUrl(id));
+      return response.text();
+    }
+    const item = await filesStorage.getItem(id);
+    return item ? item.file.text() : "";
+  }
 }
 
 export const filesManager = new FilesManager();

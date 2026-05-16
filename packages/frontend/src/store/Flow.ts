@@ -17,7 +17,6 @@ import _cloneDeep from "lodash/cloneDeep";
 import { PromptStorageItem } from "src/storages/PromptsStorage.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
-import { CodeBlock } from "src/store/CodeBlock.ts";
 
 type FlowCreateConfig = {
   isNew?: boolean
@@ -109,12 +108,7 @@ export class Flow {
             : new Prompt(prompt, { local: true, parentFlow: this }),
           );
         } else if (field === "codeBlocks") {
-          this.codeBlocks = (data as PromptCodeBlock[]).map(promptCodeBlock => ({
-            ...promptCodeBlock,
-            codeBlock: promptCodeBlock.codeBlock instanceof CodeBlock
-              ? promptCodeBlock.codeBlock
-              : new CodeBlock(promptCodeBlock.codeBlock, { local: true }),
-          })) || [];
+          this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[]);
         } else if (field === "mediaFiles") {
           this.mediaFiles = (data as FlowMediaFile[]) || [];
         } else {

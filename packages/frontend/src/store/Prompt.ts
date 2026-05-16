@@ -5,7 +5,6 @@ import { v4 as uuid } from "uuid";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { prepareImpersonate, prepareMessage } from "src/helpers/prepareMessage.ts";
 import _cloneDeep from "lodash/cloneDeep";
-import { CodeBlock } from "src/store/CodeBlock.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
@@ -96,12 +95,7 @@ export class Prompt {
       const data = promptContent[field as keyof PromptStorageItem];
       if (data !== undefined) {
         if (field === "codeBlocks") {
-          this.codeBlocks = (data as PromptCodeBlock[]).map(promptCodeBlock => ({
-            ...promptCodeBlock,
-            codeBlock: promptCodeBlock.codeBlock instanceof CodeBlock
-              ? promptCodeBlock.codeBlock
-              : new CodeBlock(promptCodeBlock.codeBlock, { local: true }),
-          })) || [];
+          this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[]);
         } else {
           // @ts-expect-error fuck ts
           this[field] = data;

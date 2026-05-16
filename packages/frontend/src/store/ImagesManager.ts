@@ -80,6 +80,15 @@ export class ImagesManager {
   getImageUrl(id: string) {
     return `${globalSettings.backendUrl}/api/storage/images/${id}`;
   }
+
+  async getImageText(id: string): Promise<string> {
+    if (globalSettings.isBackendEnabled) {
+      const response = await fetch(this.getImageUrl(id));
+      return response.text();
+    }
+    const item = await imagesStorage.getItem(id);
+    return item ? item.image.text() : "";
+  }
 }
 
 export const imagesManager = new ImagesManager();
