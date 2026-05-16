@@ -17,6 +17,10 @@ import { ChatFormContextStore } from "src/components/ChatFormModal/components/he
 import { useLatest } from "react-use";
 import { Book, GitBranch } from "lucide-react";
 import { loreBookManager } from "src/store/LoreBookManager.ts";
+import Tabs, { TabItem } from "src/components/Tabs";
+import MediaGallery, { MediaEditorState, MediaGalleryCounter } from "src/components/MediaGallery";
+import { MediaSnapshotTracker, collectChatMedia } from "src/helpers/collectMediaIds.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 export type SelectOption = {
   value: string;
@@ -64,12 +68,56 @@ const ChatFormModal: React.FC<Props> = (props) => {
   const { resolve, onBeforeClose } = useModalContext();
   const store = React.useMemo(() => new ChatFormContextStore(chat), [chat]);
   const storeRef = useLatest(store);
+  const media = React.useMemo(() => new MediaEditorState(chat?.mediaFiles), [chat]);
+  const mediaTracker = React.useMemo(() => chat
+    ? new MediaSnapshotTracker(
+      () => collectChatMedia(chat),
+      { getFiles: () => media.trackedFileIds },
+    )
+    : null,
+  [chat, media]);
 
   React.useEffect(() => {
     return onBeforeClose?.(() => {
       storeRef.current.dispose();
     });
   }, []);
+
+  const tabItems = React.useMemo<TabItem[]>(() => ([
+    {
+      key: "info",
+      title: "Info",
+      content: () => (
+        <FormFields>
+          <ChatFormCharacters chat={chat} />
+
+          <FormInput icon={GitBranch} label="Flow:" name="flow">
+            <SelectControlled
+              name="flow"
+              options={store.flowsOptions}
+            />
+          </FormInput>
+
+          <FormInput icon={Book} label="Lorebooks:" name="loreBooks">
+            <SelectControlled
+              name="loreBooks"
+              options={store.loreBookOptions}
+              isMulti
+            />
+          </FormInput>
+
+          <ChatFormName />
+
+          <ChatFormScenario />
+        </FormFields>
+      ),
+    },
+    {
+      key: "media",
+      title: <>Media <MediaGalleryCounter controller={media} /></>,
+      content: () => <MediaGallery controller={media} />,
+    },
+  ]), [chat, store, media]);
 
   return (
     <ChatFormContext.Provider value={store}>
@@ -91,7 +139,7 @@ const ChatFormModal: React.FC<Props> = (props) => {
           })) : [],
         }), [chat])}
         validationSchema={validation}
-        onSubmit={React.useCallback((data: ChatFormFields) => {
+        onSubmit={React.useCallback(async (data: ChatFormFields) => {
           const dto: Partial<ChatUpdateDto> = {};
 
           const characters: ChatUpdateDto["characters"] = [];
@@ -138,44 +186,30 @@ const ChatFormModal: React.FC<Props> = (props) => {
           dto.persona = data.persona || null;
           dto.name = data.name || characters.map(({ character }) => character.name).join(", ");
           dto.scenario = data.scenario || "";
+          dto.mediaFiles = media.mediaFiles.slice();
 
           if (chat) {
             chat.update(dto as ChatUpdateDto);
+            if (mediaTracker) await mediaTracker.commit();
             resolve(chat);
           } else {
             if (!dto.characters.length || !dto.flow) return;
             const newChat = Chat.createEmpty(dto as ChatUpdateDto);
+            const finalIds = new Set(newChat.mediaFiles.map(file => file.id));
+            await Promise.all(
+              Array.from(media.trackedFileIds)
+                .filter(id => !finalIds.has(id))
+                .map(id => filesManager.removeItem(id).catch(() => null)),
+            );
             resolve(newChat);
           }
-        }, [chat])}
+        }, [chat, media, mediaTracker])}
       >
-        <FormFields>
-          <ChatFormCharacters chat={chat} />
-
-          <FormInput icon={GitBranch} label="Flow:" name="flow">
-            <SelectControlled
-              name="flow"
-              options={store.flowsOptions}
-            />
-          </FormInput>
-
-          <FormInput icon={Book} label="Lorebooks:" name="loreBooks">
-            <SelectControlled
-              name="loreBooks"
-              options={store.loreBookOptions}
-              isMulti
-            />
-          </FormInput>
-
-          <ChatFormName />
-
-          <ChatFormScenario />
-
-          <div className={style.footer}>
-            <FormError name="" />
-            <Button block>{chat ? "Save" : "Create"}</Button>
-          </div>
-        </FormFields>
+        <Tabs items={tabItems} />
+        <div className={style.footer}>
+          <FormError name="" />
+          <Button block>{chat ? "Save" : "Create"}</Button>
+        </div>
       </Form>
     </ChatFormContext.Provider>
   );

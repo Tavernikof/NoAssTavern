@@ -7,6 +7,7 @@ import { Save } from "lucide-react";
 import Form from "src/components/Form/Form.tsx";
 import { Character } from "src/store/Character.ts";
 import CharacterAvatarField from "../CharacterAvatarField";
+import { MediaEditorState } from "src/components/MediaGallery";
 
 export type CharacterModalForm = {
   name: string,
@@ -19,11 +20,13 @@ export type CharacterModalForm = {
 
 type Props = {
   character: Character;
+  media?: MediaEditorState;
+  onMediaCommit?: () => Promise<void> | void;
   onSubmit: (character: Character) => void;
 };
 
 const CharacterForm: React.FC<Props> = (props) => {
-  const { character, onSubmit } = props;
+  const { character, media, onMediaCommit, onSubmit } = props;
 
   return (
     <Form<CharacterModalForm>
@@ -34,13 +37,15 @@ const CharacterForm: React.FC<Props> = (props) => {
         greetings: (character.greetings).map(text => ({ text })),
         imageId: character.imageId,
       }), [])}
-      onSubmit={React.useCallback((data: CharacterModalForm) => {
+      onSubmit={React.useCallback(async (data: CharacterModalForm) => {
         character.update({
           ...data,
           greetings: data.greetings.map(g => g.text),
+          ...(media ? { mediaFiles: media.mediaFiles.slice() } : {}),
         });
+        if (onMediaCommit) await onMediaCommit();
         onSubmit(character);
-      }, [])}
+      }, [media, onMediaCommit])}
     >
       <FormFields>
         <div className={style.top}>

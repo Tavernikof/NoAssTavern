@@ -2,12 +2,13 @@ import { Flow } from "src/store/Flow.ts";
 import { Prompt } from "src/store/Prompt.ts";
 import { promptsManager } from "src/store/PromptsManager.ts";
 import { action, autorun, computed, makeObservable, observable, runInAction } from "mobx";
-import { FlowExtraBlock, FlowMediaFile, FlowSchemeState } from "src/storages/FlowsStorage.ts";
+import { FlowExtraBlock, FlowSchemeState } from "src/storages/FlowsStorage.ts";
 import _cloneDeep from "lodash/cloneDeep";
 import { defaultSchemesDict, isDefaultScheme } from "src/enums/SchemeName.ts";
 import { DisposableContainer } from "src/helpers/DisposableContainer.ts";
 import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
-import { filesManager } from "src/store/FilesManager.ts";
+import { MediaEditorState } from "src/components/MediaGallery";
+import { MediaSnapshotTracker, collectFlowMedia } from "src/helpers/collectMediaIds.ts";
 
 export class FlowEditorController {
   private dc = new DisposableContainer();
@@ -15,10 +16,10 @@ export class FlowEditorController {
   @observable extraBlocks: FlowExtraBlock[];
   @observable promptsDict: Record<string, { prompt: Prompt, new: boolean, used: boolean }> = {};
   @observable selectedTab: string;
-  @observable mediaFiles: FlowMediaFile[] = [];
-  @observable pendingMediaDeletions: string[] = [];
+  media: MediaEditorState;
   flow: Flow;
   codeBlocksEditorController: CodeBlocksEditorController;
+  private mediaTracker: MediaSnapshotTracker;
 
   constructor(flow: Flow, initialCodeBlockId?: string) {
     this.flow = flow;
@@ -32,8 +33,12 @@ export class FlowEditorController {
     });
 
     this.codeBlocksEditorController = new CodeBlocksEditorController(flow.codeBlocks, initialCodeBlockId);
-    this.mediaFiles = _cloneDeep(flow.mediaFiles || []);
+    this.media = new MediaEditorState(flow.mediaFiles);
     this.selectedTab = initialCodeBlockId ? "code-blocks" : "flow";
+    this.mediaTracker = new MediaSnapshotTracker(
+      () => collectFlowMedia(this.flow),
+      { getFiles: () => this.media.trackedFileIds },
+    );
 
     makeObservable(this);
 
@@ -48,8 +53,10 @@ export class FlowEditorController {
             const promptId = promptOption.value;
             usedPrompts.add(promptId);
             if (!this.promptsDict[promptId]) runInAction(() => {
+              const cloned = promptsManager.dict[promptId].clone(true);
+              cloned.save();
               this.promptsDict[promptId] = {
-                prompt: promptsManager.dict[promptId].clone(true),
+                prompt: cloned,
                 new: true,
                 used: true,
               };
@@ -128,38 +135,6 @@ export class FlowEditorController {
     delete this.schemeStates[blockId];
   }
 
-  @action.bound
-  async addMediaFile(file: File) {
-    const mimeType = file.type || "application/octet-stream";
-    const id = await filesManager.saveBlob(file, file.name, mimeType);
-    runInAction(() => {
-      this.mediaFiles.push({
-        id,
-        name: file.name,
-        mimeType,
-        size: file.size,
-        createdAt: new Date(),
-      });
-    });
-  }
-
-  @action
-  removeMediaFile(id: string) {
-    this.mediaFiles = this.mediaFiles.filter(file => file.id !== id);
-    if (!this.pendingMediaDeletions.includes(id)) {
-      this.pendingMediaDeletions.push(id);
-    }
-  }
-
-  async applyMediaChanges() {
-    const keptIds = new Set(this.mediaFiles.map(file => file.id));
-    const toDelete = this.pendingMediaDeletions.filter(id => !keptIds.has(id));
-    await Promise.all(toDelete.map(id => filesManager.removeItem(id).catch(() => null)));
-    runInAction(() => {
-      this.pendingMediaDeletions = [];
-    });
-  }
-
   @action
   removePrompt(promptId: string) {
     for (const id in this.promptsDict) {
@@ -200,7 +175,11 @@ export class FlowEditorController {
       prompts: this.prompts.map(p => p.prompt),
       extraBlocks: this.extraBlocks,
       codeBlocks: this.codeBlocksEditorController.getCodeBlocksContent(),
-      mediaFiles: _cloneDeep(this.mediaFiles),
+      mediaFiles: _cloneDeep(this.media.mediaFiles),
     };
+  }
+
+  commitMediaChanges() {
+    return this.mediaTracker.commit();
   }
 }

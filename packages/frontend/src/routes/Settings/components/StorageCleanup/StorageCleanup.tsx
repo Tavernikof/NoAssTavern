@@ -3,7 +3,7 @@ import Button from "src/components/Button";
 import { Search, Trash } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { storageCleanupController } from "src/store/StorageCleanupController.ts";
-import formatBytes from "src/components/FlowEditorModal/components/MediaGallery/helpers/formatBytes.ts";
+import formatBytes from "src/components/MediaGallery/helpers/formatBytes.ts";
 import style from "./StorageCleanup.module.scss";
 
 type Props = Record<string, never>;

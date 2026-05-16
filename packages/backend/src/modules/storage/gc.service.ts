@@ -3,6 +3,7 @@ import path from "path";
 import { StorageService } from "./storage.service.js";
 import { Message } from "./storages/Messages.js";
 import { AssistantMessage } from "./storages/AssistantMessages.js";
+import { MediaFile } from "./storages/MediaFile.js";
 
 export type OrphanInfo = {
   id: string;
@@ -42,6 +43,13 @@ function collectImageIdsFromSwipes(
   }
 }
 
+function addMediaFileIds(list: MediaFile[] | undefined, out: Set<string>) {
+  if (!list) return;
+  for (const file of list) {
+    if (file?.id) out.add(file.id);
+  }
+}
+
 export class GarbageCollectorService {
   constructor(private storage: StorageService) {}
 
@@ -50,19 +58,29 @@ export class GarbageCollectorService {
     const images = new Set<string>();
 
     const flows = await this.storage.flows.list();
-    flows.forEach(flow => flow.mediaFiles?.forEach(file => files.add(file.id)));
+    flows.forEach(flow => {
+      addMediaFileIds(flow.mediaFiles, files);
+      flow.prompts?.forEach(prompt => addMediaFileIds(prompt.mediaFiles, files));
+    });
 
     const characters = await this.storage.characters.list();
     characters.forEach(character => {
       if (character.imageId) images.add(character.imageId);
+      addMediaFileIds(character.mediaFiles, files);
     });
+
+    const prompts = await this.storage.prompts.list();
+    prompts.forEach(prompt => addMediaFileIds(prompt.mediaFiles, files));
 
     const chats = await this.storage.chats.list();
     for (const chat of chats) {
+      addMediaFileIds(chat.mediaFiles, files);
       chat.characters.forEach(({ character }) => {
         if (character.imageId) images.add(character.imageId);
+        addMediaFileIds(character.mediaFiles, files);
       });
-      chat.flow?.mediaFiles?.forEach(file => files.add(file.id));
+      addMediaFileIds(chat.flow?.mediaFiles, files);
+      chat.flow?.prompts?.forEach(prompt => addMediaFileIds(prompt.mediaFiles, files));
 
       const messages = await this.storage.messages.listForChat(chat.id);
       collectImageIdsFromSwipes(messages, images);

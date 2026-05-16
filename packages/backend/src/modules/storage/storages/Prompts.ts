@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AbstractStorage } from "../utils/AbstractStorage.js";
 import { StorageService } from "../storage.service.js";
 import { CodeBlockSchema } from "./CodeBlocks.js";
+import { MediaFileSchema } from "./MediaFile.js";
 
 export const PresetBlockContentSchema = z.object({
   active: z.boolean(),
@@ -27,6 +28,7 @@ export const PromptSchema = z.object({
     codeBlock: CodeBlockSchema,
     active: z.boolean(),
   })),
+  mediaFiles: z.array(MediaFileSchema).optional(),
 });
 
 export type Prompt = z.infer<typeof PromptSchema>;

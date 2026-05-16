@@ -3,6 +3,7 @@ import { AbstractStorage } from "../utils/AbstractStorage.js";
 import { PromptSchema } from "./Prompts.js";
 import { StorageService } from "../storage.service.js";
 import { CodeBlockSchema } from "./CodeBlocks.js";
+import { MediaFileSchema } from "./MediaFile.js";
 
 export const FlowSchemeNodeSchema = z.object({
   id: z.string(),
@@ -27,14 +28,6 @@ export const FlowExtraBlockSchema = z.object({
   key: z.string(),
 });
 
-export const FlowMediaFileSchema = z.object({
-  id: z.uuid(),
-  name: z.string(),
-  mimeType: z.string(),
-  size: z.number(),
-  createdAt: z.iso.datetime(),
-});
-
 export const FlowSchema = z.object({
   id: z.uuid(),
   createdAt: z.iso.datetime(),
@@ -47,7 +40,7 @@ export const FlowSchema = z.object({
     codeBlock: CodeBlockSchema,
     active: z.boolean(),
   })),
-  mediaFiles: z.array(FlowMediaFileSchema).optional(),
+  mediaFiles: z.array(MediaFileSchema).optional(),
 });
 
 export type Flow = z.infer<typeof FlowSchema>;

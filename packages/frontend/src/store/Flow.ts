@@ -1,11 +1,11 @@
 import { action, computed, makeObservable, observable, reaction, runInAction, toJS } from "mobx";
 import {
   FlowExtraBlock,
-  FlowMediaFile,
   FlowSchemeState,
   flowsStorage,
   FlowStorageItem,
 } from "src/storages/FlowsStorage.ts";
+import { MediaFile } from "src/storages/MediaFile.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 import { v4 as uuid } from "uuid";
 import { Prompt } from "src/store/Prompt.ts";
@@ -32,7 +32,7 @@ export class Flow {
   @observable extraBlocks: FlowExtraBlock[];
   @observable prompts: Prompt[] = [];
   @observable codeBlocks: PromptCodeBlock[] = [];
-  @observable mediaFiles: FlowMediaFile[] = [];
+  @observable mediaFiles: MediaFile[] = [];
 
   @observable isNew: boolean;
   local: boolean;
@@ -110,7 +110,7 @@ export class Flow {
         } else if (field === "codeBlocks") {
           this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[]);
         } else if (field === "mediaFiles") {
-          this.mediaFiles = (data as FlowMediaFile[]) || [];
+          this.mediaFiles = (data as MediaFile[]) || [];
         } else {
           // @ts-expect-error fuck ts
           this[field] = data;
@@ -124,6 +124,7 @@ export class Flow {
   save() {
     this.isNew = false;
     this.mediaFiles.forEach(file => filesManager.saveTempItem(file.id));
+    this.prompts.forEach(prompt => prompt.save());
   }
 
   @action
@@ -176,6 +177,15 @@ export class Flow {
       flowStorageItem.mediaFiles = flowStorageItem.mediaFiles.map(item => ({
         ...item,
         id: filesManager.cloneItem(item.id),
+      }));
+    }
+    if (flowStorageItem.prompts?.length) {
+      flowStorageItem.prompts = flowStorageItem.prompts.map(prompt => ({
+        ...prompt,
+        mediaFiles: prompt.mediaFiles?.map(file => ({
+          ...file,
+          id: filesManager.cloneItem(file.id),
+        })) || [],
       }));
     }
     return new Flow(flowStorageItem, { isNew: true, local });

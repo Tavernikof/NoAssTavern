@@ -9,6 +9,8 @@ import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunc
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
 import { Flow } from "src/store/Flow.ts";
+import { MediaFile } from "src/storages/MediaFile.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 type PromptCreateConfig = {
   isNew?: boolean,
@@ -25,6 +27,7 @@ export class Prompt {
   @observable connectionProxyId: string | null;
   @observable model: string;
   @observable codeBlocks: PromptCodeBlock[];
+  @observable mediaFiles: MediaFile[] = [];
 
   @observable.ref generationConfig: PromptGenerationConfig;
 
@@ -69,6 +72,7 @@ export class Prompt {
         stream: true,
       },
       codeBlocks: [],
+      mediaFiles: [],
     }, { isNew: true });
   }
 
@@ -96,6 +100,8 @@ export class Prompt {
       if (data !== undefined) {
         if (field === "codeBlocks") {
           this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[]);
+        } else if (field === "mediaFiles") {
+          this.mediaFiles = (data as MediaFile[]) || [];
         } else {
           // @ts-expect-error fuck ts
           this[field] = data;
@@ -107,6 +113,7 @@ export class Prompt {
   @action
   save() {
     this.isNew = false;
+    this.mediaFiles.forEach(file => filesManager.saveTempItem(file.id));
   }
 
   @action
@@ -114,6 +121,12 @@ export class Prompt {
     const promptStorageItem = _cloneDeep(this.serialize());
     promptStorageItem.id = uuid();
     promptStorageItem.createdAt = new Date();
+    if (promptStorageItem.mediaFiles?.length) {
+      promptStorageItem.mediaFiles = promptStorageItem.mediaFiles.map(item => ({
+        ...item,
+        id: filesManager.cloneItem(item.id),
+      }));
+    }
     return new Prompt(promptStorageItem, { isNew: true, local });
   }
 
@@ -171,6 +184,7 @@ export class Prompt {
       model: this.model,
       generationConfig: this.generationConfig,
       codeBlocks: this.codeBlocks?.map(item => ({ ...item, codeBlock: item.codeBlock.serialize() })) || [],
+      mediaFiles: toJS(this.mediaFiles) || [],
     };
   }
 }

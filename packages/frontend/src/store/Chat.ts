@@ -4,8 +4,8 @@ import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
 import { v4 as uuid } from "uuid";
 import { LoreBook } from "src/store/LoreBook.ts";
-import { imagesStorage } from "src/storages/ImagesStorage.ts";
-import { filesStorage } from "src/storages/FilesStorage.ts";
+import { MediaFile } from "src/storages/MediaFile.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 import { parseDate } from "src/helpers/date.ts";
 
 type ChatCreateConfig = {
@@ -30,6 +30,7 @@ export class Chat {
   @observable impersonate: string | null;
   @observable impersonateHistory: string[] = [];
   @observable flow: Flow;
+  @observable mediaFiles: MediaFile[] = [];
   variables: Record<string, string> = {};
 
   @observable isNew: boolean;
@@ -54,6 +55,7 @@ export class Chat {
     this.impersonate = data.impersonate;
     this.impersonateHistory = data.impersonateHistory || [];
     this.flow = new Flow(data.flow, { local: true });
+    this.mediaFiles = data.mediaFiles || [];
     this.variables = data.variables ?? {};
 
     makeObservable(this);
@@ -70,21 +72,11 @@ export class Chat {
       chatsStorage.updateItem(this.serialize());
     });
 
-    reaction(() => this.characters, (characters, prevCharacters) => {
-      prevCharacters.forEach((item) => {
-        if (!characters.find(c => c.character.id === item.character.id)) {
-          return imagesStorage.removeItem(item.character.imageId);
-        }
-      });
+    reaction(() => this.characters, (characters) => {
       characters.forEach(item => item.character.save());
     });
 
-    reaction(() => this.flow, (flow, prevFlow) => {
-      if (prevFlow && prevFlow !== flow && prevFlow.mediaFiles?.length) {
-        prevFlow.mediaFiles.forEach(file => {
-          filesStorage.removeItem(file.id).catch(() => null);
-        });
-      }
+    reaction(() => this.flow, (flow) => {
       flow?.save();
     });
   }
@@ -103,6 +95,7 @@ export class Chat {
       impersonateHistory: data.impersonateHistory || null,
       flow: data.flow?.serialize() || null,
       variables: {},
+      mediaFiles: data.mediaFiles || [],
     }, { isNew: true });
   }
 
@@ -155,6 +148,7 @@ export class Chat {
     this.isNew = false;
     this.characters.forEach(item => item.character.save());
     this.flow?.save();
+    this.mediaFiles.forEach(file => filesManager.saveTempItem(file.id));
   }
 
   @action
@@ -183,6 +177,7 @@ export class Chat {
       impersonateHistory: toJS(this.impersonateHistory),
       flow: this.flow.serialize(),
       variables: this.variables,
+      mediaFiles: toJS(this.mediaFiles) || [],
     };
   }
 }

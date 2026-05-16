@@ -44,6 +44,13 @@ export class FilesManager {
   }
 
   async removeItem(id: string) {
+    if (this.temp[id]) {
+      delete this.temp[id];
+      runInAction(() => {
+        delete this.cache[id];
+      });
+      return;
+    }
     if (globalSettings.isBackendEnabled) {
       await backendManager.apiRequest({
         method: "DELETE",

@@ -3,16 +3,18 @@ import { observer } from "mobx-react-lite";
 import { Download, Plus, Trash } from "lucide-react";
 import Button from "src/components/Button/Button.tsx";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
-import { useFlowEditorContext } from "src/components/FlowEditorModal/helpers/FlowEditorContext.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
-import formatBytes from "src/components/FlowEditorModal/components/MediaGallery/helpers/formatBytes.ts";
+import { MediaFile } from "src/storages/MediaFile.ts";
+import { MediaEditorController } from "src/components/MediaGallery/helpers/MediaEditorState.ts";
+import formatBytes from "src/components/MediaGallery/helpers/formatBytes.ts";
 import style from "./MediaGallery.module.scss";
 
-type Props = Record<string, never>;
+type Props = {
+  controller: MediaEditorController;
+};
 
-const MediaGallery: React.FC<Props> = () => {
-  const flowEditor = useFlowEditorContext();
+const MediaGallery: React.FC<Props> = ({ controller }) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -24,7 +26,7 @@ const MediaGallery: React.FC<Props> = () => {
     if (!file) return;
     setBusy(true);
     try {
-      await flowEditor.addMediaFile(file);
+      await controller.addMediaFile(file);
     } finally {
       setBusy(false);
     }
@@ -49,16 +51,16 @@ const MediaGallery: React.FC<Props> = () => {
         />
       </div>
 
-      {flowEditor.mediaFiles.length === 0 && (
+      {controller.mediaFiles.length === 0 && (
         <div className={style.empty}>No files yet</div>
       )}
 
       <div className={style.list}>
-        {flowEditor.mediaFiles.map(file => (
+        {controller.mediaFiles.map(file => (
           <MediaItem
             key={file.id}
             file={file}
-            onRemove={() => flowEditor.removeMediaFile(file.id)}
+            onRemove={() => controller.removeMediaFile(file.id)}
           />
         ))}
       </div>
@@ -67,7 +69,7 @@ const MediaGallery: React.FC<Props> = () => {
 };
 
 const MediaItem: React.FC<{
-  file: import("src/storages/FlowsStorage.ts").FlowMediaFile,
+  file: MediaFile,
   onRemove: () => void,
 }> = observer(({ file, onRemove }) => {
   React.useEffect(() => {
@@ -83,6 +85,7 @@ const MediaItem: React.FC<{
       <div className={style.info}>
         <div className={style.name} title={file.name}>{file.name}</div>
         <div className={style.meta}>
+          <span>{file.id}</span>
           <span>{file.mimeType || "—"}</span>
           <span>{formatBytes(file.size)}</span>
         </div>

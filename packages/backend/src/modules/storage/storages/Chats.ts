@@ -3,6 +3,7 @@ import { AbstractStorage } from "../utils/AbstractStorage.js";
 import { CharacterSchema } from "./Characters.js";
 import { LoreBookSchema } from "./LoreBooks.js";
 import { FlowSchema } from "./Flows.js";
+import { MediaFileSchema } from "./MediaFile.js";
 import { StorageService } from "../storage.service.js";
 import fs from "fs/promises";
 import path from "path";
@@ -26,6 +27,7 @@ export const ChatSchema = z.object({
   impersonateHistory: z.array(z.string()).nullish(),
   flow: FlowSchema,
   variables: z.looseObject({}).optional(),
+  mediaFiles: z.array(MediaFileSchema).optional(),
 });
 
 export type Chat = z.infer<typeof ChatSchema>;

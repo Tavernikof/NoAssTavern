@@ -4,12 +4,16 @@ import { PresetEditor } from "src/components/BlockEditor/helpers/PresetEditor.ts
 import { Prompt } from "src/store/Prompt.ts";
 import { PresetHistoryEditor } from "src/components/BlockEditor/helpers/PresetHistoryEditor.ts";
 import { CodeBlocksEditorController } from "src/components/CodeBlocksEditor/helpers/CodeBlocksEditorController.ts";
+import { MediaEditorState } from "src/components/MediaGallery";
+import { MediaSnapshotTracker, collectPromptMedia } from "src/helpers/collectMediaIds.ts";
 
 export class PromptEditorController {
   prompt: Prompt;
   @observable.ref blocks: (PresetEditor | PresetHistoryEditor)[];
   @observable selectedTab: string;
-  codeBlocksEditorController: CodeBlocksEditorController
+  codeBlocksEditorController: CodeBlocksEditorController;
+  media: MediaEditorState;
+  private mediaTracker: MediaSnapshotTracker;
 
   constructor(prompt: Prompt, initialCodeBlockId?: string) {
     this.prompt = prompt;
@@ -18,9 +22,18 @@ export class PromptEditorController {
       return new PresetEditor(block);
     });
     this.codeBlocksEditorController = new CodeBlocksEditorController(prompt.codeBlocks, initialCodeBlockId);
+    this.media = new MediaEditorState(prompt.mediaFiles);
     this.selectedTab = initialCodeBlockId ? "code-blocks" : "prompt";
+    this.mediaTracker = new MediaSnapshotTracker(
+      () => collectPromptMedia(this.prompt),
+      { getFiles: () => this.media.trackedFileIds },
+    );
 
     makeObservable(this);
+  }
+
+  commitMediaChanges() {
+    return this.mediaTracker.commit();
   }
 
   @action

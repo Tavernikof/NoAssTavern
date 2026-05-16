@@ -44,6 +44,20 @@ export class ImagesManager {
     return this.saveBlob(blob);
   }
 
+  async removeItem(id: string) {
+    if (this.temp[id]) {
+      delete this.temp[id];
+      runInAction(() => {
+        delete this.cache[id];
+      });
+      return;
+    }
+    await imagesStorage.removeItem(id);
+    runInAction(() => {
+      delete this.cache[id];
+    });
+  }
+
   saveTempItem(id: string) {
     const oldId = this.temp[id];
     if (!oldId) return;

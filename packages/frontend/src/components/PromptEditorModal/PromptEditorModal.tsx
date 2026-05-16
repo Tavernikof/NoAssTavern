@@ -15,6 +15,7 @@ import style from "./PromptEditorModal.module.scss";
 import Button from "src/components/Button/Button.tsx";
 import PromptEditorBackendWatcher from "./components/PromptEditorBackendWatcher";
 import CodeBlocksEditor, { CodeBlocksEditorCounter } from "src/components/CodeBlocksEditor";
+import MediaGallery, { MediaGalleryCounter } from "src/components/MediaGallery";
 
 type Props = {
   prompt: Prompt,
@@ -37,6 +38,11 @@ const PromptEditorModal: React.FC<Props> = (props) => {
       title: <>Code blocks <CodeBlocksEditorCounter controller={controller.codeBlocksEditorController} /></>,
       content: () => <CodeBlocksEditor controller={controller.codeBlocksEditorController} />,
     },
+    {
+      key: "media",
+      title: <>Media <MediaGalleryCounter controller={controller.media} /></>,
+      content: () => <MediaGallery controller={controller.media} />,
+    },
   ]), [controller]);
 
   return (
@@ -52,7 +58,7 @@ const PromptEditorModal: React.FC<Props> = (props) => {
           : undefined,
       }), [prompt])}
 
-      onSubmit={data => {
+      onSubmit={async data => {
         const backendProviderId = data.backendProviderId?.value;
         if (!backendProviderId) return;
         const backendProvider = backendProviderDict.getById(backendProviderId);
@@ -68,7 +74,9 @@ const PromptEditorModal: React.FC<Props> = (props) => {
           },
           blocks: controller.getBlocksContent(),
           codeBlocks: controller.codeBlocksEditorController.getCodeBlocksContent(),
+          mediaFiles: controller.media.mediaFiles.slice(),
         });
+        await controller.commitMediaChanges();
         resolve(prompt);
       }}
     >

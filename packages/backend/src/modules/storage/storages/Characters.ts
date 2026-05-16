@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AbstractStorage } from "../utils/AbstractStorage.js";
 import { LoreBookSchema } from "./LoreBooks.js";
+import { MediaFileSchema } from "./MediaFile.js";
 import { StorageService } from "../storage.service.js";
 
 export const CharacterSchema = z.object({
@@ -13,6 +14,7 @@ export const CharacterSchema = z.object({
   loreBook: LoreBookSchema.nullish(),
   imageId: z.string().nullish(),
   card: z.looseObject({}).nullish(),
+  mediaFiles: z.array(MediaFileSchema).optional(),
 });
 
 export type Character = z.infer<typeof CharacterSchema>;

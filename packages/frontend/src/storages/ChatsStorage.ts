@@ -4,8 +4,8 @@ import { FlowStorageItem } from "src/storages/FlowsStorage.ts";
 import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { messageStorage } from "src/storages/MessageStorage.ts";
-import { imagesStorage } from "src/storages/ImagesStorage.ts";
-import { filesStorage } from "src/storages/FilesStorage.ts";
+import { MediaFile } from "src/storages/MediaFile.ts";
+import { collectChatMedia, deleteSnapshot } from "src/helpers/collectMediaIds.ts";
 
 export type ChatStorageItem = {
   id: string;
@@ -26,6 +26,7 @@ export type ChatStorageItem = {
   impersonateHistory: string[] | null;
   flow: FlowStorageItem;
   variables: Record<string, string>;
+  mediaFiles?: MediaFile[];
 }
 
 class ChatsStorage extends BaseStorage<ChatStorageItem> {
@@ -38,15 +39,10 @@ class ChatsStorage extends BaseStorage<ChatStorageItem> {
   ];
 
   async removeItem(id: string) {
+    const chat = await this.getItem(id).catch(() => null);
     const messages = await messageStorage.getChatItems(id);
-    const chat = await this.getItem(id);
     await Promise.all(messages.map(message => messageStorage.removeItem(message.id)));
-    await Promise.all(chat.characters.map(({ character }) => {
-      if (character.imageId) return imagesStorage.removeItem(character.imageId);
-    }));
-    if (chat.flow?.mediaFiles?.length) {
-      await Promise.all(chat.flow.mediaFiles.map(file => filesStorage.removeItem(file.id).catch(() => null)));
-    }
+    if (chat) await deleteSnapshot(collectChatMedia(chat));
     await super.removeItem(id);
   }
 }

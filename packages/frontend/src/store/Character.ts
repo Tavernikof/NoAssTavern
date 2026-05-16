@@ -6,7 +6,8 @@ import _cloneDeep from "lodash/cloneDeep";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 import { imagesManager } from "src/store/ImagesManager.ts";
-import { imagesStorage } from "src/storages/ImagesStorage.ts";
+import { MediaFile } from "src/storages/MediaFile.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 type CharacterCreateConfig = {
   isNew?: boolean
@@ -22,6 +23,7 @@ export class Character {
   @observable greetings: string[];
   @observable.ref loreBook: LoreBook | null;
   @observable imageId: string;
+  @observable mediaFiles: MediaFile[] = [];
 
   card: CharacterCardV2 | null;
 
@@ -64,6 +66,7 @@ export class Character {
       loreBook: null,
       card: null,
       imageId: null,
+      mediaFiles: [],
     }, { isNew: true });
   }
 
@@ -83,13 +86,14 @@ export class Character {
       loreBook: null,
       card,
       imageId: await imagesManager.saveBlob(blob),
+      mediaFiles: [],
     }, { isNew: true });
   }
 
   @action
   update(characterContent: Partial<CharacterStorageItem>) {
     if ("imageId" in characterContent && this.imageId && this.imageId !== characterContent.imageId) {
-      imagesStorage.removeItem(this.imageId);
+      imagesManager.removeItem(this.imageId);
     }
     for (const field in characterContent) {
       const data = characterContent[field as keyof CharacterStorageItem];
@@ -102,6 +106,7 @@ export class Character {
   save() {
     this.isNew = false;
     if (this.imageId) imagesManager.saveTempItem(this.imageId);
+    this.mediaFiles.forEach(file => filesManager.saveTempItem(file.id));
   }
 
   @action
@@ -111,6 +116,12 @@ export class Character {
     characterStorageItem.createdAt = new Date();
     if (this.loreBook) characterStorageItem.loreBook = this.loreBook.clone().serialize();
     if (characterStorageItem.imageId) characterStorageItem.imageId = imagesManager.cloneItem(characterStorageItem.imageId);
+    if (characterStorageItem.mediaFiles?.length) {
+      characterStorageItem.mediaFiles = characterStorageItem.mediaFiles.map(item => ({
+        ...item,
+        id: filesManager.cloneItem(item.id),
+      }));
+    }
     return new Character(characterStorageItem, { isNew: true, local });
   }
 
@@ -130,6 +141,7 @@ export class Character {
       imageId: this.imageId || null,
       loreBook: this.loreBook?.serialize() || null,
       card: this.card ? toJS(this.card) : null,
+      mediaFiles: toJS(this.mediaFiles) || [],
     };
   }
 
