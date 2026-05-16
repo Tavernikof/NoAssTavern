@@ -1,4 +1,4 @@
 .container {
-  overflow: hidden;
-  transform: translateZ(0);
+  overflow: hidden !important;
+  transform: translateZ(0) !important;
 }

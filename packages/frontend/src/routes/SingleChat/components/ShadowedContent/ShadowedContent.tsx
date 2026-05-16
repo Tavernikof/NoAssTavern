@@ -8,10 +8,10 @@ type Props = {
 
 const ShadowedContent: React.FC<Props> = (props) => {
   const { content } = props;
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    const container = containerRef.current;
+    const container = contentRef.current;
     if (container) {
       const shadowRoot = container.shadowRoot || container.attachShadow({ mode: "open" });
       shadowRoot.innerHTML = `<style>${sharedCss}</style>${content}`;
@@ -19,7 +19,9 @@ const ShadowedContent: React.FC<Props> = (props) => {
   }, [content]);
 
   return (
-    <div ref={containerRef} className={style.container} />
+    <div className={style.container}>
+      <div ref={contentRef} />
+    </div>
   );
 };
 

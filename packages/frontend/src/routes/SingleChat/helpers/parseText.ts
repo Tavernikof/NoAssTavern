@@ -136,11 +136,28 @@ const addTargetBlankToNode = (node: Element) => {
   }
 };
 
+const FORBID_TAGS = [
+  "title",
+  "form", "input", "button", "textarea",
+  "select", "option", "optgroup", "datalist",
+  "label", "fieldset", "legend",
+  "output", "progress", "meter",
+  "iframe", "frame", "frameset", "object", "embed", "applet",
+  "dialog",
+];
+
+const FORBID_ATTR = [
+  "popover", "popovertarget", "popovertargetaction",
+  "formaction", "formmethod", "formenctype", "formnovalidate", "formtarget",
+  "autofocus", "tabindex", "accesskey", "contenteditable", "draggable",
+];
+
 const cleanHtml = (message: string) => {
   DOMPurify.addHook("afterSanitizeAttributes", addTargetBlankToNode);
   const dom = DOMPurify.sanitize(message, {
     ADD_TAGS: ["style"],
-    FORBID_TAGS: ["title"],
+    FORBID_TAGS,
+    FORBID_ATTR,
     FORCE_BODY: true,
     RETURN_DOM: true,
   }) as Element;
