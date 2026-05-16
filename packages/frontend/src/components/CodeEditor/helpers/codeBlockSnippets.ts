@@ -21,7 +21,7 @@ export const CODE_BLOCK_SNIPPETS: CodeBlockSnippet[] = Object.values(CODE_BLOCK_
     detail: meta.documentation,
     documentation: meta.documentation,
     insertText: `/** @type {${typeName.replace("Params", "Fn")}} */
-function ${meta.name}(params) {
+async function ${meta.name}(params) {
 ${body}
   return params;
 }

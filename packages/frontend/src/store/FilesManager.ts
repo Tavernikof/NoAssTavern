@@ -43,6 +43,13 @@ export class FilesManager {
     return id;
   }
 
+  async saveBase64(data: string, mimeType: string) {
+    const dataUrl = `data:${mimeType};base64,${data}`;
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return this.saveBlob(blob, uuid(), mimeType);
+  }
+
   async removeItem(id: string) {
     if (this.temp[id]) {
       delete this.temp[id];

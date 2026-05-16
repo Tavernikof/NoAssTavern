@@ -2,12 +2,9 @@ import { action, makeObservable, observable, runInAction } from "mobx";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { backendManager } from "src/store/BackendManager.ts";
 import { filesStorage } from "src/storages/FilesStorage.ts";
-import { imagesStorage } from "src/storages/ImagesStorage.ts";
 import { flowsStorage } from "src/storages/FlowsStorage.ts";
 import { charactersStorage } from "src/storages/CharactersStorage.ts";
 import { chatsStorage } from "src/storages/ChatsStorage.ts";
-import { messageStorage } from "src/storages/MessageStorage.ts";
-import { assistantMessageStorage } from "src/storages/AssistantMessageStorage.ts";
 
 const GRACE_MS = 24 * 60 * 60 * 1000;
 
@@ -16,23 +13,15 @@ export type CleanupStatus = "idle" | "scanning" | "scanned" | "deleting" | "done
 export type CleanupSummary = {
   filesCount: number;
   filesSize: number;
-  imagesCount: number;
-  imagesSize: number;
 };
 
 type BackendScanResponse = {
   files: { count: number; size: number };
-  images: { count: number; size: number };
 };
 
 type BackendDeleteResponse = {
   filesDeleted: number;
-  imagesDeleted: number;
   bytesFreed: number;
-};
-
-type SwipeLike = {
-  prompts: Record<string, { images?: { imageId: string }[] } | null | undefined>;
 };
 
 export class StorageCleanupController {
@@ -109,8 +98,6 @@ export class StorageCleanupController {
     return {
       filesCount: data.files.count,
       filesSize: data.files.size,
-      imagesCount: data.images.count,
-      imagesSize: data.images.size,
     };
   }
 
@@ -125,10 +112,8 @@ export class StorageCleanupController {
   private async scanLocal(): Promise<CleanupSummary> {
     const orphans = await this.findLocalOrphans();
     return {
-      filesCount: orphans.files.length,
-      filesSize: orphans.files.reduce((sum, item) => sum + (item.file?.size || 0), 0),
-      imagesCount: orphans.images.length,
-      imagesSize: orphans.images.reduce((sum, item) => sum + (item.image?.size || 0), 0),
+      filesCount: orphans.length,
+      filesSize: orphans.reduce((sum, item) => sum + (item.file?.size || 0), 0),
     };
   }
 
@@ -136,7 +121,7 @@ export class StorageCleanupController {
     const orphans = await this.findLocalOrphans();
     let bytesFreed = 0;
 
-    for (const item of orphans.files) {
+    for (const item of orphans) {
       try {
         await filesStorage.removeItem(item.id);
         bytesFreed += item.file?.size || 0;
@@ -145,33 +130,17 @@ export class StorageCleanupController {
       }
     }
 
-    for (const item of orphans.images) {
-      try {
-        await imagesStorage.removeItem(item.id);
-        bytesFreed += item.image?.size || 0;
-      } catch (error) {
-        console.error(`Failed to delete orphan image ${item.id}:`, error);
-      }
-    }
-
     return bytesFreed;
   }
 
   private async findLocalOrphans() {
-    const { files: refFiles, images: refImages } = await this.collectReferencedIdsLocal();
+    const refFiles = await this.collectReferencedIdsLocal();
     const now = Date.now();
 
-    const [fileItems, imageItems] = await Promise.all([
-      filesStorage.getItems(),
-      imagesStorage.getItems(),
-    ]);
+    const fileItems = await filesStorage.getItems();
 
-    const fileOrphans = fileItems.filter(item =>
+    return fileItems.filter(item =>
       !refFiles.has(item.id) && this.isOlderThanGrace(item.createdAt, now));
-    const imageOrphans = imageItems.filter(item =>
-      !refImages.has(item.id) && this.isOlderThanGrace(item.createdAt, now));
-
-    return { files: fileOrphans, images: imageOrphans };
   }
 
   private isOlderThanGrace(createdAt: Date | string, now: number) {
@@ -182,49 +151,29 @@ export class StorageCleanupController {
 
   private async collectReferencedIdsLocal() {
     const files = new Set<string>();
-    const images = new Set<string>();
 
-    const [flows, characters, chats, messages, assistantMessages] = await Promise.all([
+    const [flows, characters, chats] = await Promise.all([
       flowsStorage.getItems(),
       charactersStorage.getItems(),
       chatsStorage.getItems(),
-      messageStorage.getItems(),
-      assistantMessageStorage.getItems(),
     ]);
 
     flows.forEach(flow => flow.mediaFiles?.forEach(file => files.add(file.id)));
     characters.forEach(character => {
-      if (character.imageId) images.add(character.imageId);
+      if (character.imageId) files.add(character.imageId);
+      character.mediaFiles?.forEach(file => files.add(file.id));
     });
 
     chats.forEach(chat => {
+      chat.mediaFiles?.forEach(file => files.add(file.id));
       chat.characters?.forEach(({ character }) => {
-        if (character?.imageId) images.add(character.imageId);
+        if (character?.imageId) files.add(character.imageId);
+        character?.mediaFiles?.forEach(file => files.add(file.id));
       });
       chat.flow?.mediaFiles?.forEach(file => files.add(file.id));
     });
 
-    collectImageIdsFromSwipes(messages, images);
-    collectImageIdsFromSwipes(assistantMessages, images);
-
-    return { files, images };
-  }
-}
-
-function collectImageIdsFromSwipes(
-  messages: { swipes: SwipeLike[] }[],
-  out: Set<string>,
-) {
-  for (const message of messages) {
-    for (const swipe of message.swipes) {
-      for (const promptKey in swipe.prompts) {
-        const prompt = swipe.prompts[promptKey];
-        if (!prompt?.images) continue;
-        for (const image of prompt.images) {
-          if (image?.imageId) out.add(image.imageId);
-        }
-      }
-    }
+    return files;
   }
 }
 

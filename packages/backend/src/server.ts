@@ -10,6 +10,7 @@ import multipart from "@fastify/multipart";
 import { proxyRoutes } from "./modules/proxy/proxy.controller.js";
 import { baseRoutes } from "./modules/base/base.controller.js";
 import { storageRoutes } from "./modules/storage/storage.controller.js";
+import { runImagesToFilesMigration } from "./modules/storage/migrations/imagesToFiles.js";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import staticServe from "@fastify/static";
@@ -25,6 +26,8 @@ export type ZodFastifyInstance = FastifyInstance<
 >;
 
 export async function buildServer() {
+  await runImagesToFilesMigration();
+
   const app = Fastify({ logger: false })
     .withTypeProvider<ZodTypeProvider>();
 

@@ -4,7 +4,7 @@ import CharacterAvatar from "src/components/CharacterAvatar";
 import { useController, useWatch } from "react-hook-form";
 import { CharacterModalForm } from "../CharacterForm";
 import { Upload, Trash } from "lucide-react";
-import { imagesManager } from "src/store/ImagesManager.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 type Props = Record<string, never>;
 
@@ -16,8 +16,8 @@ const CharacterAvatarField: React.FC<Props> = () => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (file) {
-      imagesManager.saveBlob(file).then(file => {
-        onChange(file);
+      filesManager.saveBlob(file, file.name, file.type).then(id => {
+        onChange(id);
       });
     }
   };

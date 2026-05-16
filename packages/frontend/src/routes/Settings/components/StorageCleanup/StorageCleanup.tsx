@@ -13,13 +13,13 @@ const StorageCleanup: React.FC<Props> = () => {
 
   const scanning = status === "scanning";
   const deleting = status === "deleting";
-  const totalCount = summary ? summary.filesCount + summary.imagesCount : 0;
-  const totalSize = summary ? summary.filesSize + summary.imagesSize : 0;
+  const totalCount = summary ? summary.filesCount : 0;
+  const totalSize = summary ? summary.filesSize : 0;
 
   return (
     <div className={style.container}>
       <span>
-        Find files and images older than 24h that aren&apos;t attached to any character, chat or flow.
+        Find files older than 24h that aren&apos;t attached to any character, chat or flow.
       </span>
 
       <div className={style.actions}>
@@ -45,7 +45,7 @@ const StorageCleanup: React.FC<Props> = () => {
       {status === "scanned" && (
         <span className={style.summary}>
           {totalCount > 0
-            ? `Found ${summary!.filesCount} files (${formatBytes(summary!.filesSize)}) and ${summary!.imagesCount} images (${formatBytes(summary!.imagesSize)}).`
+            ? `Found ${summary!.filesCount} files (${formatBytes(summary!.filesSize)}).`
             : "Nothing to clean up."}
         </span>
       )}

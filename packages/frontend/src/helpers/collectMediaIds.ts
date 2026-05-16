@@ -1,7 +1,6 @@
 import { filesManager } from "src/store/FilesManager.ts";
-import { imagesManager } from "src/store/ImagesManager.ts";
 
-export type MediaSnapshot = { files: Set<string>; images: Set<string> };
+export type MediaSnapshot = { files: Set<string> };
 
 type WithMedia = { mediaFiles?: { id: string }[] | null };
 type PromptLike = WithMedia;
@@ -13,7 +12,7 @@ type ChatLike = WithMedia & {
 };
 
 export function createMediaSnapshot(): MediaSnapshot {
-  return { files: new Set(), images: new Set() };
+  return { files: new Set() };
 }
 
 function addFiles(list: { id: string }[] | null | undefined, out: Set<string>) {
@@ -39,7 +38,7 @@ export function collectFlowMedia(flow: FlowLike | null | undefined, out: MediaSn
 export function collectCharacterMedia(character: CharacterLike | null | undefined, out: MediaSnapshot = createMediaSnapshot()): MediaSnapshot {
   if (!character) return out;
   addFiles(character.mediaFiles, out.files);
-  if (character.imageId) out.images.add(character.imageId);
+  if (character.imageId) out.files.add(character.imageId);
   return out;
 }
 
@@ -54,20 +53,17 @@ export function collectChatMedia(chat: ChatLike | null | undefined, out: MediaSn
 export function diffSnapshots(before: MediaSnapshot, after: MediaSnapshot): MediaSnapshot {
   const result = createMediaSnapshot();
   before.files.forEach(id => { if (!after.files.has(id)) result.files.add(id); });
-  before.images.forEach(id => { if (!after.images.has(id)) result.images.add(id); });
   return result;
 }
 
 export async function deleteSnapshot(snapshot: MediaSnapshot): Promise<void> {
-  await Promise.all([
-    ...Array.from(snapshot.files).map(id => filesManager.removeItem(id).catch(() => null)),
-    ...Array.from(snapshot.images).map(id => imagesManager.removeItem(id).catch(() => null)),
-  ]);
+  await Promise.all(
+    Array.from(snapshot.files).map(id => filesManager.removeItem(id).catch(() => null)),
+  );
 }
 
 export type MediaTrackerExtras = {
   getFiles?: () => Iterable<string>;
-  getImages?: () => Iterable<string>;
 };
 
 export class MediaSnapshotTracker {
@@ -84,12 +80,8 @@ export class MediaSnapshotTracker {
   async commit(): Promise<void> {
     const candidates = createMediaSnapshot();
     this.initial.files.forEach(id => candidates.files.add(id));
-    this.initial.images.forEach(id => candidates.images.add(id));
     if (this.extras?.getFiles) {
       for (const id of this.extras.getFiles()) candidates.files.add(id);
-    }
-    if (this.extras?.getImages) {
-      for (const id of this.extras.getImages()) candidates.images.add(id);
     }
     const after = this.collect();
     await deleteSnapshot(diffSnapshots(candidates, after));

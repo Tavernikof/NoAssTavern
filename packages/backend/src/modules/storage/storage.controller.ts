@@ -9,7 +9,6 @@ import { promptsRoutes } from "./routes/prompts.routes.js";
 import { requestsRoutes } from "./routes/requests.routes.js";
 import { StorageService } from "./storage.service.js";
 import { migrateRoutes } from "./routes/migrate.routes.js";
-import { imagesRoutes } from "./routes/images.routes.js";
 import { filesRoutes } from "./routes/files.routes.js";
 import { globalSettingsRoutes } from "./routes/globalSettings.routes.js";
 import { assistantChatsRoutes } from "./routes/assistantChats.routes.js";
@@ -30,7 +29,6 @@ export async function storageRoutes(app: FastifyInstance) {
   app.register(flowsRoutes(service), { prefix: "/flows" });
   app.register(gcRoutes(service), { prefix: "/gc" });
   app.register(globalSettingsRoutes(service), { prefix: "/globalSettings" });
-  app.register(imagesRoutes(service), { prefix: "/images" });
   app.register(loreBooksRoutes(service), { prefix: "/loreBooks" });
   app.register(messagesRoutes(service), { prefix: "" });
   app.register(promptsRoutes(service), { prefix: "/prompts" });

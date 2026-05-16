@@ -21,7 +21,6 @@ export class BackupManager {
       import("src/storages/FilesStorage"),
       import("src/storages/FlowsStorage"),
       import("src/storages/GlobalSettingsStorage"),
-      import("src/storages/ImagesStorage"),
       import("src/storages/LoreBookStorage"),
       import("src/storages/MessageStorage"),
       import("src/storages/PromptsStorage"),

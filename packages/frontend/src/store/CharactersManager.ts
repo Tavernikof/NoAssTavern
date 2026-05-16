@@ -4,10 +4,15 @@ import { charactersStorage, CharacterStorageItem } from "src/storages/Characters
 import { Character } from "src/store/Character.ts";
 import { parseCharacterCard } from "src/helpers/parseCharacterCard.ts";
 import { AbstractManager } from "src/helpers/AbstractManager.ts";
+import { runImagesToFilesMigration } from "src/store/migrations/imagesToFiles.ts";
 
 export class CharactersManager extends AbstractManager<Character, CharacterStorageItem> {
   constructor() {
     super(charactersStorage, Character);
+  }
+
+  protected async beforeLoad(): Promise<void> {
+    await runImagesToFilesMigration();
   }
 
   getLabel(entity: Character): string {

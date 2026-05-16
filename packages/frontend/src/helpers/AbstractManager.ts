@@ -31,6 +31,7 @@ export abstract class AbstractManager<E extends BaseEntity, S extends { id: stri
 
   private async loadList() {
     await when(() => globalSettings.ready);
+    await this.beforeLoad();
     const data = await this.storage.getItems();
 
     const list: string[] = [];
@@ -52,6 +53,8 @@ export abstract class AbstractManager<E extends BaseEntity, S extends { id: stri
   protected async migrateEntity(baseItem: S) {
     return baseItem;
   }
+
+  protected async beforeLoad(): Promise<void> {}
 
   @computed
   get fullList() {

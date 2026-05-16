@@ -3,7 +3,27 @@ import fs from "fs";
 import { STORAGE_DIR } from "../../../env.js";
 import { StorageService } from "../storage.service.js";
 import glob from "fast-glob";
+import sharp from "sharp";
 import { Entry, BlobWriter } from "@zip.js/zip.js";
+
+const IMAGE_EXTS = new Set(["jpg", "jpeg", "png", "webp", "avif"]);
+
+async function compressImage(buffer: Buffer, ext: string): Promise<Buffer> {
+  const pipeline = sharp(buffer, { failOn: "none" }).rotate();
+  switch (ext) {
+    case "jpg":
+    case "jpeg":
+      return pipeline.jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+    case "png":
+      return pipeline.png({ compressionLevel: 9, palette: true }).toBuffer();
+    case "webp":
+      return pipeline.webp({ quality: 80 }).toBuffer();
+    case "avif":
+      return pipeline.avif({ quality: 60 }).toBuffer();
+    default:
+      return buffer;
+  }
+}
 
 export class FilesStorage {
   readonly filesDir: string;
@@ -15,9 +35,17 @@ export class FilesStorage {
   }
 
   async create(name: string, buffer: Buffer, ext: string): Promise<void> {
-    const safeExt = (ext || "").replace(/^\./, "").replace(/[^a-zA-Z0-9]/g, "") || "bin";
+    const safeExt = (ext || "").replace(/^\./, "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
+    let output = buffer;
+    if (IMAGE_EXTS.has(safeExt)) {
+      try {
+        output = await compressImage(buffer, safeExt);
+      } catch (err) {
+        console.error(`Sharp compression failed for ${name}.${safeExt}, writing original:`, err);
+      }
+    }
     const filePath = path.join(this.filesDir, name + "." + safeExt);
-    await fs.promises.writeFile(filePath, buffer);
+    await fs.promises.writeFile(filePath, output);
   }
 
   async clone(existId: string, newId: string) {

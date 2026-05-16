@@ -1,8 +1,6 @@
 import fs from "fs";
 import path from "path";
 import { StorageService } from "./storage.service.js";
-import { Message } from "./storages/Messages.js";
-import { AssistantMessage } from "./storages/AssistantMessages.js";
 import { MediaFile } from "./storages/MediaFile.js";
 
 export type OrphanInfo = {
@@ -15,33 +13,15 @@ export type OrphanInfo = {
 
 export type GcSummary = {
   files: { count: number; size: number };
-  images: { count: number; size: number };
+  list: OrphanInfo[]
 };
 
 export type GcDeleteResult = {
   filesDeleted: number;
-  imagesDeleted: number;
   bytesFreed: number;
 };
 
 const GRACE_MS = 24 * 60 * 60 * 1000;
-
-function collectImageIdsFromSwipes(
-  messages: (Message | AssistantMessage)[],
-  out: Set<string>,
-) {
-  for (const message of messages) {
-    for (const swipe of message.swipes) {
-      for (const promptKey in swipe.prompts) {
-        const prompt = swipe.prompts[promptKey];
-        if (!prompt?.images) continue;
-        for (const image of prompt.images) {
-          if (image?.imageId) out.add(image.imageId);
-        }
-      }
-    }
-  }
-}
 
 function addMediaFileIds(list: MediaFile[] | undefined, out: Set<string>) {
   if (!list) return;
@@ -53,9 +33,8 @@ function addMediaFileIds(list: MediaFile[] | undefined, out: Set<string>) {
 export class GarbageCollectorService {
   constructor(private storage: StorageService) {}
 
-  async collectReferenced(): Promise<{ files: Set<string>; images: Set<string> }> {
+  async collectReferenced(): Promise<{ files: Set<string> }> {
     const files = new Set<string>();
-    const images = new Set<string>();
 
     const flows = await this.storage.flows.list();
     flows.forEach(flow => {
@@ -65,7 +44,7 @@ export class GarbageCollectorService {
 
     const characters = await this.storage.characters.list();
     characters.forEach(character => {
-      if (character.imageId) images.add(character.imageId);
+      if (character.imageId) files.add(character.imageId);
       addMediaFileIds(character.mediaFiles, files);
     });
 
@@ -76,50 +55,37 @@ export class GarbageCollectorService {
     for (const chat of chats) {
       addMediaFileIds(chat.mediaFiles, files);
       chat.characters.forEach(({ character }) => {
-        if (character.imageId) images.add(character.imageId);
+        if (character.imageId) files.add(character.imageId);
         addMediaFileIds(character.mediaFiles, files);
       });
       addMediaFileIds(chat.flow?.mediaFiles, files);
       chat.flow?.prompts?.forEach(prompt => addMediaFileIds(prompt.mediaFiles, files));
-
-      const messages = await this.storage.messages.listForChat(chat.id);
-      collectImageIdsFromSwipes(messages, images);
     }
-    this.storage.messages.resetDir();
 
-    const assistantChats = await this.storage.assistantChats.list();
-    for (const aChat of assistantChats) {
-      const messages = await this.storage.assistantMessages.listForChat(aChat.id);
-      collectImageIdsFromSwipes(messages, images);
-    }
-    this.storage.assistantMessages.resetDir();
-
-    return { files, images };
+    return { files };
   }
 
-  async scan(): Promise<{ files: OrphanInfo[]; images: OrphanInfo[] }> {
-    const { files: refFiles, images: refImages } = await this.collectReferenced();
+  async scan(): Promise<{ files: OrphanInfo[] }> {
+    const { files: refFiles } = await this.collectReferenced();
     const now = Date.now();
 
     const fileOrphans = await this.findOrphans(this.storage.files.filesDir, refFiles, now);
-    const imageOrphans = await this.findOrphans(this.storage.images.imagesDir, refImages, now);
 
-    return { files: fileOrphans, images: imageOrphans };
+    return { files: fileOrphans };
   }
 
   async scanSummary(): Promise<GcSummary> {
-    const { files, images } = await this.scan();
+    const { files } = await this.scan();
     return {
       files: { count: files.length, size: files.reduce((sum, o) => sum + o.size, 0) },
-      images: { count: images.length, size: images.reduce((sum, o) => sum + o.size, 0) },
+      list: files,
     };
   }
 
   async deleteOrphans(): Promise<GcDeleteResult> {
-    const { files, images } = await this.scan();
+    const { files } = await this.scan();
     let bytesFreed = 0;
     let filesDeleted = 0;
-    let imagesDeleted = 0;
 
     for (const orphan of files) {
       try {
@@ -131,17 +97,7 @@ export class GarbageCollectorService {
       }
     }
 
-    for (const orphan of images) {
-      try {
-        await fs.promises.unlink(orphan.fullPath);
-        bytesFreed += orphan.size;
-        imagesDeleted++;
-      } catch (error) {
-        console.error(`Failed to delete orphan image ${orphan.fullPath}:`, error);
-      }
-    }
-
-    return { filesDeleted, imagesDeleted, bytesFreed };
+    return { filesDeleted, bytesFreed };
   }
 
   private async findOrphans(

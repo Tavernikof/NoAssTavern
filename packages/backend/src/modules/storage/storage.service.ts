@@ -6,7 +6,6 @@ import { LoreBooksStorage } from "./storages/LoreBooks.js";
 import { MessagesStorage } from "./storages/Messages.js";
 import { PromptsStorage } from "./storages/Prompts.js";
 import { RequestsStorage } from "./storages/Requests.js";
-import { ImagesStorage } from "./storages/Images.js";
 import { FilesStorage } from "./storages/Files.js";
 import { GlobalSettingsStorage } from "./storages/GlobalSettings.js";
 import { AssistantChatsStorage } from "./storages/AssistantChats.js";
@@ -23,7 +22,6 @@ export class StorageService {
   files = new FilesStorage(this);
   flows = new FlowsStorage(this);
   globalSettings = new GlobalSettingsStorage(this);
-  images = new ImagesStorage(this);
   loreBooks = new LoreBooksStorage(this);
   messages = new MessagesStorage(this);
   prompts = new PromptsStorage(this);
@@ -39,7 +37,6 @@ export class StorageService {
     this.files,
     this.flows,
     this.globalSettings,
-    this.images,
     this.loreBooks,
     this.messages,
     this.prompts,

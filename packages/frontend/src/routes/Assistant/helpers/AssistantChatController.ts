@@ -12,7 +12,7 @@ import { openAssistantChatSettingsModal } from "src/routes/Assistant/components/
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
-import { imagesManager } from "src/store/ImagesManager.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 type CreateAssistantMessageConfig = {
   id?: string,
@@ -225,7 +225,7 @@ export class AssistantChatController {
     return backendProvider.generate(data).then(async response => {
       abortController.abort();
       const images = response.images
-        ? await Promise.all(response.images.map(async image => ({ imageId: await imagesManager.saveBase64(image.data, image.mimeType) })))
+        ? await Promise.all(response.images.map(async image => ({ imageId: await filesManager.saveBase64(image.data, image.mimeType) })))
         : undefined;
       runInAction(() => {
         const targetMessage = this.messagesDict[targetMessageId];

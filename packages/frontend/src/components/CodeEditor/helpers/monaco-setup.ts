@@ -11,7 +11,7 @@ export * as monaco from "monaco-editor";
 
 const typeDefinitions = [
   globalTypes,
-  ...Object.values(CODE_BLOCK_FUNCTION_META).map(meta => `type ${_upperFirst(meta.name)}Fn = (params: ${_upperFirst(meta.name)}Params) => ${_upperFirst(meta.name)}Params;`),
+  ...Object.values(CODE_BLOCK_FUNCTION_META).map(meta => `type ${_upperFirst(meta.name)}Fn = (params: ${_upperFirst(meta.name)}Params) => Promise<${_upperFirst(meta.name)}Params>;`),
 ];
 
 self.MonacoEnvironment = {

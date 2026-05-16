@@ -6,7 +6,6 @@ import _cloneDeep from "lodash/cloneDeep";
 import { DisposableContainer, DisposableItem } from "src/helpers/DisposableContainer.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 import { filesManager } from "src/store/FilesManager.ts";
-import { imagesManager } from "src/store/ImagesManager.ts";
 
 type CodeBlockCreateConfig = {
   isNew?: boolean;
@@ -17,7 +16,7 @@ type CodeBlockCreateConfig = {
 export const CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR = "function_not_found";
 const DEFAULT_TIMEOUT = 5000;
 
-type BridgeKind = "fileUrl" | "fileContent" | "imageUrl" | "imageContent";
+type BridgeKind = "fileUrl" | "fileContent";
 
 type PendingCall = {
   resolve: (value: unknown) => void;
@@ -52,8 +51,6 @@ function buildSandboxHtml(userContent: string): string {
   }
   self.getFileUrl = function (id) { return bridge("fileUrl", id); };
   self.getFileContent = function (id) { return bridge("fileContent", id); };
-  self.getImageUrl = function (id) { return bridge("imageUrl", id); };
-  self.getImageContent = function (id) { return bridge("imageContent", id); };
 
   self.addEventListener("message", function (e) {
     var d = e.data;
@@ -99,13 +96,8 @@ async function resolveBridge(kind: BridgeKind, fileId: string): Promise<unknown>
     case "fileUrl":
       await filesManager.getItem(fileId);
       return filesManager.cache[fileId] ?? null;
-    case "imageUrl":
-      await imagesManager.getItem(fileId);
-      return imagesManager.cache[fileId] ?? null;
     case "fileContent":
       return filesManager.getFileText(fileId);
-    case "imageContent":
-      return imagesManager.getImageText(fileId);
   }
 }
 

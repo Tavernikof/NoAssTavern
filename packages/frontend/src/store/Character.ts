@@ -5,7 +5,6 @@ import { CharacterCardV2 } from "src/helpers/validateCharacterCard.ts";
 import _cloneDeep from "lodash/cloneDeep";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
-import { imagesManager } from "src/store/ImagesManager.ts";
 import { MediaFile } from "src/storages/MediaFile.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 
@@ -40,7 +39,7 @@ export class Character {
     // migrate image old card
     const oldImage = (this as any).image as Blob | null;
     if (oldImage && oldImage instanceof Blob) {
-      imagesManager.saveBlob(oldImage).then((imageId) => {
+      filesManager.saveBlob(oldImage, "avatar.png", oldImage.type || "image/png").then((imageId) => {
         this.imageId = imageId;
       });
     }
@@ -85,16 +84,13 @@ export class Character {
       greetings: [card.data.first_mes || "", ...(card.data.alternate_greetings || [])],
       loreBook: null,
       card,
-      imageId: await imagesManager.saveBlob(blob),
+      imageId: await filesManager.saveBlob(blob, "avatar.png", blob.type || "image/png"),
       mediaFiles: [],
     }, { isNew: true });
   }
 
   @action
   update(characterContent: Partial<CharacterStorageItem>) {
-    if ("imageId" in characterContent && this.imageId && this.imageId !== characterContent.imageId) {
-      imagesManager.removeItem(this.imageId);
-    }
     for (const field in characterContent) {
       const data = characterContent[field as keyof CharacterStorageItem];
       // @ts-expect-error fuck ts
@@ -105,7 +101,7 @@ export class Character {
   @action
   save() {
     this.isNew = false;
-    if (this.imageId) imagesManager.saveTempItem(this.imageId);
+    if (this.imageId) filesManager.saveTempItem(this.imageId);
     this.mediaFiles.forEach(file => filesManager.saveTempItem(file.id));
   }
 
@@ -115,7 +111,7 @@ export class Character {
     characterStorageItem.id = uuid();
     characterStorageItem.createdAt = new Date();
     if (this.loreBook) characterStorageItem.loreBook = this.loreBook.clone().serialize();
-    if (characterStorageItem.imageId) characterStorageItem.imageId = imagesManager.cloneItem(characterStorageItem.imageId);
+    if (characterStorageItem.imageId) characterStorageItem.imageId = filesManager.cloneItem(characterStorageItem.imageId);
     if (characterStorageItem.mediaFiles?.length) {
       characterStorageItem.mediaFiles = characterStorageItem.mediaFiles.map(item => ({
         ...item,

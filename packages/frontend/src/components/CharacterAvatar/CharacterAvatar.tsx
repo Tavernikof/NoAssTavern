@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { CSSProperties } from "react";
 import { stringToColor } from "src/helpers/stringToColor.ts";
 import { observer } from "mobx-react-lite";
-import { imagesManager } from "src/store/ImagesManager.ts";
+import { filesManager } from "src/store/FilesManager.ts";
 
 type Props = {
   className?: string;
@@ -16,7 +16,7 @@ type Props = {
 const CharacterAvatar: React.FC<Props> = (props) => {
   const { className, name, imageId, size = 80 } = props;
 
-  const src = imageId ? imagesManager.cache[imageId] : null;
+  const src = imageId ? filesManager.cache[imageId] : null;
   const sizeStyle = React.useMemo(() => {
     return {
       "--avatar-color": stringToColor(name),
@@ -25,7 +25,7 @@ const CharacterAvatar: React.FC<Props> = (props) => {
   }, [size, name]);
 
   React.useEffect(() => {
-    if (imageId) imagesManager.getItem(imageId);
+    if (imageId) filesManager.getItem(imageId);
   }, [imageId]);
 
   if (!src) return (

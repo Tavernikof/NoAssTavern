@@ -6,14 +6,9 @@ import { STORAGE_DIR } from "../../../env.js";
 import { sortByCreatedAt } from "../utils/sortByCreatedAt.js";
 import { StorageService } from "../storage.service.js";
 
-export const ChatSwipePromptImageSchema = z.object({
-  imageId: z.string(),
-});
-
 export const ChatSwipePromptResultSchema = z.looseObject({
   requestId: z.string().nullish(),
   message: z.string(),
-  images: z.array(ChatSwipePromptImageSchema).optional(),
   error: z.string().nullish(),
 });
 

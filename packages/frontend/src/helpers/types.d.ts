@@ -10,15 +10,10 @@ type ChatLoreBook = {
   active: boolean,
 }
 
-type ChatSwipePromptImage = {
-  imageId: string;
-}
-
 type ChatSwipePromptResult = {
   requestId?: string | null;
   message: string;
   error?: string | null;
-  images?: ChatSwipePromptImage[];
 } & Record<string, any>
 
 type ChatSwipe = {
@@ -199,7 +194,6 @@ interface Window {
   chatsManager: import("src/store/ChatsManager.ts").ChatsManager,
   codeBlocksManager: import("src/store/CodeBlocksManager.ts").CodeBlocksManager,
   promptsManager: import("src/store/PromptsManager.ts").PromptsManager,
-  imagesManager: import("src/store/ImagesManager.ts").ImagesManager,
   filesManager: import("src/store/FilesManager.ts").FilesManager,
   loreBookManager: import("src/store/LoreBookManager.ts").LoreBookManager,
   globalSettings: import("src/store/GlobalSettings.ts").GlobalSettings,
@@ -257,5 +251,3 @@ type FormatMessageParams = {
 
 declare function getFileUrl(id: string): Promise<string | null>;
 declare function getFileContent(id: string): Promise<string>;
-declare function getImageUrl(id: string): Promise<string | null>;
-declare function getImageContent(id: string): Promise<string>;
