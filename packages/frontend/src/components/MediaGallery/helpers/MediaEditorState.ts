@@ -1,7 +1,6 @@
 import { action, makeObservable, observable, runInAction } from "mobx";
 import _cloneDeep from "lodash/cloneDeep";
 import { filesManager } from "src/store/FilesManager.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 
 export interface MediaEditorController {
   mediaFiles: MediaFile[];

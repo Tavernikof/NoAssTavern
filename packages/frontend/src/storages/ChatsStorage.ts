@@ -4,7 +4,6 @@ import { FlowStorageItem } from "src/storages/FlowsStorage.ts";
 import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { messageStorage } from "src/storages/MessageStorage.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { collectChatMedia, deleteSnapshot } from "src/helpers/collectMediaIds.ts";
 
 export type ChatStorageItem = {

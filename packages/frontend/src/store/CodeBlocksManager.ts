@@ -2,6 +2,13 @@ import { AbstractManager } from "src/helpers/AbstractManager.ts";
 import { CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR, CodeBlock } from "src/store/CodeBlock.ts";
 import { codeBlocksStorage, CodeBlockStorageItem } from "src/storages/CodeBlocksStorage.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
+import type { Flow } from "src/store/Flow.ts";
+import type { Prompt } from "src/store/Prompt.ts";
+
+export type CodeBlockCallOwner = {
+  flow?: Flow;
+  prompt?: Prompt;
+};
 
 export class CodeBlocksManager extends AbstractManager<CodeBlock, CodeBlockStorageItem> {
   private cache = new Map<string, { codeBlock: CodeBlock, refCount: number }>();
@@ -23,6 +30,7 @@ export class CodeBlocksManager extends AbstractManager<CodeBlock, CodeBlockStora
   syncPromptCodeBlocks(
     oldList: PromptCodeBlock[] | undefined,
     newList: PromptCodeBlock[] | undefined,
+    config?: { parentFlow?: Flow, parentPrompt?: Prompt },
   ): PromptCodeBlock[] {
     const oldIds = new Set((oldList ?? []).map(item => item.codeBlock.id));
     const next = newList ?? [];
@@ -45,7 +53,7 @@ export class CodeBlocksManager extends AbstractManager<CodeBlock, CodeBlockStora
       if (!entry) {
         const codeBlock = promptCodeBlock.codeBlock instanceof CodeBlock
           ? promptCodeBlock.codeBlock
-          : new CodeBlock(promptCodeBlock.codeBlock, { local: true });
+          : new CodeBlock(promptCodeBlock.codeBlock, { local: true, ...config });
         entry = { codeBlock, refCount: 0 };
         this.cache.set(id, entry);
       } else if (!(promptCodeBlock.codeBlock instanceof CodeBlock)) {
@@ -60,12 +68,13 @@ export class CodeBlocksManager extends AbstractManager<CodeBlock, CodeBlockStora
     codeBlocks: PromptCodeBlock[],
     functionName: T,
     arg: CodeBlockFunctionArg<T>,
+    owner?: CodeBlockCallOwner,
   ) {
     if (Array.isArray(codeBlocks)) {
       for (const codeBlock of codeBlocks) {
         if (!codeBlock.active) continue;
         try {
-          arg = await codeBlock.codeBlock.callFunction(functionName, arg);
+          arg = await codeBlock.codeBlock.callFunction(functionName, arg, owner);
         } catch (e) {
           if (e instanceof Error && e.message === CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR) {
             continue;

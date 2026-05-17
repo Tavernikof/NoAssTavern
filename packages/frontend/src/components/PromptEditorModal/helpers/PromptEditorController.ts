@@ -21,8 +21,12 @@ export class PromptEditorController {
       if (block.type === "history") return new PresetHistoryEditor(block);
       return new PresetEditor(block);
     });
-    this.codeBlocksEditorController = new CodeBlocksEditorController(prompt.codeBlocks, initialCodeBlockId);
     this.media = new MediaEditorState(prompt.mediaFiles);
+    this.codeBlocksEditorController = new CodeBlocksEditorController(
+      prompt.codeBlocks,
+      this.prompt.parentFlow?.parentChat?.mediaGalleryList || [],
+      initialCodeBlockId,
+    );
     this.selectedTab = initialCodeBlockId ? "code-blocks" : "prompt";
     this.mediaTracker = new MediaSnapshotTracker(
       () => collectPromptMedia(this.prompt),

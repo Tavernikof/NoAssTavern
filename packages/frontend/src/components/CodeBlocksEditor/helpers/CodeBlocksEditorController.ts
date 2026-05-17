@@ -5,9 +5,15 @@ import { CodeBlockEditorBlockController } from "./CodeBlockEditorBlockController
 export class CodeBlocksEditorController {
   @observable.ref codeBlocks: CodeBlockEditorBlockController[];
   @observable selectedCodeBlock: CodeBlockEditorBlockController | null = null;
-  
-  constructor(codeBlocks: PromptCodeBlock[], initialCodeBlockId?: string) {
+  mediaGallery: MediaGallery
+
+  constructor(
+    codeBlocks: PromptCodeBlock[],
+    mediaGalley: MediaGallery,
+    initialCodeBlockId?: string,
+  ) {
     this.codeBlocks = codeBlocks?.map(promptCodeBlock => new CodeBlockEditorBlockController(promptCodeBlock)) || [];
+    this.mediaGallery = mediaGalley;
     this.selectedCodeBlock = initialCodeBlockId ? this.codeBlocks.find(codeBlock => codeBlock.codeBlock.id === initialCodeBlockId) || null : null;
 
     makeObservable(this);

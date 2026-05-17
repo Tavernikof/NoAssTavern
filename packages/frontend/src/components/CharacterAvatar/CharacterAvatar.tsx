@@ -25,7 +25,7 @@ const CharacterAvatar: React.FC<Props> = (props) => {
   }, [size, name]);
 
   React.useEffect(() => {
-    if (imageId) filesManager.getItem(imageId);
+    if (imageId) filesManager.loadFileCacheInCache(imageId);
   }, [imageId]);
 
   if (!src) return (

@@ -5,7 +5,6 @@ import {
   flowsStorage,
   FlowStorageItem,
 } from "src/storages/FlowsStorage.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 import { v4 as uuid } from "uuid";
 import { Prompt } from "src/store/Prompt.ts";
@@ -17,10 +16,12 @@ import _cloneDeep from "lodash/cloneDeep";
 import { PromptStorageItem } from "src/storages/PromptsStorage.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
+import type { Chat } from "src/store/Chat.ts";
 
 type FlowCreateConfig = {
-  isNew?: boolean
-  local?: boolean
+  isNew?: boolean;
+  local?: boolean;
+  parentChat?: Chat;
 }
 
 export class Flow {
@@ -36,6 +37,7 @@ export class Flow {
 
   @observable isNew: boolean;
   local: boolean;
+  parentChat: Chat | null = null;
 
   @observable private currentProcess: FlowRunner[] = [];
   messageAsyncProcesses = new Map<MessageController, Promise<any>[]>();
@@ -43,6 +45,7 @@ export class Flow {
   constructor(data: FlowStorageItem, config?: FlowCreateConfig) {
     this.isNew = config?.isNew ?? false;
     this.local = config?.local ?? false;
+    this.parentChat = config?.parentChat ?? null;
 
     this.update(data);
 
@@ -108,7 +111,7 @@ export class Flow {
             : new Prompt(prompt, { local: true, parentFlow: this }),
           );
         } else if (field === "codeBlocks") {
-          this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[]);
+          this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[], { parentFlow: this });
         } else if (field === "mediaFiles") {
           this.mediaFiles = (data as MediaFile[]) || [];
         } else {
@@ -164,8 +167,11 @@ export class Flow {
     });
   }
 
-  async callCodeBlockFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>) {
-    return codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg);
+  async callCodeBlockFunction<T extends CodeBlockFunction>(
+    functionName: T,
+    arg: CodeBlockFunctionArg<T>,
+  ) {
+    return codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg, { flow: this });
   }
 
   @action

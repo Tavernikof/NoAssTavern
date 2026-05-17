@@ -2,7 +2,6 @@ import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { IDBPDatabase } from "idb";
 import { Edge } from "@xyflow/react";
 import { PromptCodeBlockStorageItem, PromptStorageItem } from "src/storages/PromptsStorage.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { collectFlowMedia, deleteSnapshot } from "src/helpers/collectMediaIds.ts";
 
 export type FlowSchemeNode<D = Record<string, any>> = {

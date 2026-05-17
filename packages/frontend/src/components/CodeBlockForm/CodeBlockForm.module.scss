@@ -27,7 +27,17 @@
   flex-direction: column;
   gap: 4px;
   flex-shrink: 0;
-  min-width: 140px;
+  width: 250px;
+  overflow-y: auto;
+}
+
+.sidebarHeader {
+  margin-top: 8px;
+  padding: 2px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  opacity: 0.6;
 }
 
 .footer {

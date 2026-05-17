@@ -187,6 +187,23 @@ type FlowNodeConfig<D = Record<string, any>> = {
 
 // ============================================================================
 
+type MediaFile = {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  createdAt: Date;
+};
+
+type MediaGalleryItem = {
+  file: MediaFile,
+  source: string,
+}
+
+type MediaGallery = MediaGalleryItem[];
+
+// ============================================================================
+
 interface Window {
   assistantChatsManager: import("src/store/AssistantChatsManager.ts").AssistantChatsManager,
   flowsManager: import("src/store/FlowsManager.ts").FlowsManager,
@@ -249,5 +266,5 @@ type FormatMessageParams = {
 // Code Block Sandbox Globals
 // ============================================================================
 
-declare function getFileUrl(id: string): Promise<string | null>;
-declare function getFileContent(id: string): Promise<string>;
+declare function getFileUrl(name: string): Promise<string | null>;
+declare function getFileContent(name: string): Promise<string>;

@@ -16,6 +16,7 @@ const CodeBlocksEditor: React.FC<Props> = (props) => {
     <CodeBlockForm
       name={selectedCodeBlock.name}
       content={selectedCodeBlock.content}
+      mediaGallery={controller.mediaGallery}
       onNameChange={(value) => selectedCodeBlock.setName(value)}
       onContentChange={(value) => selectedCodeBlock.setContent(value)}
       onBack={() => controller.selectCodeBlock(null)}

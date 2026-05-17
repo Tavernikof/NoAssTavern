@@ -1,7 +1,7 @@
 import * as React from "react";
-import { imagesManager } from "src/store/ImagesManager.ts";
 import style from "./AssistantChatMessageImage.module.scss";
 import { observer } from "mobx-react-lite";
+import { filesManager } from "src/store/FilesManager.ts";
 
 type Props = {
   imageId: string;
@@ -10,10 +10,10 @@ type Props = {
 const AssistantChatMessageImage: React.FC<Props> = (props) => {
   const { imageId } = props;
 
-  const src = imageId ? imagesManager.cache[imageId] : null;
+  const src = imageId ? filesManager.cache[imageId] : null;
 
   React.useEffect(() => {
-    if (imageId) imagesManager.getItem(imageId);
+    if (imageId) filesManager.loadFileCacheInCache(imageId);
   }, [imageId]);
 
   if (!src) return null;

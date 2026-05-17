@@ -4,8 +4,6 @@ import { Download, Plus, Trash } from "lucide-react";
 import Button from "src/components/Button/Button.tsx";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { filesManager } from "src/store/FilesManager.ts";
-import { globalSettings } from "src/store/GlobalSettings.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { MediaEditorController } from "src/components/MediaGallery/helpers/MediaEditorState.ts";
 import formatBytes from "src/components/MediaGallery/helpers/formatBytes.ts";
 import style from "./MediaGallery.module.scss";
@@ -73,12 +71,10 @@ const MediaItem: React.FC<{
   onRemove: () => void,
 }> = observer(({ file, onRemove }) => {
   React.useEffect(() => {
-    if (!globalSettings.isBackendEnabled) filesManager.getItem(file.id);
+    filesManager.loadFileCacheInCache(file.id);
   }, [file.id]);
 
-  const href = globalSettings.isBackendEnabled
-    ? filesManager.getFileUrl(file.id)
-    : filesManager.cache[file.id];
+  const href = filesManager.cache[file.id];
 
   return (
     <div className={style.item}>

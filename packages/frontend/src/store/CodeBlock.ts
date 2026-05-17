@@ -1,16 +1,19 @@
 import { action, makeObservable, observable, reaction } from "mobx";
-import { Character } from "src/store/Character.ts";
 import { codeBlocksStorage, CodeBlockStorageItem } from "src/storages/CodeBlocksStorage.ts";
 import { v4 as uuid } from "uuid";
 import _cloneDeep from "lodash/cloneDeep";
 import { DisposableContainer, DisposableItem } from "src/helpers/DisposableContainer.ts";
 import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 import { filesManager } from "src/store/FilesManager.ts";
+import type { Flow } from "src/store/Flow.ts";
+import type { Prompt } from "src/store/Prompt.ts";
+import type { CodeBlockCallOwner } from "src/store/CodeBlocksManager.ts";
 
 type CodeBlockCreateConfig = {
   isNew?: boolean;
   local?: boolean;
-  parentCharacter?: Character | null;
+  parentFlow?: Flow;
+  parentPrompt?: Prompt;
 }
 
 export const CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR = "function_not_found";
@@ -29,7 +32,7 @@ type SerializedError = { message: string; stack?: string };
 type SandboxMessage =
   | { type: "ready" }
   | { type: "result"; id: string; result?: unknown; error?: SerializedError }
-  | { type: "bridge-request"; reqId: number; kind: BridgeKind; fileId: string };
+  | { type: "bridge-request"; reqId: number; kind: BridgeKind; name: string };
 
 function buildSandboxHtml(userContent: string): string {
   // User content is inlined directly so that top-level `function foo() {}` /
@@ -40,17 +43,17 @@ function buildSandboxHtml(userContent: string): string {
   var pending = new Map();
   var cache = new Map();
   var seq = 0;
-  function bridge(kind, id) {
-    var key = kind + ":" + id;
+  function bridge(kind, name) {
+    var key = kind + ":" + name;
     if (cache.has(key)) return Promise.resolve(cache.get(key));
     var reqId = ++seq;
     return new Promise(function (resolve, reject) {
       pending.set(reqId, { resolve: resolve, reject: reject });
-      parent.postMessage({ type: "bridge-request", reqId: reqId, kind: kind, fileId: id }, "*");
+      parent.postMessage({ type: "bridge-request", reqId: reqId, kind: kind, name: name }, "*");
     }).then(function (value) { cache.set(key, value); return value; });
   }
-  self.getFileUrl = function (id) { return bridge("fileUrl", id); };
-  self.getFileContent = function (id) { return bridge("fileContent", id); };
+  self.getFileUrl = function (name) { return bridge("fileUrl", name); };
+  self.getFileContent = function (name) { return bridge("fileContent", name); };
 
   self.addEventListener("message", function (e) {
     var d = e.data;
@@ -91,36 +94,30 @@ parent.postMessage({ type: "ready" }, "*");
 </script></body></html>`;
 }
 
-async function resolveBridge(kind: BridgeKind, fileId: string): Promise<unknown> {
-  switch (kind) {
-    case "fileUrl":
-      await filesManager.getItem(fileId);
-      return filesManager.cache[fileId] ?? null;
-    case "fileContent":
-      return filesManager.getFileText(fileId);
-  }
-}
-
 export class CodeBlock implements DisposableItem {
   private dc = new DisposableContainer();
   @observable id: string;
   @observable createdAt: Date;
   @observable name: string;
   @observable content: string;
+  private parentFlow: Flow | null = null;
+  private parentPrompt: Prompt | null = null;
 
   @observable isNew: boolean;
   local: boolean;
-  parentCharacter: Character | null = null;
 
   private iframe: HTMLIFrameElement | null = null;
   private ready: Promise<void> | null = null;
   private messageHandler: ((e: MessageEvent) => void) | null = null;
   private pendingCalls = new Map<string, PendingCall>();
+  currentFlow: Flow | null = null;
+  currentPrompt: Prompt | null = null;
 
   constructor(data: CodeBlockStorageItem, config?: CodeBlockCreateConfig) {
     this.isNew = config?.isNew ?? false;
     this.local = config?.local ?? false;
-    this.parentCharacter = config?.parentCharacter ?? null;
+    this.parentFlow = config?.parentFlow ?? null;
+    this.parentPrompt = config?.parentPrompt ?? null;
     this.update(data);
     makeObservable(this);
 
@@ -141,13 +138,13 @@ export class CodeBlock implements DisposableItem {
     this.dc.dispose();
   }
 
-  static createEmpty(parentCharacter?: Character): CodeBlock {
+  static createEmpty(): CodeBlock {
     return new this({
       id: uuid(),
       createdAt: new Date(),
       name: "",
       content: "",
-    }, { isNew: true, parentCharacter });
+    }, { isNew: true });
   }
 
   @action
@@ -169,7 +166,7 @@ export class CodeBlock implements DisposableItem {
     const codeBlockStorageItem = _cloneDeep(this.serialize());
     codeBlockStorageItem.id = uuid();
     codeBlockStorageItem.createdAt = new Date();
-    return new CodeBlock(codeBlockStorageItem, { isNew: true, local, parentCharacter: this.parentCharacter });
+    return new CodeBlock(codeBlockStorageItem, { isNew: true, local });
   }
 
   serialize(): CodeBlockStorageItem {
@@ -186,7 +183,7 @@ export class CodeBlock implements DisposableItem {
     const iframe = document.createElement("iframe");
     iframe.setAttribute("sandbox", "allow-scripts");
     iframe.style.display = "none";
-    iframe.src = `data:text/html;charset=utf-8,${encodeURIComponent(buildSandboxHtml(this.content))}`
+    iframe.src = `data:text/html;charset=utf-8,${encodeURIComponent(buildSandboxHtml(this.content))}`;
 
     this.ready = new Promise<void>((resolve) => {
       const handler = (event: MessageEvent) => {
@@ -215,7 +212,7 @@ export class CodeBlock implements DisposableItem {
         }
 
         if (data.type === "bridge-request") {
-          this.handleBridgeRequest(iframe, data.reqId, data.kind, data.fileId);
+          this.handleBridgeRequest(iframe, data.reqId, data.kind, data.name);
           return;
         }
       };
@@ -229,8 +226,8 @@ export class CodeBlock implements DisposableItem {
     return this.ready;
   }
 
-  private handleBridgeRequest(iframe: HTMLIFrameElement, reqId: number, kind: BridgeKind, fileId: string) {
-    resolveBridge(kind, fileId).then(
+  private handleBridgeRequest(iframe: HTMLIFrameElement, reqId: number, kind: BridgeKind, name: string) {
+    this.resolveBridge(kind, name).then(
       (value) => {
         iframe.contentWindow?.postMessage({ type: "bridge-response", reqId, value }, "*");
       },
@@ -259,12 +256,19 @@ export class CodeBlock implements DisposableItem {
     this.pendingCalls.clear();
   }
 
-  async callFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>): Promise<CodeBlockFunctionArg<T>> {
+  async callFunction<T extends CodeBlockFunction>(
+    functionName: T,
+    arg: CodeBlockFunctionArg<T>,
+    owner?: CodeBlockCallOwner,
+  ): Promise<CodeBlockFunctionArg<T>> {
     await this.createSandbox();
     const iframe = this.iframe;
     if (!iframe || !iframe.contentWindow) {
       throw new Error("Sandbox unavailable");
     }
+
+    this.currentFlow = owner?.flow ?? null;
+    this.currentPrompt = owner?.prompt ?? null;
 
     const id = uuid();
     return new Promise<CodeBlockFunctionArg<T>>((resolve, reject) => {
@@ -282,5 +286,19 @@ export class CodeBlock implements DisposableItem {
 
       iframe.contentWindow!.postMessage({ type: "call", id, functionName, arg }, "*");
     });
+  }
+
+  async resolveBridge(kind: BridgeKind, name: string) {
+    const mediaGalleryList = this.parentFlow?.parentChat?.mediaGalleryList
+      || this.parentPrompt?.parentFlow?.parentChat?.mediaGalleryList;
+    const file = mediaGalleryList?.find(({ file }) => file.name === name);
+    if (!file) return Promise.resolve(null);
+    const fileId = file.file.id;
+    switch (kind) {
+      case "fileUrl":
+        return filesManager.getFileUrl(fileId);
+      case "fileContent":
+        return filesManager.getFileText(fileId);
+    }
   }
 }

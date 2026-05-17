@@ -345,6 +345,7 @@ export default [
         }, "active": true,
       }],
     }],
+    codeBlocks: [],
   },
   {
     "id": uuid(),
@@ -1135,6 +1136,7 @@ export default [
           }
         ]
       }
-    ]
+    ],
+    codeBlocks: [],
   },
 ] satisfies FlowStorageItem[];

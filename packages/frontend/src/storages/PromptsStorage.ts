@@ -2,7 +2,6 @@ import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { IDBPDatabase } from "idb";
 import { BackendProvider } from "src/enums/BackendProvider.ts";
 import { CodeBlockStorageItem } from "src/storages/CodeBlocksStorage.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { collectPromptMedia, deleteSnapshot } from "src/helpers/collectMediaIds.ts";
 
 export type PromptCodeBlockStorageItem = {

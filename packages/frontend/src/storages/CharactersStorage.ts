@@ -2,7 +2,6 @@ import { IDBPDatabase } from "idb";
 import { CharacterCardV2 } from "src/helpers/validateCharacterCard.ts";
 import { LoreBookStorageItem } from "./LoreBookStorage.ts";
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { collectCharacterMedia, deleteSnapshot } from "src/helpers/collectMediaIds.ts";
 
 export type CharacterStorageItem = {

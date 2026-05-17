@@ -143,7 +143,6 @@ export class ChatController {
     return loreBooks;
   }
 
-
   getUserPrefix() {
     return prepareMessage(prepareImpersonate(this.flow.userPrefix), this.getPresetVars());
   }

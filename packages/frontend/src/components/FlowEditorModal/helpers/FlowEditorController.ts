@@ -32,8 +32,12 @@ export class FlowEditorController {
       this.promptsDict[prompt.id] = { prompt, new: false, used: true };
     });
 
-    this.codeBlocksEditorController = new CodeBlocksEditorController(flow.codeBlocks, initialCodeBlockId);
     this.media = new MediaEditorState(flow.mediaFiles);
+    this.codeBlocksEditorController = new CodeBlocksEditorController(
+      flow.codeBlocks,
+      this.flow.parentChat?.mediaGalleryList || [],
+      initialCodeBlockId,
+    );
     this.selectedTab = initialCodeBlockId ? "code-blocks" : "flow";
     this.mediaTracker = new MediaSnapshotTracker(
       () => collectFlowMedia(this.flow),

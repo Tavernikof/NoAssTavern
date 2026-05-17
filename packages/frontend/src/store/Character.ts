@@ -1,11 +1,10 @@
-import { action, makeObservable, observable, reaction, toJS } from "mobx";
+import { action, computed, makeObservable, observable, reaction, toJS } from "mobx";
 import { charactersStorage, CharacterStorageItem } from "src/storages/CharactersStorage.ts";
 import { v4 as uuid } from "uuid";
 import { CharacterCardV2 } from "src/helpers/validateCharacterCard.ts";
 import _cloneDeep from "lodash/cloneDeep";
 import { LoreBook } from "src/store/LoreBook.ts";
 import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 
 type CharacterCreateConfig = {
@@ -87,6 +86,19 @@ export class Character {
       imageId: await filesManager.saveBlob(blob, "avatar.png", blob.type || "image/png"),
       mediaFiles: [],
     }, { isNew: true });
+  }
+
+  @computed
+  get avatar() {
+    const { imageId } = this;
+    if (!imageId) return null;
+    return {
+      id: imageId,
+      name: this.name,
+      mimeType: "image",
+      size: -1,
+      createdAt: new Date(),
+    } as MediaFile;
   }
 
   @action

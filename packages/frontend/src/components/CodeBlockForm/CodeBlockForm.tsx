@@ -2,7 +2,7 @@ import * as React from "react";
 import style from "./CodeBlockForm.module.scss";
 import { FormInput, Input } from "src/components/Form";
 import Button from "src/components/Button";
-import { ChevronLeft, Plus, Save } from "lucide-react";
+import { ChevronLeft, Save } from "lucide-react";
 import CodeEditor, { CodeEditorApi } from "src/components/CodeEditor";
 import { CODE_BLOCK_SNIPPETS } from "src/components/CodeEditor/helpers/codeBlockSnippets";
 import { observer } from "mobx-react-lite";
@@ -10,6 +10,7 @@ import { observer } from "mobx-react-lite";
 type Props = {
   name: string;
   content: string;
+  mediaGallery: MediaGallery;
   onNameChange: (name: string) => void;
   onContentChange: (content: string) => void;
   onBack?: () => void;
@@ -17,7 +18,7 @@ type Props = {
 };
 
 const CodeBlockForm: React.FC<Props> = (props) => {
-  const { name, content, onNameChange, onContentChange, onBack, onSubmit } = props;
+  const { name, content, mediaGallery, onNameChange, onContentChange, onBack, onSubmit } = props;
   const codeEditorRef = React.useRef<CodeEditorApi>(null);
 
   React.useEffect(() => {
@@ -26,6 +27,11 @@ const CodeBlockForm: React.FC<Props> = (props) => {
 
   const handleInsertSnippet = React.useCallback((snippet: string) => {
     codeEditorRef.current?.insertSnippet(snippet);
+  }, []);
+
+  const handleInsertAttachment = React.useCallback((attachmentName: string) => {
+    const escaped = attachmentName.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    codeEditorRef.current?.insertSnippet(`await getFileUrl("${escaped}")`);
   }, []);
 
   return (
@@ -51,21 +57,38 @@ const CodeBlockForm: React.FC<Props> = (props) => {
       </div>
 
       <div className={style.editorRow}>
+        <CodeEditor ref={codeEditorRef} onChange={onContentChange} />
+
         <div className={style.sidebar}>
+          <div className={style.sidebarHeader}>Code snippet:</div>
           {CODE_BLOCK_SNIPPETS.map((snippet) => (
             <Button
               key={snippet.label}
               type="button"
               size="small"
-              iconBefore={Plus}
               title={snippet.documentation}
               onClick={() => handleInsertSnippet(snippet.insertText)}
             >
               {snippet.label}
             </Button>
           ))}
+          {Array.isArray(mediaGallery) && (
+            <>
+              <div className={style.sidebarHeader}>Media:</div>
+              {mediaGallery.map(({ file, source }) => (
+                <Button
+                  key={file.id}
+                  type="button"
+                  size="small"
+                  title={`Source: ${source}`}
+                  onClick={() => handleInsertAttachment(file.name)}
+                >
+                  {file.name}
+                </Button>
+              ))}
+            </>
+          )}
         </div>
-        <CodeEditor ref={codeEditorRef} onChange={onContentChange} />
       </div>
 
       {onSubmit && (

@@ -9,7 +9,6 @@ import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunc
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { codeBlocksManager } from "src/store/CodeBlocksManager.ts";
 import { Flow } from "src/store/Flow.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 
 type PromptCreateConfig = {
@@ -99,7 +98,7 @@ export class Prompt {
       const data = promptContent[field as keyof PromptStorageItem];
       if (data !== undefined) {
         if (field === "codeBlocks") {
-          this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[]);
+          this.codeBlocks = codeBlocksManager.syncPromptCodeBlocks(this.codeBlocks, data as PromptCodeBlock[], { parentPrompt: this });
         } else if (field === "mediaFiles") {
           this.mediaFiles = (data as MediaFile[]) || [];
         } else {
@@ -167,9 +166,14 @@ export class Prompt {
     return stop.length ? stop : undefined;
   }
 
-  async callCodeBlockFunction<T extends CodeBlockFunction>(functionName: T, arg: CodeBlockFunctionArg<T>) {
-    arg = await codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg);
-    if (this.parentFlow) arg = await codeBlocksManager.callCodeBlockFunction(this.parentFlow.codeBlocks, functionName, arg);
+  async callCodeBlockFunction<T extends CodeBlockFunction>(
+    functionName: T,
+    arg: CodeBlockFunctionArg<T>,
+  ) {
+    arg = await codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg, { prompt: this });
+    if (this.parentFlow) {
+      arg = await codeBlocksManager.callCodeBlockFunction(this.parentFlow.codeBlocks, functionName, arg, { flow: this.parentFlow });
+    }
     return arg;
   }
 

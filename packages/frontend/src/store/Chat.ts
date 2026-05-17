@@ -4,7 +4,6 @@ import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
 import { v4 as uuid } from "uuid";
 import { LoreBook } from "src/store/LoreBook.ts";
-import { MediaFile } from "src/storages/MediaFile.ts";
 import { filesManager } from "src/store/FilesManager.ts";
 import { parseDate } from "src/helpers/date.ts";
 
@@ -54,7 +53,7 @@ export class Chat {
     this.persona = data.persona;
     this.impersonate = data.impersonate;
     this.impersonateHistory = data.impersonateHistory || [];
-    this.flow = new Flow(data.flow, { local: true });
+    this.flow = new Flow(data.flow, { local: true, parentChat: this });
     this.mediaFiles = data.mediaFiles || [];
     this.variables = data.variables ?? {};
 
@@ -112,6 +111,30 @@ export class Chat {
       custom: true,
     }));
     return options;
+  }
+
+  @computed
+  get mediaGalleryList() {
+    const list: MediaGallery = [];
+
+    const addMediaList = (mediaFiles: MediaFile[], source: string) => {
+      mediaFiles.forEach((mediaFile) => list.push({ file: mediaFile, source }));
+    };
+
+    addMediaList(this.mediaFiles, "chat");
+
+    this.characters.forEach(({ character }) => {
+      addMediaList(character.mediaFiles, "character");
+      // todo: достать аватарку
+      if (character.avatar) list.push({ file: character.avatar, source: "character" });
+    });
+
+    addMediaList(this.flow.mediaFiles, "flow");
+    this.flow.prompts.forEach(prompt => {
+      addMediaList(prompt.mediaFiles, "prompt");
+    });
+
+    return list;
   }
 
   @action

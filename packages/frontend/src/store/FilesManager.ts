@@ -12,11 +12,11 @@ export class FilesManager {
     makeObservable(this);
   }
 
-  getItem(id: string) {
+  loadFileCacheInCache(id: string) {
     if (this.cache[id] !== undefined) return Promise.resolve();
     if (globalSettings.isBackendEnabled) {
       runInAction(() => {
-        this.cache[id] = this.getFileUrl(id);
+        this.cache[id] = this.formatBackendFileUrl(id);
       });
       return Promise.resolve();
     } else {
@@ -99,7 +99,7 @@ export class FilesManager {
 
     this.cache[newId] = null;
     if (globalSettings.isBackendEnabled) {
-      this.cache[newId] = this.getFileUrl(id);
+      this.cache[newId] = this.formatBackendFileUrl(id);
     } else {
       filesStorage.getItem(id).then(action(item => {
         if (!item) return;
@@ -110,13 +110,18 @@ export class FilesManager {
     return newId;
   }
 
-  getFileUrl(id: string) {
+  formatBackendFileUrl(id: string) {
     return `${globalSettings.backendUrl}/api/storage/files/${id}`;
   }
 
+  getFileUrl(id: string) {
+    return this.loadFileCacheInCache(id).then(() => this.cache[id]);
+  }
+
+
   async getFileText(id: string): Promise<string> {
     if (globalSettings.isBackendEnabled) {
-      const response = await fetch(this.getFileUrl(id));
+      const response = await fetch(this.formatBackendFileUrl(id));
       return response.text();
     }
     const item = await filesStorage.getItem(id);

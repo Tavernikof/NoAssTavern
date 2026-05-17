@@ -42,7 +42,7 @@ const ChatLevers: React.FC<Props> = () => {
       {Boolean(flow.codeBlocks.length) && (
         <div className={style.container}>
           <div className={style.head}>
-            <div className={style.title}>Flow</div>
+            <div className={style.title}>{flow.name}</div>
           </div>
           {flow.codeBlocks.map((codeBlock, i) => (
             <ChatCodeBlockLever
