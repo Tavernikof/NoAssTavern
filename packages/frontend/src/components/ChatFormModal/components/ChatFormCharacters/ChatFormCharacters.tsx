@@ -11,6 +11,8 @@ import { RadioControlled } from "src/components/Form/components/Radio";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton";
 import { Trash, Users } from "lucide-react";
 import { useChatFormContext } from "src/components/ChatFormModal/components/helpers/ChatFormContext.ts";
+import CharacterAvatar from "src/components/CharacterAvatar";
+import { Character } from "src/store/Character.ts";
 
 type Props = {
   chat?: Chat
@@ -27,11 +29,13 @@ const ChatFormCharacters: React.FC<Props> = (props) => {
     const characters = charactersManager.fullList.map(character => ({
       value: character.id,
       label: charactersManager.getLabel(character),
+      original: character,
     }));
     if (chat) {
       chat.characters.map(({ character }) => characters.unshift(({
         value: character.id,
         label: `${character.name} (current)`,
+        original: character,
       })));
     }
     return characters;
@@ -80,6 +84,15 @@ const ChatFormCharacters: React.FC<Props> = (props) => {
           }}
           options={characters}
           isMulti
+          formatOptionLabel={(option) => {
+            const { original: character, label } = option as { label: string, value: string, original: Character };
+            return (
+              <div className={style.characterOption}>
+                <CharacterAvatar name={character.name} imageId={character.imageId} size={24} />
+                <div className={style.characterName}>{label}</div>
+              </div>
+            );
+          }}
         />
       </FormInput>
 

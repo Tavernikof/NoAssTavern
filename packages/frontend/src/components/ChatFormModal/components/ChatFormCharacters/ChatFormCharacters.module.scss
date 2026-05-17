@@ -1,3 +1,13 @@
+.characterOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.characterName {
+  min-width: 0;
+}
+
 .characters {
   th {
     font-size: 12px;
