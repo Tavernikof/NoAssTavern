@@ -54,33 +54,15 @@ export default defineConfig({
                 { text: "Флоу", link: "/ru/features/flows" },
                 { text: "Промпты", link: "/ru/features/prompts" },
                 { text: "Код-блоки", link: "/ru/features/code-blocks" },
+                { text: "Медиа файлы", link: "/ru/features/media" },
               ],
             },
             {
               items: [
-                { text: "Режим ассистента", link: "/ru/features/assistant" },
+                { text: "Режим ассистента", link:  "/ru/features/assistant" },
                 { text: "Саммари", link: "/ru/features/summary" },
                 { text: "Перевод через LLM", link: "/ru/features/llm-translate" },
-              ],
-            },
-          ],
-          "/ru/tutorials/": [
-            {
-              text: "Уроки",
-              items: [
-                { text: "Создание первого персонажа", link: "/ru/tutorials/create-first-character" },
-                { text: "Настройка AI-провайдера", link: "/ru/tutorials/setup-ai-provider" },
-                { text: "Использование потоков", link: "/ru/tutorials/using-flows" },
-              ],
-            },
-          ],
-          "/ru/settings/": [
-            {
-              text: "Настройки",
-              items: [
-                { text: "API-ключи", link: "/ru/settings/api-keys" },
-                { text: "Подключения и прокси", link: "/ru/settings/connections" },
-                { text: "Резервное копирование", link: "/ru/settings/backup-restore" },
+                { text: "Форматирование сообщений", link: "/ru/features/format-message" },
               ],
             },
           ],
