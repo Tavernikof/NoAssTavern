@@ -183,7 +183,7 @@ export const parseText = (config: ParseTextConfig) => {
   let hasStyle = false;
   if (allowHtml) {
     const dom = cleanHtml(text);
-    applyDefaultStyleToElement(dom);
+    if (!skipDefaultStyle) applyDefaultStyleToElement(dom);
     text = dom.innerHTML;
     hasStyle = Boolean(dom.querySelector("style") || dom.querySelector("*[style]"));
   } else {
