@@ -125,7 +125,6 @@ export class Chat {
 
     this.characters.forEach(({ character }) => {
       addMediaList(character.mediaFiles, "character");
-      // todo: достать аватарку
       if (character.avatar) list.push({ file: character.avatar, source: "character" });
     });
 
