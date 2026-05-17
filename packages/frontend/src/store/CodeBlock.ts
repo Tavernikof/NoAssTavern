@@ -1,4 +1,4 @@
-import { action, makeObservable, observable, reaction } from "mobx";
+import { action, computed, makeObservable, observable, reaction } from "mobx";
 import { codeBlocksStorage, CodeBlockStorageItem } from "src/storages/CodeBlocksStorage.ts";
 import { v4 as uuid } from "uuid";
 import _cloneDeep from "lodash/cloneDeep";
@@ -50,7 +50,10 @@ function buildSandboxHtml(userContent: string): string {
     return new Promise(function (resolve, reject) {
       pending.set(reqId, { resolve: resolve, reject: reject });
       parent.postMessage({ type: "bridge-request", reqId: reqId, kind: kind, name: name }, "*");
-    }).then(function (value) { cache.set(key, value); return value; });
+    }).then(function (value) { 
+      cache.set(key, value);
+      return value;
+    });
   }
   self.getFileUrl = function (name) { return bridge("fileUrl", name); };
   self.getFileContent = function (name) { return bridge("fileContent", name); };
@@ -63,6 +66,10 @@ function buildSandboxHtml(userContent: string): string {
       if (!h) return;
       pending.delete(d.reqId);
       if (d.error) h.reject(new Error(d.error)); else h.resolve(d.value);
+      return;
+    }
+    if (d.type === "reset-cache") {
+      cache.clear();
       return;
     }
     if (d.type === "call") {
@@ -131,7 +138,22 @@ export class CodeBlock implements DisposableItem {
       this.destroySandbox();
     }));
 
+    setTimeout(() => {
+      this.dc.addReaction(reaction(
+        () => this.mediaGalleryList,
+        () => {
+          this.iframe?.contentWindow?.postMessage({ type: "reset-cache" }, "*");
+        },
+      ));
+    }, 0);
+
     this.dc.addReaction(() => this.destroySandbox());
+  }
+
+  @computed
+  get mediaGalleryList() {
+    return this.parentFlow?.parentChat?.mediaGalleryList
+      ?? this.parentPrompt?.parentFlow?.parentChat?.mediaGalleryList;
   }
 
   dispose() {
@@ -289,9 +311,7 @@ export class CodeBlock implements DisposableItem {
   }
 
   async resolveBridge(kind: BridgeKind, name: string) {
-    const mediaGalleryList = this.parentFlow?.parentChat?.mediaGalleryList
-      || this.parentPrompt?.parentFlow?.parentChat?.mediaGalleryList;
-    const file = mediaGalleryList?.find(({ file }) => file.name === name);
+    const file = this.mediaGalleryList?.find(({ file }) => file.name === name);
     if (!file) return Promise.resolve(null);
     const fileId = file.file.id;
     switch (kind) {

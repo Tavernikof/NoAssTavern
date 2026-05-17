@@ -42,6 +42,7 @@ export class Chat {
     this.scenario = data.scenario;
     this.createdAt = parseDate(data.createdAt)!;
     this.updatedAt = parseDate(data.updatedAt) || this.createdAt;
+    this.flow = new Flow(data.flow, { local: true, parentChat: this });
     this.characters = data.characters.map(item => ({
       ...item,
       character: new Character(item.character, { local: true }),
@@ -53,7 +54,6 @@ export class Chat {
     this.persona = data.persona;
     this.impersonate = data.impersonate;
     this.impersonateHistory = data.impersonateHistory || [];
-    this.flow = new Flow(data.flow, { local: true, parentChat: this });
     this.mediaFiles = data.mediaFiles || [];
     this.variables = data.variables ?? {};
 
@@ -123,15 +123,19 @@ export class Chat {
 
     addMediaList(this.mediaFiles, "chat");
 
-    this.characters.forEach(({ character }) => {
-      addMediaList(character.mediaFiles, "character");
-      if (character.avatar) list.push({ file: character.avatar, source: "character" });
-    });
+    if (this.characters) {
+      this.characters.forEach(({ character }) => {
+        addMediaList(character.mediaFiles, "character");
+        if (character.avatar) list.push({ file: character.avatar, source: "character" });
+      });
+    }
 
-    addMediaList(this.flow.mediaFiles, "flow");
-    this.flow.prompts.forEach(prompt => {
-      addMediaList(prompt.mediaFiles, "prompt");
-    });
+    if (this.flow) {
+      addMediaList(this.flow.mediaFiles, "flow");
+      this.flow.prompts.forEach(prompt => {
+        addMediaList(prompt.mediaFiles, "prompt");
+      });
+    }
 
     return list;
   }

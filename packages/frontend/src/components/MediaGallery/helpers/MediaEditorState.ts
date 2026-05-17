@@ -6,6 +6,7 @@ export interface MediaEditorController {
   mediaFiles: MediaFile[];
   addMediaFile(file: File): Promise<void>;
   removeMediaFile(id: string): void;
+  renameMediaFile(id: string, name: string): void;
 }
 
 export class MediaEditorState implements MediaEditorController {
@@ -37,5 +38,14 @@ export class MediaEditorState implements MediaEditorController {
   @action
   removeMediaFile(id: string) {
     this.mediaFiles = this.mediaFiles.filter(file => file.id !== id);
+  }
+
+  @action
+  renameMediaFile(id: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const index = this.mediaFiles.findIndex(file => file.id === id);
+    if (index === -1) return;
+    this.mediaFiles.splice(index, 1, { ...this.mediaFiles[index], name: trimmed });
   }
 }
