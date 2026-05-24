@@ -268,3 +268,7 @@ type FormatMessageParams = {
 
 declare function getFileUrl(name: string): Promise<string | null>;
 declare function getFileContent(name: string): Promise<string>;
+declare function registerPresetVariable(
+  name: string,
+  fn: (params: string, context: Record<string, any>) => string | Promise<string>,
+): void;

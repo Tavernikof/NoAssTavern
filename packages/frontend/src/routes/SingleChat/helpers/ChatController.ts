@@ -390,6 +390,18 @@ export class ChatController {
       },
     };
 
+    if (config?.prompt) {
+      const promptCodeBlocks = config.prompt.codeBlocks ?? [];
+      const flowCodeBlocks = config.prompt.parentFlow?.codeBlocks ?? [];
+      for (const { codeBlock, active } of [...promptCodeBlocks, ...flowCodeBlocks]) {
+        if (!active) continue;
+        for (const name of codeBlock.presetVariableNames) {
+          // context is a placeholder for future extension
+          vars[name] = (rawArgument) => codeBlock.callPresetVariable(name, rawArgument, {});
+        }
+      }
+    }
+
     return { vars, getHistory };
   }
 

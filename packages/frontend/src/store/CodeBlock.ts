@@ -7,7 +7,6 @@ import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunc
 import { filesManager } from "src/store/FilesManager.ts";
 import type { Flow } from "src/store/Flow.ts";
 import type { Prompt } from "src/store/Prompt.ts";
-import type { CodeBlockCallOwner } from "src/store/CodeBlocksManager.ts";
 
 type CodeBlockCreateConfig = {
   isNew?: boolean;
@@ -43,6 +42,7 @@ function buildSandboxHtml(userContent: string): string {
   var pending = new Map();
   var cache = new Map();
   var seq = 0;
+  var presetVars = new Map();
   function bridge(kind, name) {
     var key = kind + ":" + name;
     if (cache.has(key)) return Promise.resolve(cache.get(key));
@@ -50,13 +50,16 @@ function buildSandboxHtml(userContent: string): string {
     return new Promise(function (resolve, reject) {
       pending.set(reqId, { resolve: resolve, reject: reject });
       parent.postMessage({ type: "bridge-request", reqId: reqId, kind: kind, name: name }, "*");
-    }).then(function (value) { 
+    }).then(function (value) {
       cache.set(key, value);
       return value;
     });
   }
   self.getFileUrl = function (name) { return bridge("fileUrl", name); };
   self.getFileContent = function (name) { return bridge("fileContent", name); };
+  self.registerPresetVariable = function (name, fn) {
+    if (typeof name === "string" && typeof fn === "function") presetVars.set(name, fn);
+  };
 
   self.addEventListener("message", function (e) {
     var d = e.data;
@@ -72,7 +75,7 @@ function buildSandboxHtml(userContent: string): string {
       cache.clear();
       return;
     }
-    if (d.type === "call") {
+    if (d.type === "call-function") {
       (async function () {
         if (typeof self[d.functionName] !== "function") {
           parent.postMessage({ type: "result", id: d.id, error: { message: ${JSON.stringify(CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR)} } }, "*");
@@ -81,6 +84,26 @@ function buildSandboxHtml(userContent: string): string {
         try {
           var r = await self[d.functionName](d.arg);
           parent.postMessage({ type: "result", id: d.id, result: r }, "*");
+        } catch (err) {
+          parent.postMessage({
+            type: "result",
+            id: d.id,
+            error: { message: (err && err.message) || String(err), stack: err && err.stack },
+          }, "*");
+        }
+      })();
+      return;
+    }
+    if (d.type === "call-preset-var") {
+      (async function () {
+        var fn = presetVars.get(d.name);
+        if (typeof fn !== "function") {
+          parent.postMessage({ type: "result", id: d.id, error: { message: ${JSON.stringify(CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR)} } }, "*");
+          return;
+        }
+        try {
+          var r = await fn(d.params, d.context);
+          parent.postMessage({ type: "result", id: d.id, result: r == null ? "" : String(r) }, "*");
         } catch (err) {
           parent.postMessage({
             type: "result",
@@ -117,8 +140,6 @@ export class CodeBlock implements DisposableItem {
   private ready: Promise<void> | null = null;
   private messageHandler: ((e: MessageEvent) => void) | null = null;
   private pendingCalls = new Map<string, PendingCall>();
-  currentFlow: Flow | null = null;
-  currentPrompt: Prompt | null = null;
 
   constructor(data: CodeBlockStorageItem, config?: CodeBlockCreateConfig) {
     this.isNew = config?.isNew ?? false;
@@ -154,6 +175,15 @@ export class CodeBlock implements DisposableItem {
   get mediaGalleryList() {
     return this.parentFlow?.parentChat?.mediaGalleryList
       ?? this.parentPrompt?.parentFlow?.parentChat?.mediaGalleryList;
+  }
+
+  @computed
+  get presetVariableNames(): string[] {
+    const regex = /registerPresetVariable\s*\(\s*["'`]([\w$]+)["'`]/g;
+    const names = new Set<string>();
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(this.content)) !== null) names.add(match[1]);
+    return [...names];
   }
 
   dispose() {
@@ -278,36 +308,51 @@ export class CodeBlock implements DisposableItem {
     this.pendingCalls.clear();
   }
 
-  async callFunction<T extends CodeBlockFunction>(
-    functionName: T,
-    arg: CodeBlockFunctionArg<T>,
-    owner?: CodeBlockCallOwner,
-  ): Promise<CodeBlockFunctionArg<T>> {
+  private async dispatch<R>(
+    message: Record<string, unknown>,
+    debugLabel: string,
+    normalizeResult?: (value: unknown) => R,
+  ): Promise<R> {
     await this.createSandbox();
     const iframe = this.iframe;
     if (!iframe || !iframe.contentWindow) {
       throw new Error("Sandbox unavailable");
     }
 
-    this.currentFlow = owner?.flow ?? null;
-    this.currentPrompt = owner?.prompt ?? null;
-
     const id = uuid();
-    return new Promise<CodeBlockFunctionArg<T>>((resolve, reject) => {
+    return new Promise<R>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingCalls.delete(id);
-        reject(new Error(`Call timeout ${id} "${functionName}" in code block "${this.name}"`));
+        reject(new Error(`Call timeout ${id} ${debugLabel} in code block "${this.name}"`));
         this.destroySandbox();
       }, DEFAULT_TIMEOUT);
 
       this.pendingCalls.set(id, {
-        resolve: resolve as (value: unknown) => void,
+        resolve: (value) => resolve(normalizeResult ? normalizeResult(value) : (value as R)),
         reject,
         timeout,
       });
 
-      iframe.contentWindow!.postMessage({ type: "call", id, functionName, arg }, "*");
+      iframe.contentWindow!.postMessage({ ...message, id }, "*");
     });
+  }
+
+  async callFunction<T extends CodeBlockFunction>(
+    functionName: T,
+    arg: CodeBlockFunctionArg<T>,
+  ): Promise<CodeBlockFunctionArg<T>> {
+    return this.dispatch<CodeBlockFunctionArg<T>>(
+      { type: "call-function", functionName, arg },
+      `function "${functionName}"`,
+    );
+  }
+
+  async callPresetVariable(name: string, params: string, context: Record<string, unknown>): Promise<string> {
+    return this.dispatch<string>(
+      { type: "call-preset-var", name, params, context },
+      `preset var "${name}"`,
+      (value) => typeof value === "string" ? value : value === null ? "" : String(value),
+    );
   }
 
   async resolveBridge(kind: BridgeKind, name: string) {

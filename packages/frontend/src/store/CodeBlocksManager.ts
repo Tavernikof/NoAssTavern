@@ -5,11 +5,6 @@ import { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunc
 import type { Flow } from "src/store/Flow.ts";
 import type { Prompt } from "src/store/Prompt.ts";
 
-export type CodeBlockCallOwner = {
-  flow?: Flow;
-  prompt?: Prompt;
-};
-
 export class CodeBlocksManager extends AbstractManager<CodeBlock, CodeBlockStorageItem> {
   private cache = new Map<string, { codeBlock: CodeBlock, refCount: number }>();
 
@@ -68,13 +63,12 @@ export class CodeBlocksManager extends AbstractManager<CodeBlock, CodeBlockStora
     codeBlocks: PromptCodeBlock[],
     functionName: T,
     arg: CodeBlockFunctionArg<T>,
-    owner?: CodeBlockCallOwner,
   ) {
     if (Array.isArray(codeBlocks)) {
       for (const codeBlock of codeBlocks) {
         if (!codeBlock.active) continue;
         try {
-          arg = await codeBlock.codeBlock.callFunction(functionName, arg, owner);
+          arg = await codeBlock.codeBlock.callFunction(functionName, arg);
         } catch (e) {
           if (e instanceof Error && e.message === CODE_BLOCK_FUNCTION_NOT_FOUND_ERROR) {
             continue;

@@ -171,7 +171,7 @@ export class Flow {
     functionName: T,
     arg: CodeBlockFunctionArg<T>,
   ) {
-    return codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg, { flow: this });
+    return codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg);
   }
 
   @action

@@ -170,9 +170,9 @@ export class Prompt {
     functionName: T,
     arg: CodeBlockFunctionArg<T>,
   ) {
-    arg = await codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg, { prompt: this });
+    arg = await codeBlocksManager.callCodeBlockFunction(this.codeBlocks, functionName, arg);
     if (this.parentFlow) {
-      arg = await codeBlocksManager.callCodeBlockFunction(this.parentFlow.codeBlocks, functionName, arg, { flow: this.parentFlow });
+      arg = await codeBlocksManager.callCodeBlockFunction(this.parentFlow.codeBlocks, functionName, arg);
     }
     return arg;
   }

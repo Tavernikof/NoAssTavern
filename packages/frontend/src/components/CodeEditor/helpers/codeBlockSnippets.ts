@@ -28,3 +28,14 @@ ${body}
 `,
   };
 });
+
+CODE_BLOCK_SNIPPETS.push({
+  label: "registerPresetVariable",
+  detail: "Register a custom {{name:...}} preset variable usable in prompts.",
+  documentation: "Register a custom {{name:...}} preset variable usable in prompts.",
+  insertText: `registerPresetVariable("\${1:name}", async (params, context) => {
+  \${0}
+  return "";
+});
+`,
+});
