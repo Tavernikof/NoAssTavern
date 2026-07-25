@@ -1,3 +1,11 @@
+# [2.10.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.9.0...v2.10.0) (2026-07-25)
+
+
+### Features
+
+* **code-block:** added functionality for adding new variables inside code-blocks ([5f7ca38](https://github.com/Tavernikof/NoAssTavern/commit/5f7ca38bf22fc0d6a3f89f49c26199923b286eb3))
+* **prompt:** add generation presets ([293dad6](https://github.com/Tavernikof/NoAssTavern/commit/293dad6dcf4973ac879466be88627072af527660))
+
 # [2.9.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.8.0...v2.9.0) (2026-05-17)
 
 
