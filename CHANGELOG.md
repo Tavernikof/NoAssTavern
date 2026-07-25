@@ -1,3 +1,21 @@
+# [2.9.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.8.0...v2.9.0) (2026-05-17)
+
+
+### Bug Fixes
+
+* **format-message:** fix formatting html message ([3bc6b08](https://github.com/Tavernikof/NoAssTavern/commit/3bc6b08ca9e100342fb34f96c33790a8d54d66f8))
+
+
+### Features
+
+* **character:** add character avatar in char edit form ([c2e9fcd](https://github.com/Tavernikof/NoAssTavern/commit/c2e9fcd50c450bd2771169b1650a7850b537bceb))
+* **character:** add character avatar in char edit form ([d618726](https://github.com/Tavernikof/NoAssTavern/commit/d6187260f0141aaeeb7d0b8fda9a3bc8d92e06a4))
+* **code-block:** access file url inside code block by name ([49c9989](https://github.com/Tavernikof/NoAssTavern/commit/49c99893dfcf5666d2db61d34a804fd62b3fdd1b))
+* **code-block:** access file url inside code block by name ([6fce990](https://github.com/Tavernikof/NoAssTavern/commit/6fce990ed9791560a5eae171103b769d1b8acfcb))
+* **format-message:** add documentation ([5b00c23](https://github.com/Tavernikof/NoAssTavern/commit/5b00c23caeb213898fecc1220b73b9f7a2a39241))
+* **media:** add files rename ([1c3f307](https://github.com/Tavernikof/NoAssTavern/commit/1c3f3071a94ae7b817fc4a97b1f66fe13391916b))
+* **media:** remove imagesManager and migrate to filesManager ([2bc876b](https://github.com/Tavernikof/NoAssTavern/commit/2bc876ba68ee1877b0482ff1872b1b838c86a892))
+
 # [2.8.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.7.0...v2.8.0) (2026-05-16)
 
 
