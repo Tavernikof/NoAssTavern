@@ -8425,12 +8425,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.469.0":
-  version: 0.469.0
-  resolution: "lucide-react@npm:0.469.0"
+"lucide-react@npm:^1.27.0":
+  version: 1.27.0
+  resolution: "lucide-react@npm:1.27.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/0ee78d110550579b848a01446a440f733fd17e1bf1850aa01551b61f415e03e5f5ab7f26b56f1c648edc93856177f5476ff9f8f6f5d80e8fe45913d208f49961
+  checksum: 10c0/18b078fed81124ee3535350c8aa1718945c94fe87d7f76c815cb49bdf39ed49f6fa53fb9b3aa56653dc8ca3523ea91c76cf3040dfb8b3497b1e6356b29f3e5c9
   languageName: node
   linkType: hard
 
@@ -9038,7 +9038,7 @@ __metadata:
     idb: "npm:^8.0.1"
     joi: "npm:^17.13.3"
     lodash: "npm:^4.17.21"
-    lucide-react: "npm:^0.469.0"
+    lucide-react: "npm:^1.27.0"
     marked: "npm:^17.0.1"
     meta-png: "npm:^1.0.6"
     mobx: "npm:^6.13.5"

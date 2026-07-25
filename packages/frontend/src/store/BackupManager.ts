@@ -20,6 +20,7 @@ export class BackupManager {
       import("src/storages/ConnectionProxiesStorage"),
       import("src/storages/FilesStorage"),
       import("src/storages/FlowsStorage"),
+      import("src/storages/GenerationPresetsStorage"),
       import("src/storages/GlobalSettingsStorage"),
       import("src/storages/LoreBookStorage"),
       import("src/storages/MessageStorage"),

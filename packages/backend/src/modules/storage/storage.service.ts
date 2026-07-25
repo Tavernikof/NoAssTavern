@@ -11,6 +11,7 @@ import { GlobalSettingsStorage } from "./storages/GlobalSettings.js";
 import { AssistantChatsStorage } from "./storages/AssistantChats.js";
 import { AssistantMessagesStorage } from "./storages/AssistantMessages.js";
 import { CodeBlocksStorage } from "./storages/CodeBlocks.js";
+import { GenerationPresetsStorage } from "./storages/GenerationPresets.js";
 
 export class StorageService {
   assistantChats = new AssistantChatsStorage(this);
@@ -21,6 +22,7 @@ export class StorageService {
   connectionProxies = new ConnectionProxiesStorage(this);
   files = new FilesStorage(this);
   flows = new FlowsStorage(this);
+  generationPresets = new GenerationPresetsStorage(this);
   globalSettings = new GlobalSettingsStorage(this);
   loreBooks = new LoreBooksStorage(this);
   messages = new MessagesStorage(this);
@@ -36,6 +38,7 @@ export class StorageService {
     this.connectionProxies,
     this.files,
     this.flows,
+    this.generationPresets,
     this.globalSettings,
     this.loreBooks,
     this.messages,

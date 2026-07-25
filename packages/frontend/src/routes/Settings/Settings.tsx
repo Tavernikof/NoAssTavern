@@ -9,6 +9,7 @@ import { openConnectionProxyModal } from "src/components/ConnectionProxyModal";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import ConnectionProxiesList from "src/routes/Settings/components/ConnectionProxiesList";
+import GenerationPresetsList from "src/routes/Settings/components/GenerationPresetsList";
 import BackendSettings from "src/routes/Settings/components/BackendSettings";
 import NotificationSettings from "src/routes/Settings/components/NotificationSettings";
 import ConnectionSettings from "src/routes/Settings/components/ConnectionSettings";
@@ -56,6 +57,11 @@ const Settings: React.FC<Props> = () => {
             </Button>
           </div>
           <ConnectionProxiesList />
+        </div>
+
+        <div>
+          <Subtitle>Generation presets</Subtitle>
+          <GenerationPresetsList />
         </div>
       </div>
     </>

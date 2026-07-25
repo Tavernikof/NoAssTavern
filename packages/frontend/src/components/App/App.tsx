@@ -9,6 +9,7 @@ import { promptsManager } from "src/store/PromptsManager.ts";
 import { flowsManager } from "src/store/FlowsManager.ts";
 import { loreBookManager } from "src/store/LoreBookManager.ts";
 import { assistantChatsManager } from "src/store/AssistantChatsManager.ts";
+import { generationPresetsManager } from "src/store/GenerationPresetsManager.ts";
 
 type Props = Record<string, never>;
 
@@ -21,6 +22,7 @@ const App: React.FC<Props> = () => {
         charactersManager.ready &&
         chatsManager.ready &&
         connectionProxiesManager.ready &&
+        generationPresetsManager.ready &&
         flowsManager.ready &&
         loreBookManager.ready &&
         promptsManager.ready

@@ -20,6 +20,7 @@ import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
 import { SelectOption } from "src/helpers/createDictionary.ts";
 import { PresetFieldType } from "src/enums/PresetFieldType.ts";
+import GenerationPresetSelect from "src/components/PromptEditorModal/components/GenerationPresetSelect";
 
 type Props = Record<string, never>;
 
@@ -31,6 +32,10 @@ const PresetEditForm: React.FC<Props> = () => {
 
   return (
     <>
+      <GenerationPresetSelect />
+
+      <hr />
+
       <FormInput label="Provider:" name="backendProviderId">
         <SelectControlled name="backendProviderId" options={backendProviderDict.selectOptions} />
       </FormInput>

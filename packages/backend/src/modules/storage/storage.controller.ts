@@ -14,6 +14,7 @@ import { globalSettingsRoutes } from "./routes/globalSettings.routes.js";
 import { assistantChatsRoutes } from "./routes/assistantChats.routes.js";
 import { assistantMessagesRoutes } from "./routes/assistantMessages.routes.js";
 import { codeBlockRoutes } from "./routes/codeBlocks.routes.js";
+import { generationPresetsRoutes } from "./routes/generationPresets.routes.js";
 import { gcRoutes } from "./routes/gc.routes.js";
 
 export async function storageRoutes(app: FastifyInstance) {
@@ -28,6 +29,7 @@ export async function storageRoutes(app: FastifyInstance) {
   app.register(filesRoutes(service), { prefix: "/files" });
   app.register(flowsRoutes(service), { prefix: "/flows" });
   app.register(gcRoutes(service), { prefix: "/gc" });
+  app.register(generationPresetsRoutes(service), { prefix: "/generationPresets" });
   app.register(globalSettingsRoutes(service), { prefix: "/globalSettings" });
   app.register(loreBooksRoutes(service), { prefix: "/loreBooks" });
   app.register(messagesRoutes(service), { prefix: "" });
