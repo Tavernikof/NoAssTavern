@@ -58,6 +58,21 @@ export abstract class BaseBackendProvider {
     throw "Unknown response";
   }
 
+  protected async applyPreRequest<T extends Record<string, any>>(
+    config: Pick<BackendProviderGenerateConfig, "onPreRequest">,
+    params: { request: T, url: string, headers: Record<string, string | undefined> },
+  ) {
+    if (!config.onPreRequest) return params;
+
+    const result = await config.onPreRequest(params);
+    // code block may return nothing, so fallback to original values
+    return {
+      request: (result?.request ?? params.request) as T,
+      url: result?.url ?? params.url,
+      headers: result?.headers ?? params.headers,
+    };
+  }
+
   protected async createResponseParser(config: ResponseParserConfig) {
     const { response, stop, onUpdate, parseJson } = config;
     const hasStop = Array.isArray(stop) && stop.length;

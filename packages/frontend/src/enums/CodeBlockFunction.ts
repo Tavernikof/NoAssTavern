@@ -1,5 +1,6 @@
 export enum CodeBlockFunction {
   preHistory = "preHistory",
+  preRequest = "preRequest",
   onMessage = "onMessage",
   formatMessage = "formatMessage",
 }
@@ -7,6 +8,7 @@ export enum CodeBlockFunction {
 // WARNING: types should be defined at src/helpers/types.d.ts to make in work in monaco
 export interface CodeBlockFunctionSignatures {
   [CodeBlockFunction.preHistory]: PreHistoryParams;
+  [CodeBlockFunction.preRequest]: PreRequestParams;
   [CodeBlockFunction.onMessage]: OnMessageParams;
   [CodeBlockFunction.formatMessage]: FormatMessageParams;
 }
@@ -20,6 +22,10 @@ export const CODE_BLOCK_FUNCTION_META: Record<CodeBlockFunction, CodeBlockFuncti
   [CodeBlockFunction.preHistory]: {
     name: "preHistory",
     documentation: "Calls before collection messages in {{history}} variable",
+  },
+  [CodeBlockFunction.preRequest]: {
+    name: "preRequest",
+    documentation: "Calls right before sending request to LLM. Allows to modify request body, url and headers",
   },
   [CodeBlockFunction.onMessage]: {
     name: "onMessage",

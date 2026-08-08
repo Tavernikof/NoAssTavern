@@ -160,7 +160,7 @@ class OpenaiProvider extends BaseBackendProvider {
     } = config;
 
 
-    const requestBody: OpenaiRequest = {
+    let requestBody: OpenaiRequest = {
       max_completion_tokens: maxOutputTokens,
       messages: messages,
       model: model,
@@ -172,7 +172,13 @@ class OpenaiProvider extends BaseBackendProvider {
       // presence_penalty: presencePenalty,
       reasoning_effort: reasoningEffort ?? undefined,
     };
-    const url = `${stripLastSlash(baseUrl)}/chat/completions`;
+    let url = `${stripLastSlash(baseUrl)}/chat/completions`;
+    let headers: Record<string, string | undefined> = {
+      "Authorization": `Bearer ${key}`,
+      "Content-Type": "application/json",
+    };
+
+    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, { request: requestBody, url, headers }));
 
     let response: AxiosResponse;
     try {
@@ -181,10 +187,7 @@ class OpenaiProvider extends BaseBackendProvider {
         url,
         data: requestBody,
         signal: abortController.signal,
-        headers: {
-          "Authorization": `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
+        headers,
         responseType: "stream",
         adapter: "fetch",
       });

@@ -64,7 +64,7 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
       context,
       (prompt) => messageController.getPresetVars({ prompt }),
       async ({ message }) => {
-        const result = await prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message });
+        const result = await prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message, finish: false });
         runInAction(() => currentPrompt.message = result.message);
       },
     ).then(
@@ -76,7 +76,7 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
           provider: prompt.backendProviderId,
           response: data,
         };
-        return prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message }).then(
+        return prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message, finish: true }).then(
           action(({ message }) => {
             currentPrompt.message = message;
             currentPrompt.requestId = request.id;
@@ -88,13 +88,13 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
           },
         );
       },
-      action((error) => {
+      (error) => {
         if (error) throwNodeError(currentPrompt, error);
-      }),
+      },
     );
 
     flow.registerAsyncProcess(messageController, promise);
 
-    return  promise;
+    return promise;
   },
 };

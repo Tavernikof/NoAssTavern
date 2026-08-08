@@ -123,6 +123,8 @@ type ConnectionProxyCreateConfig = {
 
 // ============================================================================
 
+type BackendProviderType = `${import("src/enums/BackendProvider.ts").BackendProvider}`;
+
 type BackendProviderOnUpdateEvent = {
   chunk: string,
   message: string,
@@ -135,6 +137,7 @@ type BackendProviderGenerateConfig<C extends Record<string, any> = {}> = {
   messages: PresetPrompt,
   stop?: string[],
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
+  onPreRequest?: (params: Omit<PreRequestParams, "provider">) => Promise<PreRequestParams | undefined>,
   generationConfig: C,
   abortController: AbortController,
 };
@@ -251,8 +254,18 @@ type PreHistoryParams = {
 
 // ============================================================================
 
+type PreRequestParams = {
+  request: Record<string, any>,
+  url: string,
+  headers: Record<string, string | undefined>,
+  provider: BackendProviderType,
+};
+
+// ============================================================================
+
 type OnMessageParams = {
-  message: string
+  message: string,
+  finish: boolean,
 };
 
 type FormatMessageParams = {

@@ -2,6 +2,7 @@ import { throwNodeError } from "src/helpers/throwNodeError.ts";
 import { Prompt } from "src/store/Prompt.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
+import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
 
 export const sendRequestFromFlow = async (
   context: FlowProcessContext,
@@ -33,6 +34,10 @@ export const sendRequestFromFlow = async (
     stop: await prompt.buildStopSequence(vars),
     generationConfig: prompt.generationConfig,
     onUpdate: onUpdate,
+    onPreRequest: (params) => prompt.callCodeBlockFunction(CodeBlockFunction.preRequest, {
+      ...params,
+      provider: prompt.backendProviderId,
+    }),
     abortController: abortController,
   };
 

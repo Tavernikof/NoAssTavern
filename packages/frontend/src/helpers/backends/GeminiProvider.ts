@@ -145,7 +145,7 @@ class GeminiProvider extends BaseBackendProvider {
       ? GEMINI_SAFETY_SETTINGS.map(setting => ({ ...setting, threshold: "OFF" }))
       : GEMINI_SAFETY_SETTINGS;
 
-    const requestBody = {
+    let requestBody = {
       contents: messages.map(block => ({
         role: block.role === ChatMessageRole.ASSISTANT ? "model" : "user",
         parts: [{ text: block.content }],
@@ -169,18 +169,22 @@ class GeminiProvider extends BaseBackendProvider {
 
     let response: AxiosResponse;
     const isDefaultEndpoint = baseUrl === this.baseUrl;
-    const url = `${stripLastSlash(baseUrl)}/v1beta/models/${model}:${stream ? STREAM : NON_STREAM}`;
+    let url = `${stripLastSlash(baseUrl)}/v1beta/models/${model}:${stream ? STREAM : NON_STREAM}`;
+    let headers: Record<string, string | undefined> = {
+      "X-goog-api-key": isDefaultEndpoint ? key : undefined,
+      "Authorization": isDefaultEndpoint ? undefined : `Bearer ${key}`,
+      "Content-Type": "application/json",
+    };
+
+    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, { request: requestBody, url, headers }));
+
     try {
       response = await backendManager.externalRequest({
         method: "POST",
         url: url,
         data: requestBody,
         signal: abortController?.signal,
-        headers: {
-          "X-goog-api-key": isDefaultEndpoint ? key : undefined,
-          "Authorization": isDefaultEndpoint ? undefined : `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
+        headers,
         responseType: "stream",
         adapter: "fetch",
       });

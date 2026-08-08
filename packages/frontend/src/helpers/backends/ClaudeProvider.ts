@@ -174,7 +174,7 @@ class ClaudeProvider extends BaseBackendProvider {
       },
     } = config;
 
-    const requestBody = {
+    let requestBody = {
       max_tokens: maxOutputTokens,
       messages: messages,
       model: model,
@@ -189,18 +189,22 @@ class ClaudeProvider extends BaseBackendProvider {
 
     let response: AxiosResponse;
 
-    const url = `${stripLastSlash(baseUrl)}/messages`;
+    let url = `${stripLastSlash(baseUrl)}/messages`;
+    let headers: Record<string, string | undefined> = {
+      "Content-Type": "application/json",
+      "anthropic-version": "2023-06-01",
+      "x-api-key": key,
+    };
+
+    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, { request: requestBody, url, headers }));
+
     try {
       response = await backendManager.externalRequest({
         method: "POST",
         url: url,
         data: requestBody,
         signal: abortController?.signal,
-        headers: {
-          "Content-Type": "application/json",
-          "anthropic-version": "2023-06-01",
-          "x-api-key": key,
-        },
+        headers,
         responseType: "stream",
         adapter: "fetch",
       });
