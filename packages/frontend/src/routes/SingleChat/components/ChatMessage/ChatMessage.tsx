@@ -12,11 +12,12 @@ import ChatMessageError from "../ChatMessageError";
 import { reaction } from "mobx";
 
 type Props = {
+  index: number,
   chatMessage: MessageController
 };
 
 const ChatMessage: React.FC<Props> = (props) => {
-  const { chatMessage } = props;
+  const { index, chatMessage } = props;
   const { id, pending, editable, showTranslate, message, translate, isAssistant } = chatMessage;
   const elementRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -62,7 +63,7 @@ const ChatMessage: React.FC<Props> = (props) => {
           <ChatMessageError><><b>Translate error:</b><br />{translate.error}</></ChatMessageError>
         )}
 
-        <MessageActions />
+        <MessageActions index={index} />
 
         {isAssistant && <ChatMessageExternalBlocks />}
       </div>

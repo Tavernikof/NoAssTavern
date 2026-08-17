@@ -13,6 +13,7 @@ export class BackupManager {
   private getModules() {
     return Promise.all([
       import("src/storages/AssistantChatsStorage"),
+      import("src/storages/ChatAssistantMessageStorage"),
       import("src/storages/AssistantMessageStorage"),
       import("src/storages/CharactersStorage"),
       import("src/storages/ChatsStorage"),

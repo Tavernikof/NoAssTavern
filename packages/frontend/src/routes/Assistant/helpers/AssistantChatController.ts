@@ -13,6 +13,13 @@ import { globalSettings } from "src/store/GlobalSettings.ts";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import { connectionProxiesManager } from "src/store/ConnectionProxiesManager.ts";
 import { filesManager } from "src/store/FilesManager.ts";
+import { ChatController } from "src/routes/SingleChat/helpers/ChatController.ts";
+import {
+  chatAssistantMessageStorage,
+  ChatAssistantMessageStorageItem,
+} from "src/storages/ChatAssistantMessageStorage.ts";
+import { AssistantMessageStorageItem } from "src/storages/AssistantMessageStorage.ts";
+import { prepareMessage } from "src/helpers/prepareMessage.ts";
 
 type CreateAssistantMessageConfig = {
   id?: string,
@@ -21,6 +28,12 @@ type CreateAssistantMessageConfig = {
   messages?: string[],
   role?: import("src/enums/ChatManagerRole.ts").ChatMessageRole
 }
+
+type AssistantChatControllerConfig = {
+  parentChatController?: ChatController;
+}
+
+export type AssistantMessageData = AssistantMessageStorageItem & { chatId?: string };
 
 export class AssistantChatController {
   private dc: DisposableContainer;
@@ -35,8 +48,10 @@ export class AssistantChatController {
 
   private containerElement: HTMLDivElement | null = null;
   private pendingGenerations = new Set<AbortController>();
+  readonly parentChatController?: ChatController;
 
-  constructor() {
+  constructor(config?: AssistantChatControllerConfig) {
+    this.parentChatController = config?.parentChatController;
     makeObservable(this);
   }
 
@@ -55,7 +70,16 @@ export class AssistantChatController {
 
   @computed
   get assistantChat() {
-    return this.assistantChatId ? assistantChatsManager.dict[this.assistantChatId] : null;
+    if (!this.assistantChatId) return null;
+    if (this.parentChatController) {
+      return this.parentChatController.chat.assistantChats.find(item => item.id === this.assistantChatId) ?? null;
+    }
+    return assistantChatsManager.dict[this.assistantChatId];
+  }
+
+  @computed
+  get embedded() {
+    return Boolean(this.parentChatController);
   }
 
   @computed
@@ -93,8 +117,9 @@ export class AssistantChatController {
 
     if (!skipLoading) {
       if (id) {
-        assistantMessageStorage.getChatItems(id).then(action(messages => {
+        this.getChatMessages(id).then(action(messages => {
           if (this.dc.disposed) return;
+          if (id !== this.assistantChatId) return;
 
           this.messagesDict = {};
 
@@ -118,14 +143,22 @@ export class AssistantChatController {
 
     if (shouldCreateChat) {
       assistantChatId = uuid();
-      const assistantChat = new AssistantChat({
-        id: assistantChatId,
-        createdAt: new Date(),
-        name: message.slice(0, 50),
-        generationSettings: this.generationSettings,
-      }, { isNew: true });
+      if (this.parentChatController) {
+        await this.parentChatController.chat.addAssistantChat({
+          id: assistantChatId,
+          createdAt: new Date(),
+          name: message.slice(0, 50),
+        });
+      } else {
+        const assistantChat = new AssistantChat({
+          id: assistantChatId,
+          createdAt: new Date(),
+          name: message.slice(0, 50),
+          generationSettings: this.generationSettings,
+        }, { isNew: true });
 
-      await assistantChatsManager.add(assistantChat);
+        await assistantChatsManager.add(assistantChat);
+      }
     }
 
     if (!assistantChatId) return;
@@ -139,7 +172,7 @@ export class AssistantChatController {
 
     if (shouldCreateChat) {
       this.setChatId(assistantChatId, true);
-      await router.navigate(`/assistant/${assistantChatId}`);
+      if (!this.embedded) await router.navigate(`/assistant/${assistantChatId}`);
     } else {
       this.scrollContainerToEnd();
     }
@@ -154,18 +187,25 @@ export class AssistantChatController {
       role = ChatMessageRole.ASSISTANT,
     } = config;
     if (!assistantChatId) return;
+    const swipes = await Promise.all(messages.map(async message => ({
+      createdAt: date,
+      prompts: {
+        [ChatSwipePrompt.message]: {
+          message,
+          preparedMessage: role === ChatMessageRole.USER && this.parentChatController
+            ? await prepareMessage(message, this.parentChatController.getPresetVars())
+            : undefined,
+        },
+      },
+    })));
     const newMessage = new AssistantMessageController(this, {
       id: id,
       assistantChatId: assistantChatId,
+      ...(this.parentChatController ? { chatId: this.parentChatController.chatId } : {}),
       createdAt: date,
       role,
       activeSwipe: 0,
-      swipes: messages.map(message => ({
-        createdAt: date,
-        prompts: {
-          [ChatSwipePrompt.message]: { message },
-        },
-      })),
+      swipes,
     });
 
     runInAction(() => {
@@ -209,11 +249,14 @@ export class AssistantChatController {
 
     this.messagesDict[targetMessageId].setPending(true);
 
-    const data: BackendProviderGenerateConfig<any> = {
+    const data: BackendProviderGenerateConfig<PromptGenerationConfig> = {
       baseUrl: connectionProxy?.baseUrl,
       key: connectionProxy?.key,
       model: model,
-      messages: messages.map(m => ({ role: m.role, content: m.message.message })),
+      messages: messages.map(m => ({
+        role: m.role,
+        content: m.message.preparedMessage ?? m.message.message,
+      })),
       generationConfig,
       onUpdate: action((data) => {
         const targetMessage = this.messagesDict[targetMessageId];
@@ -249,7 +292,7 @@ export class AssistantChatController {
     if (!this.messages) return;
     delete this.messagesDict[messageId];
     this.messages = this.messages.filter(m => m.id !== messageId);
-    return assistantMessageStorage.removeItem(messageId);
+    return this.removeStoredMessage(messageId);
   }
 
   @action
@@ -261,9 +304,34 @@ export class AssistantChatController {
     }
   }
 
-  removeCurrentChat() {
+  async removeCurrentChat() {
     if (!this.assistantChat) return Promise.reject();
+    if (this.parentChatController && this.assistantChatId) {
+      const assistantChatId = this.assistantChatId;
+      await chatAssistantMessageStorage.removeAssistantChatItems(
+        this.parentChatController.chatId,
+        assistantChatId,
+      );
+      await this.parentChatController.chat.removeAssistantChat(assistantChatId);
+      this.setChatId(null);
+      return;
+    }
     return assistantChatsManager.remove(this.assistantChat);
+  }
+
+  async prepareUserMessage(message: AssistantMessageController) {
+    if (!this.parentChatController || message.role !== ChatMessageRole.USER) return;
+    message.message.preparedMessage = await prepareMessage(
+      message.message.message,
+      this.parentChatController.getPresetVars(),
+    );
+  }
+
+  saveMessage(message: AssistantMessageData) {
+    if (this.parentChatController) {
+      return chatAssistantMessageStorage.updateItem(message as ChatAssistantMessageStorageItem);
+    }
+    return assistantMessageStorage.updateItem(message);
   }
 
   setContainer = (element: HTMLDivElement | null) => {
@@ -285,5 +353,26 @@ export class AssistantChatController {
       }),
       () => {},
     );
+  }
+
+  private getChatMessages(assistantChatId: string): Promise<AssistantMessageData[]> {
+    if (this.parentChatController) {
+      return chatAssistantMessageStorage.getChatItems(
+        this.parentChatController.chatId,
+        assistantChatId,
+      );
+    }
+    return assistantMessageStorage.getChatItems(assistantChatId);
+  }
+
+  private removeStoredMessage(messageId: string) {
+    if (this.parentChatController && this.assistantChatId) {
+      return chatAssistantMessageStorage.removeItem(
+        messageId,
+        this.parentChatController.chatId,
+        this.assistantChatId,
+      );
+    }
+    return assistantMessageStorage.removeItem(messageId);
   }
 }

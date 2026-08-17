@@ -1,5 +1,5 @@
 import { AssistantChatController } from "src/routes/Assistant/helpers/AssistantChatController.ts";
-import { assistantMessageStorage, AssistantMessageStorageItem } from "src/storages/AssistantMessageStorage.ts";
+import type { AssistantMessageData } from "src/routes/Assistant/helpers/AssistantChatController.ts";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { action, computed, makeObservable, observable, reaction, toJS } from "mobx";
 import _debounce from "lodash/debounce";
@@ -11,6 +11,7 @@ export class AssistantMessageController {
 
   id: string;
   assistantChatId: string;
+  chatId?: string;
   createdAt: Date;
   role: ChatMessageRole;
   @observable activeSwipe: number;
@@ -21,11 +22,12 @@ export class AssistantMessageController {
 
   private editorTextarea: HTMLTextAreaElement | null = null;
 
-  constructor(assistantChatController: AssistantChatController, message: AssistantMessageStorageItem) {
+  constructor(assistantChatController: AssistantChatController, message: AssistantMessageData) {
     this.assistantChatController = assistantChatController;
 
     this.id = message.id;
     this.assistantChatId = message.assistantChatId;
+    this.chatId = message.chatId;
     this.createdAt = message.createdAt;
     this.role = message.role;
     this.activeSwipe = message.activeSwipe;
@@ -34,7 +36,7 @@ export class AssistantMessageController {
     makeObservable(this);
 
     reaction(() => this.serialize(), _debounce((object) => {
-      assistantMessageStorage.updateItem(object);
+      this.assistantChatController.saveMessage(object);
     }, 300));
   }
 
@@ -97,16 +99,18 @@ export class AssistantMessageController {
   }
 
   @action
-  updateMessageFromEditor() {
+  async updateMessageFromEditor() {
     const message = this.editorTextarea?.value;
     if (typeof message !== "string") return;
     this.message.message = message;
+    await this.assistantChatController.prepareUserMessage(this);
     this.setEditable(false);
   }
 
-  submitMessageFromEditor() {
-    this.updateMessageFromEditor();
-    this.assistantChatController.createAssistantMessage();
+  async submitMessageFromEditor() {
+    await this.updateMessageFromEditor();
+    await this.forceSave();
+    await this.assistantChatController.createAssistantMessage();
   }
 
   @action
@@ -126,13 +130,14 @@ export class AssistantMessageController {
 
 
   forceSave() {
-    return assistantMessageStorage.updateItem(this.serialize());
+    return this.assistantChatController.saveMessage(this.serialize());
   }
 
-  private serialize(): AssistantMessageStorageItem {
+  private serialize(): AssistantMessageData {
     return {
       id: this.id,
       assistantChatId: this.assistantChatId,
+      ...(this.chatId ? { chatId: this.chatId } : {}),
       createdAt: this.createdAt,
       role: this.role,
       activeSwipe: this.activeSwipe,

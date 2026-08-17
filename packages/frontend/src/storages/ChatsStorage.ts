@@ -5,6 +5,13 @@ import { LoreBookStorageItem } from "src/storages/LoreBookStorage.ts";
 import { BaseStorage } from "./baseStorage/BaseStorage.ts";
 import { messageStorage } from "src/storages/MessageStorage.ts";
 import { collectChatMedia, deleteSnapshot } from "src/helpers/collectMediaIds.ts";
+import { chatAssistantMessageStorage } from "src/storages/ChatAssistantMessageStorage.ts";
+
+export type ChatAssistantChatStorageItem = {
+  id: string;
+  createdAt: Date;
+  name: string;
+}
 
 export type ChatStorageItem = {
   id: string;
@@ -26,6 +33,7 @@ export type ChatStorageItem = {
   flow: FlowStorageItem;
   variables: Record<string, string>;
   mediaFiles?: MediaFile[];
+  assistantChats?: ChatAssistantChatStorageItem[];
 }
 
 class ChatsStorage extends BaseStorage<ChatStorageItem> {
@@ -41,6 +49,12 @@ class ChatsStorage extends BaseStorage<ChatStorageItem> {
     const chat = await this.getItem(id).catch(() => null);
     const messages = await messageStorage.getChatItems(id);
     await Promise.all(messages.map(message => messageStorage.removeItem(message.id)));
+    if (chat?.assistantChats) {
+      await Promise.all(chat.assistantChats.map(assistantChat => (
+        chatAssistantMessageStorage.removeAssistantChatItems(id, assistantChat.id)
+      )));
+    }
+    await chatAssistantMessageStorage.removeChatItems(id);
     if (chat) await deleteSnapshot(collectChatMedia(chat));
     await super.removeItem(id);
   }

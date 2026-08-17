@@ -16,12 +16,14 @@ import { assistantMessagesRoutes } from "./routes/assistantMessages.routes.js";
 import { codeBlockRoutes } from "./routes/codeBlocks.routes.js";
 import { generationPresetsRoutes } from "./routes/generationPresets.routes.js";
 import { gcRoutes } from "./routes/gc.routes.js";
+import { chatAssistantMessagesRoutes } from "./routes/chatAssistantMessages.routes.js";
 
 export async function storageRoutes(app: FastifyInstance) {
   const service = new StorageService();
 
   app.register(assistantChatsRoutes(service), { prefix: "/assistantChats" });
   app.register(assistantMessagesRoutes(service), { prefix: "" });
+  app.register(chatAssistantMessagesRoutes(service), { prefix: "" });
   app.register(charactersRoutes(service), { prefix: "/characters" });
   app.register(chatsRoutes(service), { prefix: "/chats" });
   app.register(codeBlockRoutes(service), { prefix: "/codeBlocks" });

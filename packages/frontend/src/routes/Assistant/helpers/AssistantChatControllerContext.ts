@@ -5,8 +5,11 @@ export type AssistantChatControllerContextType = AssistantChatController;
 
 export const AssistantChatControllerContext = React.createContext<AssistantChatControllerContextType | null>(null);
 
-export const useAssistantChatController = (assistantChatId: string | undefined): AssistantChatController | undefined => {
-  const [controller] = React.useState(() => new AssistantChatController());
+export const useAssistantChatController = (
+  assistantChatId: string | undefined,
+  parentChatController?: import("src/routes/SingleChat/helpers/ChatController.ts").ChatController,
+): AssistantChatController | undefined => {
+  const [controller] = React.useState(() => new AssistantChatController({ parentChatController }));
 
   React.useEffect(() => {
     controller.setup();

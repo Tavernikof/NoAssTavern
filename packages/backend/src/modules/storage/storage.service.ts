@@ -12,10 +12,12 @@ import { AssistantChatsStorage } from "./storages/AssistantChats.js";
 import { AssistantMessagesStorage } from "./storages/AssistantMessages.js";
 import { CodeBlocksStorage } from "./storages/CodeBlocks.js";
 import { GenerationPresetsStorage } from "./storages/GenerationPresets.js";
+import { ChatAssistantMessagesStorage } from "./storages/ChatAssistantMessages.js";
 
 export class StorageService {
   assistantChats = new AssistantChatsStorage(this);
   assistantMessages = new AssistantMessagesStorage(this);
+  chatAssistantMessages = new ChatAssistantMessagesStorage();
   characters = new CharactersStorage(this);
   chats = new ChatsStorage(this);
   codeBlocks = new CodeBlocksStorage(this);
@@ -30,6 +32,7 @@ export class StorageService {
   requests = new RequestsStorage(this);
 
   list = [
+    this.chatAssistantMessages,
     this.assistantChats,
     this.assistantMessages,
     this.characters,

@@ -1,5 +1,9 @@
 import { action, computed, makeObservable, observable, reaction, toJS } from "mobx";
-import { chatsStorage, ChatStorageItem } from "src/storages/ChatsStorage.ts";
+import {
+  chatsStorage,
+  ChatAssistantChatStorageItem,
+  ChatStorageItem,
+} from "src/storages/ChatsStorage.ts";
 import { Character } from "src/store/Character.ts";
 import { Flow } from "src/store/Flow.ts";
 import { v4 as uuid } from "uuid";
@@ -31,6 +35,7 @@ export class Chat {
   @observable flow: Flow;
   @observable mediaFiles: MediaFile[] = [];
   variables: Record<string, string> = {};
+  @observable assistantChats: ChatAssistantChatStorageItem[] = [];
 
   @observable isNew: boolean;
 
@@ -56,14 +61,14 @@ export class Chat {
     this.impersonateHistory = data.impersonateHistory || [];
     this.mediaFiles = data.mediaFiles || [];
     this.variables = data.variables ?? {};
+    this.assistantChats = (data.assistantChats ?? []).map(item => ({
+      ...item,
+      createdAt: parseDate(item.createdAt)!,
+    }));
 
     makeObservable(this);
 
-    reaction(() => {
-      const object = this.serialize(true);
-      delete (object as any).updatedAt;
-      return object;
-    }, () => {
+    reaction(() => this.serialize(true, true), () => {
       this.updateUpdatedAt();
     });
 
@@ -95,6 +100,7 @@ export class Chat {
       flow: data.flow?.serialize() || null,
       variables: {},
       mediaFiles: data.mediaFiles || [],
+      assistantChats: [],
     }, { isNew: true });
   }
 
@@ -185,11 +191,23 @@ export class Chat {
   }
 
   @action
+  async addAssistantChat(assistantChat: ChatAssistantChatStorageItem) {
+    this.assistantChats = [assistantChat, ...this.assistantChats];
+    await chatsStorage.updateItem(this.serialize());
+  }
+
+  @action
+  async removeAssistantChat(assistantChatId: string) {
+    this.assistantChats = this.assistantChats.filter(item => item.id !== assistantChatId);
+    await chatsStorage.updateItem(this.serialize());
+  }
+
+  @action
   updateUpdatedAt() {
     this.updatedAt = new Date();
   }
 
-  serialize(omitUpdateAt?: boolean): ChatStorageItem {
+  serialize(omitUpdateAt?: boolean, omitAssistantChats?: boolean): ChatStorageItem {
     return {
       id: this.id,
       createdAt: this.createdAt,
@@ -204,6 +222,7 @@ export class Chat {
       flow: this.flow.serialize(),
       variables: this.variables,
       mediaFiles: toJS(this.mediaFiles) || [],
+      assistantChats: omitAssistantChats ? undefined : toJS(this.assistantChats),
     };
   }
 }

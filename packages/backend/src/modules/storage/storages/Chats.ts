@@ -28,6 +28,11 @@ export const ChatSchema = z.object({
   flow: FlowSchema,
   variables: z.looseObject({}).optional(),
   mediaFiles: z.array(MediaFileSchema).optional(),
+  assistantChats: z.array(z.object({
+    id: z.uuid(),
+    createdAt: z.iso.datetime(),
+    name: z.string(),
+  })).optional(),
 });
 
 export type Chat = z.infer<typeof ChatSchema>;

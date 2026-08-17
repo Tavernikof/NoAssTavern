@@ -21,9 +21,12 @@ import { openRequestModal } from "src/components/RequestModal";
 import Tooltip from "src/components/Tooltip";
 import Button from "src/components/Button";
 
-type Props = Record<string, never>;
+type Props = {
+  index: number
+};
 
-const MessageActions: React.FC<Props> = () => {
+const MessageActions: React.FC<Props> = (props) => {
+  const { index } = props;
   const chatController = useChatControllerContext();
   const { chatMessage } = useChatMessageContext();
   const {
@@ -44,7 +47,7 @@ const MessageActions: React.FC<Props> = () => {
       {isAssistant && (
         <div className={style.left}>
           <>
-            <div title="Assistant turn" className={style.role}><BotMessageSquare className={style.roleIcon} /></div>
+            <div title={`Assistant turn\nMessage index: ${index}`} className={style.role}><BotMessageSquare className={style.roleIcon} /></div>
             {requestId && (
               <MessageActionButton onClick={() => openRequestModal({ requestId })} icon={Terminal} />
             )}

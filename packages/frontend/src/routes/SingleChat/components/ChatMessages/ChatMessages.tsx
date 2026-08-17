@@ -57,7 +57,7 @@ const ChatMessages: React.FC<Props> = () => {
   if (chatController.messages) {
     for (let i = chatController.messages.length - 1; i >= 0; i--) {
       const message = chatController.messages[i];
-      messages.push(<ChatMessage key={message.id} chatMessage={message} />);
+      messages.push(<ChatMessage key={message.id} chatMessage={message} index={chatController.messages.length - i} />);
     }
   }
 

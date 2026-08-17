@@ -5,6 +5,10 @@
   @include overflow-scroll();
 }
 
+.containerNoHeaderOffset {
+  padding-top: 0;
+}
+
 .content {
   display: flex;
   flex-direction: column;

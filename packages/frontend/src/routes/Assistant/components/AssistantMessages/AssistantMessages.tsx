@@ -7,14 +7,20 @@ import AssistantChatUserMessage
   from "src/routes/Assistant/components/AssistantChatUserMessage/AssistantChatUserMessage.tsx";
 import AssistantChatAssistantMessage
   from "src/routes/Assistant/components/AssistantChatAssistantMessage/AssistantChatAssistantMessage.tsx";
+import clsx from "clsx";
 
-type Props = Record<string, never>;
+type Props = {
+  headerOffset?: boolean;
+};
 
-const AssistantMessages: React.FC<Props> = () => {
+const AssistantMessages: React.FC<Props> = ({ headerOffset = true }) => {
   const assistantChatController = useAssistantChatControllerContext();
 
   return (
-    <div ref={assistantChatController?.setContainer} className={style.container}>
+    <div
+      ref={assistantChatController?.setContainer}
+      className={clsx(style.container, !headerOffset && style.containerNoHeaderOffset)}
+    >
       <div className={style.content}>
         {assistantChatController.messages?.map(assistantMessage => assistantMessage.role === ChatMessageRole.USER
           ? <AssistantChatUserMessage key={assistantMessage.id} assistantMessage={assistantMessage} />

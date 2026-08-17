@@ -13,6 +13,7 @@ type ChatLoreBook = {
 type ChatSwipePromptResult = {
   requestId?: string | null;
   message: string;
+  preparedMessage?: string;
   error?: string | null;
 } & Record<string, any>
 
