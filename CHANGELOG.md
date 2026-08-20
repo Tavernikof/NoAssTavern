@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.10.0...v2.11.0) (2026-08-08)
+
+
+### Features
+
+* **code-block:** add preRequest function ([e3811e2](https://github.com/Tavernikof/NoAssTavern/commit/e3811e26ab89a0fa576102eda6ba66edfba1e8e3))
+
 # [2.10.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.9.0...v2.10.0) (2026-07-25)
 
 
