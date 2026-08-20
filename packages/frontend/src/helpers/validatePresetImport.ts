@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { TavernRegexScript } from "src/helpers/regexScriptsToCodeBlocks.ts";
 
 export type PresetImport = {
   chat_completion_source: string;
@@ -83,6 +84,8 @@ export type PresetImport = {
   function_calling: boolean;
   seed: number;
   n: number;
+  Regex?: TavernRegexScript[];
+  extensions?: { regex_scripts?: TavernRegexScript[] } & Record<string, unknown>;
 }
 
 const schema = Joi.object({

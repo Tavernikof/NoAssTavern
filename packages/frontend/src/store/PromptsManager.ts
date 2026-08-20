@@ -3,6 +3,7 @@ import { Prompt } from "src/store/Prompt.ts";
 import { AbstractManager } from "src/helpers/AbstractManager.ts";
 import { readJsonFromFile } from "src/helpers/readJsonFromFile.ts";
 import { validatePresetImport } from "src/helpers/validatePresetImport.ts";
+import { regexScriptsToCodeBlocks } from "src/helpers/regexScriptsToCodeBlocks.ts";
 import arrayToIdIndex from "src/helpers/arrayToIdIndex.ts";
 import { action } from "mobx";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
@@ -71,6 +72,12 @@ export class PromptsManager extends AbstractManager<Prompt, PromptStorageItem> {
               presencePenalty: tavernPreset.presence_penalty,
               frequencyPenalty: tavernPreset.frequency_penalty,
             };
+            prompt.update({
+              codeBlocks: [
+                ...regexScriptsToCodeBlocks(tavernPreset.Regex),
+                ...regexScriptsToCodeBlocks(tavernPreset.extensions?.regex_scripts),
+              ],
+            });
             this.add(prompt);
           }
         } catch (e) {
