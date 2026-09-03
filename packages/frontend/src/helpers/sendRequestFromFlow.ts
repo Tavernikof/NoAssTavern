@@ -8,6 +8,7 @@ export const sendRequestFromFlow = async (
   context: FlowProcessContext,
   getVars: (prompt: Prompt) => PresetVarsGetter,
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
+  onUpdateReasoning?: (event: BackendProviderOnUpdateEvent) => void,
 ) => {
   const { flow, messageController, node, abortController } = context;
 
@@ -34,6 +35,7 @@ export const sendRequestFromFlow = async (
     stop: await prompt.buildStopSequence(vars),
     generationConfig: prompt.generationConfig,
     onUpdate: onUpdate,
+    onUpdateReasoning: onUpdateReasoning,
     onPreRequest: (params) => prompt.callCodeBlockFunction(CodeBlockFunction.preRequest, {
       ...params,
       provider: prompt.backendProviderId,

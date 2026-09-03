@@ -61,7 +61,10 @@ type ChatGPTResponse = {
   model: string;
   choices: {
     index: number;
-    delta?: { content?: string },
+    delta?: {
+      content?: string;
+      reasoning_content?: string;
+    },
     message: {
       role: string;
       content: string | null;
@@ -145,6 +148,7 @@ class OpenaiProvider extends BaseBackendProvider {
       messages,
       stop,
       onUpdate,
+      onUpdateReasoning,
       abortController,
 
       generationConfig: {
@@ -178,7 +182,11 @@ class OpenaiProvider extends BaseBackendProvider {
       "Content-Type": "application/json",
     };
 
-    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, { request: requestBody, url, headers }));
+    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, {
+      request: requestBody,
+      url,
+      headers,
+    }));
 
     let response: AxiosResponse;
     try {
@@ -194,6 +202,7 @@ class OpenaiProvider extends BaseBackendProvider {
     } catch (response) {
       return {
         message: "",
+        reasoning: "",
         error: await getAxiosError(response as AxiosError),
         url,
         request: requestBody,
@@ -203,7 +212,8 @@ class OpenaiProvider extends BaseBackendProvider {
     }
 
     const {
-      message = "",
+      message,
+      reasoning,
       images,
       error = undefined,
       inputTokens = 0,
@@ -212,6 +222,7 @@ class OpenaiProvider extends BaseBackendProvider {
       response,
       stop: clientOnlyStop ? stop : undefined,
       onUpdate,
+      onUpdateReasoning,
 
       parseJson: (data) => {
         const key = data.key;
@@ -220,12 +231,18 @@ class OpenaiProvider extends BaseBackendProvider {
           const choice = value[0];
           if (choice) {
             const message = choice.message?.content || choice.delta?.content || undefined;
+            const reasoning = choice.delta?.reasoning_content || undefined;
             if (choice.finish_reason && choice.finish_reason !== "stop" && choice.finish_reason !== "STOP") return {
               message,
+              reasoning,
               error: "finishReason: " + choice.finish_reason,
             };
-            if (choice.message?.refusal) return { message, error: "refusal: " + choice.message.refusal };
-            if (message) return { message };
+            if (choice.message?.refusal) return {
+              message,
+              reasoning,
+              error: "refusal: " + choice.message.refusal,
+            };
+            if (message || reasoning) return { message, reasoning };
           }
         }
 
@@ -248,7 +265,8 @@ class OpenaiProvider extends BaseBackendProvider {
     });
 
     return {
-      message: message.trim(),
+      message,
+      reasoning,
       images,
       error,
       url,

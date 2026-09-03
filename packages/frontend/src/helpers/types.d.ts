@@ -11,6 +11,7 @@ type ChatLoreBook = {
 }
 
 type ChatSwipePromptResult = {
+  reasoning?: string;
   requestId?: string | null;
   message: string;
   preparedMessage?: string;
@@ -138,6 +139,7 @@ type BackendProviderGenerateConfig<C extends Record<string, any> = {}> = {
   messages: PresetPrompt,
   stop?: string[],
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
+  onUpdateReasoning?: (event: BackendProviderOnUpdateEvent) => void,
   onPreRequest?: (params: Omit<PreRequestParams, "provider">) => Promise<PreRequestParams | undefined>,
   generationConfig: C,
   abortController: AbortController,
@@ -150,6 +152,7 @@ type BackendProviderGenerateImage = {
 
 type BackendProviderGenerateResponse = {
   message: string,
+  reasoning: string,
   error?: string,
   inputTokens: number,
   outputTokens: number,
@@ -281,7 +284,9 @@ type FormatMessageParams = {
 // ============================================================================
 
 declare function getFileUrl(name: string): Promise<string | null>;
+
 declare function getFileContent(name: string): Promise<string>;
+
 declare function registerPresetVariable(
   name: string,
   fn: (params: string, context: Record<string, any>) => string | Promise<string>,

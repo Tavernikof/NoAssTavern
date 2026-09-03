@@ -9,6 +9,7 @@ export type ResponseParserImage = {
 }
 export type ResponseParserMessage = {
   message?: string;
+  reasoning?: string;
   error?: string;
   inputTokens?: number;
   outputTokens?: number;
@@ -19,6 +20,7 @@ type ResponseParserConfig = {
   response: AxiosResponse,
   stop?: string[],
   onUpdate: (event: BackendProviderOnUpdateEvent) => void,
+  onUpdateReasoning?: (event: BackendProviderOnUpdateEvent) => void,
   parseJson: (data: ParsedElementInfo.ParsedElementInfo) => ResponseParserMessage | "DONE" | undefined,
 }
 
@@ -74,11 +76,12 @@ export abstract class BaseBackendProvider {
   }
 
   protected async createResponseParser(config: ResponseParserConfig) {
-    const { response, stop, onUpdate, parseJson } = config;
+    const { response, stop, onUpdate, onUpdateReasoning, parseJson } = config;
     const hasStop = Array.isArray(stop) && stop.length;
 
     let stoped = false;
     let message = "";
+    let reasoning = "";
     let images: ResponseParserImage[] | undefined;
     let error: string | undefined;
     let inputTokens = 0;
@@ -105,8 +108,13 @@ export abstract class BaseBackendProvider {
         if (response.message !== undefined) {
           message += response.message;
           onUpdate({ chunk: response.message, message });
-
         }
+
+        if (onUpdateReasoning && response.reasoning !== undefined) {
+          reasoning += response.reasoning;
+          onUpdateReasoning({ chunk: response.reasoning, message: reasoning });
+        }
+
         if (Array.isArray(response.images)) {
           if (!Array.isArray(images)) images = [];
           images.push(...response.images);
@@ -197,6 +205,7 @@ export abstract class BaseBackendProvider {
 
     return {
       message,
+      reasoning,
       images,
       error,
       inputTokens,

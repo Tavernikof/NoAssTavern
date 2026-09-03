@@ -262,6 +262,10 @@ export class AssistantChatController {
         const targetMessage = this.messagesDict[targetMessageId];
         targetMessage.message.message += data.chunk;
       }),
+      onUpdateReasoning: action((data) => {
+        const targetMessage = this.messagesDict[targetMessageId];
+        targetMessage.message.reasoning += data.chunk;
+      }),
       abortController: abortController,
     };
 
@@ -273,6 +277,7 @@ export class AssistantChatController {
       runInAction(() => {
         const targetMessage = this.messagesDict[targetMessageId];
         targetMessage.message.message = response.message;
+        targetMessage.message.reasoning = response.reasoning;
         targetMessage.message.error = response.error;
         targetMessage.message.images = images;
         targetMessage.setPending(false);

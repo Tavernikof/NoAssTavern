@@ -1,11 +1,23 @@
 import * as React from "react";
 import style from "./AssistantChatMessageActions.module.scss";
 import MessageActionButton from "src/routes/SingleChat/components/MessageActionButton/MessageActionButton.tsx";
-import { ArrowDownFromLine, Check, ChevronLeft, ChevronRight, Pen, Trash, X, Send, Clipboard } from "lucide-react";
+import {
+  ArrowDownFromLine,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Pen,
+  Trash,
+  X,
+  Send,
+  Clipboard,
+  Brain,
+} from "lucide-react";
 import Tooltip from "src/components/Tooltip/Tooltip.tsx";
 import Button from "src/components/Button/Button.tsx";
 import { AssistantMessageController } from "src/routes/Assistant/helpers/AssistantMessageController.ts";
 import { observer } from "mobx-react-lite";
+import { openReasoningContentModal } from "src/components/ReasoningContentModal";
 
 type Props = {
   assistantMessage: AssistantMessageController
@@ -58,6 +70,11 @@ const AssistantChatMessageActions: React.FC<Props> = (props) => {
                   />
                 )}
               </Tooltip>
+              {assistantMessage.message.reasoning && (
+                <MessageActionButton
+                  onClick={() => openReasoningContentModal({ message: assistantMessage.message })}
+                  icon={Brain} />
+              )}
             </div>
             <div className={style.actionsAside}>
               {activeSwipe > 0 && (

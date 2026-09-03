@@ -126,6 +126,7 @@ class GeminiProvider extends BaseBackendProvider {
       messages,
       stop,
       onUpdate,
+      onUpdateReasoning,
       abortController,
 
       generationConfig: {
@@ -191,6 +192,7 @@ class GeminiProvider extends BaseBackendProvider {
     } catch (response) {
       return {
         message: "",
+        reasoning: "",
         error: await getAxiosError(response as AxiosError),
         url,
         request: requestBody,
@@ -200,7 +202,8 @@ class GeminiProvider extends BaseBackendProvider {
     }
 
     const {
-      message = "",
+      message,
+      reasoning,
       images,
       error = undefined,
       inputTokens = 0,
@@ -209,6 +212,7 @@ class GeminiProvider extends BaseBackendProvider {
       response,
       stop: clientOnlyStop ? stop : undefined,
       onUpdate,
+      onUpdateReasoning,
 
       parseJson: (data) => {
         const response: ResponseParserMessage = {};
@@ -250,7 +254,8 @@ class GeminiProvider extends BaseBackendProvider {
     });
 
     return {
-      message: message.trim(),
+      message,
+      reasoning,
       images,
       error,
       url,

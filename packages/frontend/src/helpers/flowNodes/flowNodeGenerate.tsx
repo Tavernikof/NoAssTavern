@@ -67,9 +67,12 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
         const result = await prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message, finish: false });
         runInAction(() => currentPrompt.message = result.message);
       },
+      async ({ message }) => {
+        runInAction(() => currentPrompt.reasoning = message);
+      },
     ).then(
       (data) => {
-        const { message, error } = data;
+        const { message, reasoning, error } = data;
         const request: RequestStorageItem = {
           id: uuid(),
           createdAt: new Date(),
@@ -79,6 +82,7 @@ export const flowNodeGenerate: FlowNodeConfig<FlowNodeGenerateState> = {
         return prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message, finish: true }).then(
           action(({ message }) => {
             currentPrompt.message = message;
+            currentPrompt.reasoning = reasoning;
             currentPrompt.requestId = request.id;
             requestStorage.updateItem(request).then(() => undefined);
             if (error) throwNodeError(currentPrompt, error);

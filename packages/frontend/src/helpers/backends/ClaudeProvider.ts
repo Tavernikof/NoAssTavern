@@ -161,6 +161,7 @@ class ClaudeProvider extends BaseBackendProvider {
       messages,
       stop,
       onUpdate,
+      onUpdateReasoning,
       abortController,
 
       generationConfig: {
@@ -211,6 +212,7 @@ class ClaudeProvider extends BaseBackendProvider {
     } catch (response) {
       return {
         message: "",
+        reasoning: "",
         error: await getAxiosError(response as AxiosError),
         url,
         request: requestBody,
@@ -220,7 +222,8 @@ class ClaudeProvider extends BaseBackendProvider {
     }
 
     const {
-      message = "",
+      message,
+      reasoning,
       error = undefined,
       inputTokens = 0,
       outputTokens = 0,
@@ -228,6 +231,7 @@ class ClaudeProvider extends BaseBackendProvider {
       response,
       stop: clientOnlyStop ? stop : undefined,
       onUpdate,
+      onUpdateReasoning,
 
       parseJson: (data) => {
         const response: ResponseParserMessage = {};
@@ -267,7 +271,8 @@ class ClaudeProvider extends BaseBackendProvider {
     });
 
     return {
-      message: message.trim(),
+      message,
+      reasoning,
       error,
       url,
       request: requestBody,

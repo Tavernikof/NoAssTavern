@@ -62,7 +62,10 @@ export const flowNodeLlmTranslate: FlowNodeConfig<FlowNodeGenerateState> = {
 
     let _overwritten = false;
     const updateMessage = async (translatedText: string, finish: boolean) => {
-      const result = await prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, { message: translatedText, finish });
+      const result = await prompt.callCodeBlockFunction(CodeBlockFunction.onMessage, {
+        message: translatedText,
+        finish,
+      });
       runInAction(() => {
         if (overwriteTranslate) {
           if (!_overwritten) messageController[ChatSwipePrompt.translate].message = text;
@@ -85,10 +88,16 @@ export const flowNodeLlmTranslate: FlowNodeConfig<FlowNodeGenerateState> = {
       context,
       (prompt) => messageController.getPresetVars({ prompt }),
       ({ message }) => updateMessage(message, false),
+      action(({ message }) => {
+        messageController[ChatSwipePrompt.message].reasoning = message;
+      }),
     ).then(
       (data) => {
-        const { message, error } = data;
+        const { message, reasoning, error } = data;
         if (message) updateMessage(message, true);
+        runInAction(() => {
+          messageController[ChatSwipePrompt.message].reasoning = reasoning;
+        })
         if (error) throwNodeError(messageController.translate, error);
       },
       action((error) => {

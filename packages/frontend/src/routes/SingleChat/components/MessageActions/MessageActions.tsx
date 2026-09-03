@@ -12,6 +12,7 @@ import {
   Terminal,
   Pencil,
   ArrowDownFromLine,
+  Brain,
 } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import MessageActionButton from "../MessageActionButton";
@@ -20,6 +21,7 @@ import { useChatControllerContext } from "src/routes/SingleChat/helpers/ChatCont
 import { openRequestModal } from "src/components/RequestModal";
 import Tooltip from "src/components/Tooltip";
 import Button from "src/components/Button";
+import { openReasoningContentModal } from "src/components/ReasoningContentModal";
 
 type Props = {
   index: number
@@ -39,17 +41,24 @@ const MessageActions: React.FC<Props> = (props) => {
     isFirst,
     isLast,
     showTranslate,
-    message: { requestId },
+    message,
   } = chatMessage;
+
+  const { requestId } = message;
 
   return (
     <div className={style.container}>
       {isAssistant && (
         <div className={style.left}>
           <>
-            <div title={`Assistant turn\nMessage index: ${index}`} className={style.role}><BotMessageSquare className={style.roleIcon} /></div>
+            <div title={`Assistant turn\nMessage index: ${index}`} className={style.role}>
+              <BotMessageSquare className={style.roleIcon} />
+            </div>
             {requestId && (
               <MessageActionButton onClick={() => openRequestModal({ requestId })} icon={Terminal} />
+            )}
+            {message.reasoning && (
+              <MessageActionButton onClick={() => openReasoningContentModal({ message })} icon={Brain} />
             )}
           </>
         </div>
