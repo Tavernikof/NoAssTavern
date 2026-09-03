@@ -88,16 +88,10 @@ export const flowNodeLlmTranslate: FlowNodeConfig<FlowNodeGenerateState> = {
       context,
       (prompt) => messageController.getPresetVars({ prompt }),
       ({ message }) => updateMessage(message, false),
-      action(({ message }) => {
-        messageController[ChatSwipePrompt.message].reasoning = message;
-      }),
     ).then(
       (data) => {
-        const { message, reasoning, error } = data;
+        const { message, error } = data;
         if (message) updateMessage(message, true);
-        runInAction(() => {
-          messageController[ChatSwipePrompt.message].reasoning = reasoning;
-        })
         if (error) throwNodeError(messageController.translate, error);
       },
       action((error) => {
