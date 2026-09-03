@@ -1,3 +1,11 @@
+# [2.12.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.11.0...v2.12.0) (2026-08-20)
+
+
+### Features
+
+* **assistant:** add assistant to chats ([ab21f1a](https://github.com/Tavernikof/NoAssTavern/commit/ab21f1a39c87890f63563767867710f09610851c))
+* **code-block:** import sillyTavern regex as code block ([5d23a68](https://github.com/Tavernikof/NoAssTavern/commit/5d23a6873b2a1cf43563e8ec4da4447dc07c9767))
+
 # [2.11.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.10.0...v2.11.0) (2026-08-08)
 
 
