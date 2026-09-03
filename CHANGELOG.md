@@ -1,3 +1,10 @@
+## [2.13.1](https://github.com/Tavernikof/NoAssTavern/compare/v2.13.0...v2.13.1) (2026-09-03)
+
+
+### Bug Fixes
+
+* **reasoning:** add reasoning for openai ([e06281e](https://github.com/Tavernikof/NoAssTavern/commit/e06281ee21a622d52edcff2172ee032149440fb0))
+
 # [2.13.0](https://github.com/Tavernikof/NoAssTavern/compare/v2.12.0...v2.13.0) (2026-09-03)
 
 
