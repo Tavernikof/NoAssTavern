@@ -97,7 +97,7 @@ type ClaudeEventContentBlockStart = {
 type ClaudeEventContentBlockDelta = {
   "type": "content_block_delta",
   "index": number,
-  "delta": { "type": "text_delta", "text": string }
+  "delta": { "type": "text_delta", "text": string } | { "type": "thinking_delta", "thinking": string }
 }
 
 type ClaudeEventContentBlockStop = {
@@ -197,7 +197,11 @@ class ClaudeProvider extends BaseBackendProvider {
       "x-api-key": key,
     };
 
-    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, { request: requestBody, url, headers }));
+    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, {
+      request: requestBody,
+      url,
+      headers,
+    }));
 
     try {
       response = await backendManager.externalRequest({
@@ -244,7 +248,11 @@ class ClaudeProvider extends BaseBackendProvider {
           } else if (value.type === "content_block_start") {
             response.message = value.content_block?.text || "";
           } else if (value.type === "content_block_delta") {
-            response.message = value.delta?.text || "";
+            if (value.delta?.type === "thinking_delta") {
+              response.reasoning = value.delta.thinking || "";
+            } else {
+              response.message = value.delta?.text || "";
+            }
           } else if (value.type === "message_delta") {
             const stopReason = value.delta?.stop_reason;
             if (stopReason && stopReason !== "end_turn" && stopReason !== "stop_sequence") {
