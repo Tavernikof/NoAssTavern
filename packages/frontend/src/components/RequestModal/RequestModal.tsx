@@ -4,10 +4,6 @@ import style from "./RequestModal.module.scss";
 import Button from "src/components/Button";
 import { backendProviderDict } from "src/enums/BackendProvider.ts";
 import Tabs, { TabItem } from "src/components/Tabs";
-import PromptForm from "src/components/PromptEditorModal/components/PromptForm/PromptForm.tsx";
-import PromptCodeBlocksCounter
-  from "src/components/PromptEditorModal/components/PromptCodeBlocksCounter/PromptCodeBlocksCounter.tsx";
-import PromptCodeBlocks from "src/components/PromptEditorModal/components/PromptCodeBlocks/PromptCodeBlocks.tsx";
 
 type Props = {
   requestId: string;
@@ -44,7 +40,9 @@ const RequestModal: React.FC<Props> = (props) => {
             {messages.map((message, i) => (
               <div key={i} className={style.block}>
                 <div className={style.head}>{message.role}</div>
-                <div className={style.content}>{message.content}</div>
+                <div className={style.content}>
+                  {typeof message.content === "string" ? message.content : JSON.stringify(message.content)}
+                </div>
               </div>
             ))}
           </div>

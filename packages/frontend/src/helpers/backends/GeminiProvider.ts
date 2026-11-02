@@ -65,6 +65,7 @@ type GeminiRawResponse = {
     "content": {
       "parts": {
         "text": string,
+        "thought"?: boolean,
         "inlineData"?: {
           data: string,
           mimeType: string
@@ -177,7 +178,11 @@ class GeminiProvider extends BaseBackendProvider {
       "Content-Type": "application/json",
     };
 
-    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, { request: requestBody, url, headers }));
+    ({ request: requestBody, url, headers } = await this.applyPreRequest(config, {
+      request: requestBody,
+      url,
+      headers,
+    }));
 
     try {
       response = await backendManager.externalRequest({
@@ -230,8 +235,13 @@ class GeminiProvider extends BaseBackendProvider {
           }
           candidate.content?.parts?.forEach((part) => {
             if (part.text) {
-              if (!response.message) response.message = "";
-              response.message += part.text;
+              if (part.thought) {
+                if (!response.reasoning) response.reasoning = "";
+                response.reasoning += part.text;
+              } else {
+                if (!response.message) response.message = "";
+                response.message += part.text;
+              }
             }
             if (part.inlineData) {
               if (!response.images) response.images = [];

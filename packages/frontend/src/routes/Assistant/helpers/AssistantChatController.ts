@@ -20,6 +20,9 @@ import {
 } from "src/storages/ChatAssistantMessageStorage.ts";
 import { AssistantMessageStorageItem } from "src/storages/AssistantMessageStorage.ts";
 import { prepareMessage } from "src/helpers/prepareMessage.ts";
+import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
+import { openAssistantCodeBlocksModal } from "src/routes/Assistant/components/AssistantCodeBlocksModal";
+import type { PromptCodeBlockStorageItem } from "src/storages/PromptsStorage.ts";
 
 type CreateAssistantMessageConfig = {
   id?: string,
@@ -248,6 +251,7 @@ export class AssistantChatController {
     const messages = this.messages.slice(0, targetMessageIndex);
 
     this.messagesDict[targetMessageId].setPending(true);
+    let lastUpdateId = 0;
 
     const data: BackendProviderGenerateConfig<PromptGenerationConfig> = {
       baseUrl: connectionProxy?.baseUrl,
@@ -258,27 +262,49 @@ export class AssistantChatController {
         content: m.message.preparedMessage ?? m.message.message,
       })),
       generationConfig,
-      onUpdate: action((data) => {
-        const targetMessage = this.messagesDict[targetMessageId];
-        targetMessage.message.message += data.chunk;
-      }),
+      onUpdate: async (data) => {
+        const updateId = ++lastUpdateId;
+        const result = await globalSettings.callAssistantCodeBlockFunction(CodeBlockFunction.onMessage, {
+          message: data.message,
+          finish: false,
+        });
+        runInAction(() => {
+          const targetMessage = this.messagesDict[targetMessageId];
+          if (!targetMessage?.pending || updateId !== lastUpdateId) return;
+          targetMessage.message.message = result.message;
+        });
+      },
       onUpdateReasoning: action((data) => {
         const targetMessage = this.messagesDict[targetMessageId];
         targetMessage.message.reasoning += data.chunk;
+      }),
+      onPreRequest: (params) => globalSettings.callAssistantCodeBlockFunction(CodeBlockFunction.preRequest, {
+        ...params,
+        provider: backendProviderId,
       }),
       abortController: abortController,
     };
 
     return backendProvider.generate(data).then(async response => {
       abortController.abort();
+      let message = response.message;
+      let error = response.error;
+      try {
+        message = (await globalSettings.callAssistantCodeBlockFunction(CodeBlockFunction.onMessage, {
+          message,
+          finish: true,
+        })).message;
+      } catch (e) {
+        error = e instanceof Error ? e.message : String(e);
+      }
       const images = response.images
         ? await Promise.all(response.images.map(async image => ({ imageId: await filesManager.saveBase64(image.data, image.mimeType) })))
         : undefined;
       runInAction(() => {
         const targetMessage = this.messagesDict[targetMessageId];
-        targetMessage.message.message = response.message;
+        targetMessage.message.message = message;
         targetMessage.message.reasoning = response.reasoning;
-        targetMessage.message.error = response.error;
+        targetMessage.message.error = error;
         targetMessage.message.images = images;
         targetMessage.setPending(false);
       });
@@ -356,6 +382,13 @@ export class AssistantChatController {
       action((data) => {
         globalSettings.updateDefaultAssistantSettings(data);
       }),
+      () => {},
+    );
+  }
+
+  openCodeBlocks() {
+    openAssistantCodeBlocksModal({ codeBlocks: globalSettings.assistantCodeBlocks }).result.then(
+      (codeBlocks: PromptCodeBlockStorageItem[]) => globalSettings.updateAssistantCodeBlocks(codeBlocks),
       () => {},
     );
   }

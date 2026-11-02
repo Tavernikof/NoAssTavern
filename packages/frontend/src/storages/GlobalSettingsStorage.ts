@@ -2,6 +2,7 @@ import { Entry, ZipWriter } from "@zip.js/zip.js";
 import parseJSON from "src/helpers/parseJSON.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { backendManager } from "src/store/BackendManager.ts";
+import type { PromptCodeBlockStorageItem } from "src/storages/PromptsStorage.ts";
 
 export type GlobalSettingsStorageItem = {
   seedsImported: boolean;
@@ -12,6 +13,7 @@ export type GlobalSettingsStorageItem = {
   socks5: string;
   notificationFile: string | null;
   defaultAssistantSettings: AssistantSettings | null;
+  assistantCodeBlocks: PromptCodeBlockStorageItem[];
 }
 
 export class GlobalSettingsStorage {

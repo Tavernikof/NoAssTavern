@@ -1,0 +1,25 @@
+.container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer {
+  border-top: 1px solid var(--white20a);
+  background: var(--SmartThemeChatTintColor);
+  padding-top: 8px;
+}
+
+.save {
+  display: block;
+  width: 300px;
+  margin: 0 auto;
+}

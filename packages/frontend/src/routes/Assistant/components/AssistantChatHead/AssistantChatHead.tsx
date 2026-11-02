@@ -7,6 +7,7 @@ import Button from "src/components/Button/Button.tsx";
 import Tooltip from "src/components/Tooltip";
 import { useNavigate } from "react-router";
 import { observer } from "mobx-react-lite";
+import { globalSettings } from "src/store/GlobalSettings.ts";
 
 type Props = Record<string, never>;
 
@@ -18,7 +19,10 @@ const AssistantChatHead: React.FC<Props> = () => {
     <div className={style.container}>
       <div className={style.content}>
         <div className={style.info}>
-          <Button onClick={() => assistantChatController.openSettings()}>Open settings</Button>
+          <Button onClick={() => assistantChatController.openSettings()}>Settings</Button>
+          <Button onClick={() => assistantChatController.openCodeBlocks()}>
+            Code blocks ({globalSettings.activeAssistantCodeBlocksCount})
+          </Button>
         </div>
         {assistantChatController.assistantChat && (
           <div className={style.actions}>

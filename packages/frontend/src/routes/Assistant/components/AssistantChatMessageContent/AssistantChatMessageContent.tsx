@@ -10,7 +10,7 @@ type Props = {
 
 const AssistantChatMessageContent: React.FC<Props> = (props) => {
   const { assistantMessage } = props;
-  const { editable, message } = assistantMessage;
+  const { editable, message, formattedMessage } = assistantMessage;
 
   if (editable) return (
     <Textarea
@@ -23,7 +23,7 @@ const AssistantChatMessageContent: React.FC<Props> = (props) => {
     />
   );
   return (
-    <MarkdownRenderer>{message.message}</MarkdownRenderer>
+    <MarkdownRenderer>{formattedMessage ?? message.message}</MarkdownRenderer>
   );
 };
 

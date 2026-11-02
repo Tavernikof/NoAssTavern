@@ -5,6 +5,8 @@ import { action, computed, makeObservable, observable, reaction, toJS } from "mo
 import _debounce from "lodash/debounce";
 import { ChatSwipePrompt } from "src/enums/ChatSwipePrompt.ts";
 import { createEmptyPromptResult } from "src/helpers/createEmptyPromptResult.ts";
+import { globalSettings } from "src/store/GlobalSettings.ts";
+import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
 
 export class AssistantMessageController {
   assistantChatController: AssistantChatController;
@@ -19,6 +21,7 @@ export class AssistantMessageController {
 
   @observable pending = false;
   @observable editable = false;
+  @observable formattedMessage: string | null = null;
 
   private editorTextarea: HTMLTextAreaElement | null = null;
 
@@ -38,6 +41,23 @@ export class AssistantMessageController {
     reaction(() => this.serialize(), _debounce((object) => {
       this.assistantChatController.saveMessage(object);
     }, 300));
+
+    reaction(() => [this.message.message, globalSettings.assistantCodeBlocks] as const, ([message]) => {
+      globalSettings.callAssistantCodeBlockFunction(CodeBlockFunction.formatMessage, {
+        message,
+        context: "message",
+        skipDefaultStyle: false,
+        allowHtml: false,
+      }).then(
+        action(({ message: formattedMessage }) => {
+          if (message !== this.message.message) return;
+          this.formattedMessage = formattedMessage;
+        }),
+        action(() => {
+          this.formattedMessage = null;
+        }),
+      );
+    }, { fireImmediately: true });
   }
 
   @computed

@@ -19,6 +19,10 @@ export const GlobalSettingsSchema = z.object({
     model: z.string().nullish(),
     generationConfig: z.looseObject({}),
   }),
+  assistantCodeBlocks: z.array(z.object({
+    active: z.boolean(),
+    codeBlock: z.looseObject({}),
+  })).default([]),
 });
 
 export type GlobalSettings = z.infer<typeof GlobalSettingsSchema>;
@@ -52,6 +56,7 @@ export class GlobalSettingsStorage {
           model: null,
           generationConfig: {},
         },
+        assistantCodeBlocks: [],
       });
     }
   }

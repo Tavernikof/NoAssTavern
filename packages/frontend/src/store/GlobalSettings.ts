@@ -5,6 +5,9 @@ import { backendManager } from "src/store/BackendManager.ts";
 import { globalSettingsStorage, GlobalSettingsStorageItem } from "src/storages/GlobalSettingsStorage.ts";
 import _isObject from "lodash/isObject";
 import { BackendProvider, backendProviderDict } from "src/enums/BackendProvider.ts";
+import type { CodeBlocksManager } from "src/store/CodeBlocksManager.ts";
+import type { PromptCodeBlockStorageItem } from "src/storages/PromptsStorage.ts";
+import type { CodeBlockFunction, CodeBlockFunctionArg } from "src/enums/CodeBlockFunction.ts";
 
 const DEFAULT_BACKEND_URL = env.BACKEND_URL;
 const LOCALSTORAGE_CONNECTION_KEY = "noass-tavern-connection-settings";
@@ -25,9 +28,12 @@ export class GlobalSettings {
   @observable notificationFile: string | null = null;
 
   @observable.ref defaultAssistantSettings: AssistantSettings | null = null;
+  @observable.ref assistantCodeBlocks: PromptCodeBlock[] = [];
 
   notificationAudio: HTMLAudioElement | null = null;
   pageActive = document.hidden;
+  // loaded lazily to avoid circular import (CodeBlocksManager -> AbstractManager -> GlobalSettings)
+  private codeBlocksManager: CodeBlocksManager | null = null;
 
   constructor() {
     makeObservable(this);
@@ -67,6 +73,7 @@ export class GlobalSettings {
   async initializeApp() {
     this.loadConnectionSettings();
     await backendManager.refreshIsConnected();
+    this.codeBlocksManager = await import("src/store/CodeBlocksManager.ts").then(({ codeBlocksManager }) => codeBlocksManager);
     if (typeof this.storageType === "undefined" && backendManager.isConnected) {
       runInAction(() => this.storageType = BackendStorageType.backend);
     }
@@ -146,6 +153,28 @@ export class GlobalSettings {
     this.defaultAssistantSettings = defaultAssistantSettings;
   }
 
+  @computed
+  get activeAssistantCodeBlocksCount() {
+    return this.assistantCodeBlocks.filter(item => item.active).length;
+  }
+
+  @action
+  updateAssistantCodeBlocks(codeBlocks: PromptCodeBlockStorageItem[]) {
+    if (!this.codeBlocksManager) return;
+    this.assistantCodeBlocks = this.codeBlocksManager.syncPromptCodeBlocks(
+      this.assistantCodeBlocks,
+      codeBlocks as unknown as PromptCodeBlock[],
+    );
+  }
+
+  async callAssistantCodeBlockFunction<T extends CodeBlockFunction>(
+    functionName: T,
+    arg: CodeBlockFunctionArg<T>,
+  ) {
+    if (!this.codeBlocksManager) return arg;
+    return this.codeBlocksManager.callCodeBlockFunction(this.assistantCodeBlocks, functionName, arg);
+  }
+
   playNotificationAudio() {
     this.notificationAudio?.play();
   }
@@ -170,6 +199,7 @@ export class GlobalSettings {
       this.socks5 = typeof state.socks5 === "string" ? state.socks5 : "";
       this.notificationFile = typeof state.notificationFile === "string" ? state.notificationFile : null;
       this.defaultAssistantSettings = this.normalizeDefaultAssistantSettings(state.defaultAssistantSettings);
+      this.updateAssistantCodeBlocks(Array.isArray(state.assistantCodeBlocks) ? state.assistantCodeBlocks : []);
     });
   }
 
@@ -210,6 +240,7 @@ export class GlobalSettings {
       socks5: this.socks5,
       notificationFile: this.notificationFile,
       defaultAssistantSettings: this.defaultAssistantSettings,
+      assistantCodeBlocks: this.assistantCodeBlocks.map(item => ({ ...item, codeBlock: item.codeBlock.serialize() })),
     };
   }
 }
