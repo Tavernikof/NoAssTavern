@@ -1,3 +1,11 @@
+## [2.13.2](https://github.com/Tavernikof/NoAssTavern/compare/v2.13.1...v2.13.2) (2026-11-02)
+
+
+### Bug Fixes
+
+* **assistant:** add codeblocks for assistant chats ([12aa140](https://github.com/Tavernikof/NoAssTavern/commit/12aa14061674043363cec30cf173b84b5795b983))
+* **reasoning:** add reasoning for claude ([d7c5a09](https://github.com/Tavernikof/NoAssTavern/commit/d7c5a09d4eddb25014fad370ea80858e9440de40))
+
 ## [2.13.1](https://github.com/Tavernikof/NoAssTavern/compare/v2.13.0...v2.13.1) (2026-09-03)
 
 
