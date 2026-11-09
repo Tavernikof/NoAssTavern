@@ -1,3 +1,10 @@
+## [2.13.3](https://github.com/Tavernikof/NoAssTavern/compare/v2.13.2...v2.13.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* **assistant:** add attachments to assistant chats ([b216c2d](https://github.com/Tavernikof/NoAssTavern/commit/b216c2dce0c9a18ed0803140eae4f8f35e1b0968))
+
 ## [2.13.2](https://github.com/Tavernikof/NoAssTavern/compare/v2.13.1...v2.13.2) (2026-11-02)
 
 
