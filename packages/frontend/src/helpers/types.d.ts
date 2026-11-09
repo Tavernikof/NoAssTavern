@@ -16,7 +16,15 @@ type ChatSwipePromptResult = {
   message: string;
   preparedMessage?: string;
   error?: string | null;
+  files?: ChatMessageFile[];
 } & Record<string, any>
+
+type ChatMessageFile = {
+  fileId: string,
+  name: string,
+  mimeType: string,
+  size: number,
+}
 
 type ChatSwipe = {
   createdAt: Date,
@@ -72,7 +80,14 @@ type PresetPrompt = PresetPromptBlock[]
 
 type PresetPromptBlock = {
   role: import("src/enums/ChatManagerRole.ts").ChatMessageRole,
-  content: string
+  content: string,
+  files?: PresetPromptFile[],
+}
+
+type PresetPromptFile = {
+  name: string,
+  mimeType: string,
+  data: string, // base64 without data-url prefix
 }
 
 type PresetVar = (rawArgument: string) => string | Promise<string> | undefined

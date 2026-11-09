@@ -127,6 +127,27 @@ export class FilesManager {
     const item = await filesStorage.getItem(id);
     return item ? item.file.text() : "";
   }
+
+  async getFileBlob(id: string): Promise<Blob | null> {
+    if (globalSettings.isBackendEnabled) {
+      const response = await fetch(this.formatBackendFileUrl(id));
+      return response.ok ? response.blob() : null;
+    }
+    const item = await filesStorage.getItem(id);
+    return item?.file ?? null;
+  }
+
+  async getFileBase64(id: string): Promise<string> {
+    const blob = await this.getFileBlob(id);
+    if (!blob) return "";
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    return dataUrl.slice(dataUrl.indexOf(",") + 1);
+  }
 }
 
 export const filesManager = new FilesManager();

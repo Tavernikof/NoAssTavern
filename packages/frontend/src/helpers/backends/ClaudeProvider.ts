@@ -1,4 +1,5 @@
 import { BaseBackendProvider, ResponseParserMessage } from "src/helpers/backends/BaseBackendProvider.ts";
+import { extractTextContent, toClaudeMessages } from "src/helpers/backends/promptFiles.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import { stripLastSlash } from "src/helpers/stripLastSlash.ts";
@@ -177,7 +178,7 @@ class ClaudeProvider extends BaseBackendProvider {
 
     let requestBody = {
       max_tokens: maxOutputTokens,
-      messages: messages,
+      messages: toClaudeMessages(messages),
       model: model,
       stop_sequences: stream && clientOnlyStop ? undefined : stop,
       stream: stream,
@@ -312,7 +313,10 @@ class ClaudeProvider extends BaseBackendProvider {
   // ============================================================================
 
   getRequestMessages(request: Record<string, any>): PresetPrompt {
-    return request.messages;
+    return (request.messages as { role: PresetPromptBlock["role"], content: unknown }[]).map(message => ({
+      role: message.role,
+      content: extractTextContent(message.content),
+    }));
   }
 }
 

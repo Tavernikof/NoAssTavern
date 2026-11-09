@@ -58,6 +58,12 @@ class AssistantMessageStorage extends BaseStorage<AssistantMessageStorageItem> {
             filesStorage.removeItem(image.imageId);
           }
         }
+        const files = swipe.prompts[promptKey].files;
+        if (Array.isArray(files)) {
+          for (const file of files) {
+            filesStorage.removeItem(file.fileId);
+          }
+        }
       }
     });
     return super.removeItem(id);

@@ -1,4 +1,5 @@
 import { BaseBackendProvider } from "src/helpers/backends/BaseBackendProvider.ts";
+import { extractTextContent, toOpenaiMessages } from "src/helpers/backends/promptFiles.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { ConnectionProxy } from "src/store/ConnectionProxy.ts";
 import { AxiosError, AxiosResponse } from "axios";
@@ -11,7 +12,7 @@ import { backendManager } from "src/store/BackendManager.ts";
 
 //https://platform.openai.com/docs/api-reference/chat/create
 type OpenaiRequest = {
-  messages: { role: "developer" | "system" | "user" | "assistant", content: string | string[], name?: string }[];
+  messages: { role: "developer" | "system" | "user" | "assistant", content: string | string[] | Record<string, unknown>[], name?: string }[];
   model: string;
   audio?: { format: string, voice: string };
   frequency_penalty?: number; // -2.0 ... 2.0
@@ -166,7 +167,7 @@ class OpenaiProvider extends BaseBackendProvider {
 
     let requestBody: OpenaiRequest = {
       max_completion_tokens: maxOutputTokens,
-      messages: messages,
+      messages: toOpenaiMessages(messages) as OpenaiRequest["messages"],
       model: model,
       stop: stream && clientOnlyStop ? undefined : stop,
       stream: stream,
@@ -299,7 +300,10 @@ class OpenaiProvider extends BaseBackendProvider {
   // ============================================================================
 
   getRequestMessages(request: Record<string, any>): PresetPrompt {
-    return request.messages;
+    return (request.messages as { role: PresetPromptBlock["role"], content: unknown }[]).map(message => ({
+      role: message.role,
+      content: extractTextContent(message.content),
+    }));
   }
 }
 

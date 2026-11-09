@@ -6,6 +6,17 @@
 
   padding: 8px;
   padding-top: 0;
+  border-radius: 8px;
+  @include anim();
+}
+
+.containerDragOver {
+  outline: 2px dashed var(--white50a);
+  outline-offset: -4px;
+}
+
+.inputWrapper {
+  position: relative;
 }
 
 .input {
@@ -14,10 +25,42 @@
   padding-bottom: calc(16px + 32px + 8px);
 }
 
+.fileInput {
+  display: none;
+}
+
+.attachButton {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--white70a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @include anim();
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    color: var(--white100);
+    background: var(--white10a);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
 .submitButton {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: 8px;
+  bottom: 8px;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -32,4 +75,3 @@
     background: var(--white100);
   }
 }
-

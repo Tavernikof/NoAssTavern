@@ -120,6 +120,9 @@ class ChatAssistantMessageStorage extends BaseStorage<ChatAssistantMessageStorag
         if (Array.isArray(prompt?.images)) {
           prompt.images.forEach(image => operations.push(filesStorage.removeItem(image.imageId)));
         }
+        if (Array.isArray(prompt?.files)) {
+          prompt.files.forEach(file => operations.push(filesStorage.removeItem(file.fileId)));
+        }
       });
     });
     await Promise.all(operations);

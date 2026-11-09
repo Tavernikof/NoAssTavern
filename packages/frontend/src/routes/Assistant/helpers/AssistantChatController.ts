@@ -23,12 +23,14 @@ import { prepareMessage } from "src/helpers/prepareMessage.ts";
 import { CodeBlockFunction } from "src/enums/CodeBlockFunction.ts";
 import { openAssistantCodeBlocksModal } from "src/routes/Assistant/components/AssistantCodeBlocksModal";
 import type { PromptCodeBlockStorageItem } from "src/storages/PromptsStorage.ts";
+import { isTextFile } from "src/helpers/fileMimeType.ts";
 
 type CreateAssistantMessageConfig = {
   id?: string,
   assistantChatId?: string,
   date?: Date,
   messages?: string[],
+  files?: ChatMessageFile[],
   role?: import("src/enums/ChatManagerRole.ts").ChatMessageRole
 }
 
@@ -48,6 +50,7 @@ export class AssistantChatController {
   messagesDict: Record<string, AssistantMessageController> = {};
 
   @observable.ref generationSettings: AssistantSettings | null = null;
+  @observable.ref attachedFiles: File[] = [];
 
   private containerElement: HTMLDivElement | null = null;
   private pendingGenerations = new Set<AbortController>();
@@ -139,8 +142,40 @@ export class AssistantChatController {
     }
   }
 
+  @action
+  addAttachedFiles(files: File[]) {
+    if (!files.length) return;
+    this.attachedFiles = [...this.attachedFiles, ...files];
+  }
+
+  @action
+  removeAttachedFile(index: number) {
+    this.attachedFiles = this.attachedFiles.filter((_, i) => i !== index);
+  }
+
+  @action
+  clearAttachedFiles() {
+    this.attachedFiles = [];
+  }
+
+  private async saveAttachedFiles(files: File[]): Promise<ChatMessageFile[]> {
+    return Promise.all(files.map(async file => {
+      const mimeType = file.type || "application/octet-stream";
+      return {
+        fileId: await filesManager.saveBlob(file, file.name, mimeType),
+        name: file.name,
+        mimeType,
+        size: file.size,
+      };
+    }));
+  }
+
   async submitMessage(message: string) {
-    if (!message || !this.generationSettings) return;
+    const attachedFiles = this.attachedFiles;
+    if ((!message && !attachedFiles.length) || !this.generationSettings) return;
+    this.clearAttachedFiles();
+    const files = attachedFiles.length ? await this.saveAttachedFiles(attachedFiles) : undefined;
+    const chatName = (message || attachedFiles[0]?.name || "").slice(0, 50);
     let assistantChatId = this.assistantChatId;
     const shouldCreateChat = !this.assistantChatId;
 
@@ -150,13 +185,13 @@ export class AssistantChatController {
         await this.parentChatController.chat.addAssistantChat({
           id: assistantChatId,
           createdAt: new Date(),
-          name: message.slice(0, 50),
+          name: chatName,
         });
       } else {
         const assistantChat = new AssistantChat({
           id: assistantChatId,
           createdAt: new Date(),
-          name: message.slice(0, 50),
+          name: chatName,
           generationSettings: this.generationSettings,
         }, { isNew: true });
 
@@ -167,6 +202,7 @@ export class AssistantChatController {
     if (!assistantChatId) return;
     await this.createMessage({
       messages: [message],
+      files,
       assistantChatId,
       role: ChatMessageRole.USER,
     });
@@ -187,14 +223,16 @@ export class AssistantChatController {
       assistantChatId = this.assistantChatId,
       date = new Date(),
       messages = [""],
+      files,
       role = ChatMessageRole.ASSISTANT,
     } = config;
     if (!assistantChatId) return;
-    const swipes = await Promise.all(messages.map(async message => ({
+    const swipes = await Promise.all(messages.map(async (message, index) => ({
       createdAt: date,
       prompts: {
         [ChatSwipePrompt.message]: {
           message,
+          ...(index === 0 && files?.length ? { files } : {}),
           preparedMessage: role === ChatMessageRole.USER && this.parentChatController
             ? await prepareMessage(message, this.parentChatController.getPresetVars())
             : undefined,
@@ -253,14 +291,10 @@ export class AssistantChatController {
     this.messagesDict[targetMessageId].setPending(true);
     let lastUpdateId = 0;
 
-    const data: BackendProviderGenerateConfig<PromptGenerationConfig> = {
+    const data: Omit<BackendProviderGenerateConfig<PromptGenerationConfig>, "messages"> = {
       baseUrl: connectionProxy?.baseUrl,
       key: connectionProxy?.key,
       model: model,
-      messages: messages.map(m => ({
-        role: m.role,
-        content: m.message.preparedMessage ?? m.message.message,
-      })),
       generationConfig,
       onUpdate: async (data) => {
         const updateId = ++lastUpdateId;
@@ -285,7 +319,23 @@ export class AssistantChatController {
       abortController: abortController,
     };
 
-    return backendProvider.generate(data).then(async response => {
+    const generation = this.buildPromptMessages(messages).then(
+      (promptMessages) => {
+        const config: BackendProviderGenerateConfig<PromptGenerationConfig> = { ...data, messages: promptMessages };
+        return backendProvider.generate(config);
+      },
+      (e): BackendProviderGenerateResponse => ({
+        message: "",
+        reasoning: "",
+        error: e instanceof Error ? e.message : String(e),
+        inputTokens: 0,
+        outputTokens: 0,
+        url: "",
+        request: {},
+      }),
+    );
+
+    return generation.then(async response => {
       abortController.abort();
       let message = response.message;
       let error = response.error;
@@ -312,6 +362,35 @@ export class AssistantChatController {
 
       if (!globalSettings.pageActive) globalSettings.playNotificationAudio();
     });
+  }
+
+  private buildPromptMessages(messages: AssistantMessageController[]): Promise<PresetPrompt> {
+    return Promise.all(messages.map(async (m): Promise<PresetPromptBlock> => {
+      let content = m.message.preparedMessage ?? m.message.message;
+      const files = m.message.files;
+      if (!files?.length) return { role: m.role, content };
+
+      const binaryFiles: PresetPromptFile[] = [];
+      const textParts: string[] = [];
+      for (const file of files) {
+        if (isTextFile(file.mimeType, file.name)) {
+          const text = await filesManager.getFileText(file.fileId);
+          textParts.push(`<file name="${file.name}">\n${text}\n</file>`);
+        } else {
+          binaryFiles.push({
+            name: file.name,
+            mimeType: file.mimeType,
+            data: await filesManager.getFileBase64(file.fileId),
+          });
+        }
+      }
+      if (textParts.length) content = [...textParts, content].filter(Boolean).join("\n\n");
+      return {
+        role: m.role,
+        content,
+        ...(binaryFiles.length ? { files: binaryFiles } : {}),
+      };
+    }));
   }
 
   cancelAllRequests() {

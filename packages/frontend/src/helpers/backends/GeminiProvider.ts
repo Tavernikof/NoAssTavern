@@ -1,4 +1,5 @@
 import { BaseBackendProvider, ResponseParserMessage } from "src/helpers/backends/BaseBackendProvider.ts";
+import { extractTextContent, toGeminiParts } from "src/helpers/backends/promptFiles.ts";
 import { globalSettings } from "src/store/GlobalSettings.ts";
 import { ChatMessageRole } from "src/enums/ChatManagerRole.ts";
 import { AxiosError, AxiosResponse } from "axios";
@@ -150,7 +151,7 @@ class GeminiProvider extends BaseBackendProvider {
     let requestBody = {
       contents: messages.map(block => ({
         role: block.role === ChatMessageRole.ASSISTANT ? "model" : "user",
-        parts: [{ text: block.content }],
+        parts: toGeminiParts(block),
       })),
       systemInstruction: system ? { parts: { text: system } } : undefined,
       generationConfig: {
@@ -300,9 +301,11 @@ class GeminiProvider extends BaseBackendProvider {
   // ============================================================================
 
   getRequestMessages(request: Record<string, any>): PresetPrompt {
-    return (request.contents as { role: string, parts: { text: string }[] }[]).map(content => ({
+    return (request.contents as { role: string, parts: { text?: string }[] }[]).map(content => ({
       role: content.role as ChatMessageRole,
-      content: content.parts[0].text,
+      content: extractTextContent(content.parts.map(part => typeof part.text === "string"
+        ? { type: "text", text: part.text }
+        : { type: "image" })),
     }));
   }
 }
